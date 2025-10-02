@@ -1,3 +1,4 @@
+import 'package:analyzer/core/routes/app_routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import '../../../domain/entities/user_entity.dart';
@@ -61,6 +62,7 @@ class AuthController extends GetxController {
       await registerUser(email, password, name);
       Get.snackbar('Success', 'Account created successfully!',
           snackPosition: SnackPosition.BOTTOM);
+      Get.offNamed(AppRoutes.parameterSetup);
     } on FirebaseAuthException catch (e) {
       String message = 'Registration failed';
       if (e.code == 'weak-password') {

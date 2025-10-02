@@ -1,0 +1,29 @@
+import 'package:get/get.dart';
+import '../../data/repositories/parameter_repository_impl.dart';
+import '../../domain/repositories/parameter_repository.dart';
+import '../../domain/usecases/parameter_usecases.dart';
+import '../../presentation/controllers/parameter_controller.dart';
+
+class HomeBinding extends Bindings {
+  @override
+  void dependencies() {
+    // Repositories
+    Get.put<ParameterRepository>(ParameterRepositoryImpl());
+    
+    // Use Cases
+    Get.put<GetParameters>(GetParameters(Get.find<ParameterRepository>()));
+    Get.put<AddParameter>(AddParameter(Get.find<ParameterRepository>()));
+    Get.put<UpdateParameter>(UpdateParameter(Get.find<ParameterRepository>()));
+    Get.put<DeleteParameter>(DeleteParameter(Get.find<ParameterRepository>()));
+    
+    // Controllers
+    Get.put<ParameterController>(
+      ParameterController(
+        getParameters: Get.find<GetParameters>(),
+        addParameter: Get.find<AddParameter>(),
+        updateParameter: Get.find<UpdateParameter>(),
+        deleteParameter: Get.find<DeleteParameter>(),
+      ),
+    );
+  }
+}
