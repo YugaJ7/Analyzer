@@ -61,6 +61,7 @@ class LoginScreen extends GetView<AuthController> {
                     icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                     focusBorderColor: AppColors.primary,
+                    hint: "",
                   ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2, end: 0),
                   const SizedBox(height: 20),
                   Obx(
@@ -71,6 +72,7 @@ class LoginScreen extends GetView<AuthController> {
                       icon: Icons.lock_outline,
                       obscureText: obscurePassword.value,
                       focusBorderColor: AppColors.primary,
+                      hint: "",
                       suffixIcon: IconButton(
                         icon: Icon(
                           obscurePassword.value

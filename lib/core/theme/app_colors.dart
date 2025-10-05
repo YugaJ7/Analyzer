@@ -10,7 +10,7 @@ class AppColors {
   static const Color warning = Color(0xFFFFA726);
   
   static const Color textPrimary = Colors.white;
-  static final Color textSecondary = Colors.white.withValues(alpha: 0.6);
+  static final Color textSecondary = Colors.white.withValues(alpha: 0.5);
   static final Color textTertiary = Colors.white.withValues(alpha: 0.3);
   
   static final Color cardOverlay = surface.withValues(alpha: 0.5);

@@ -9,7 +9,10 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final Widget? suffixIcon;
   final FormFieldValidator<String>? validator;
-  final Color? focusBorderColor;
+  final Color focusBorderColor;
+  final String hint;
+  final int? maxLines;
+  final Color? fillColor;
 
   const CustomTextField({
     super.key,
@@ -21,6 +24,9 @@ class CustomTextField extends StatelessWidget {
     this.suffixIcon,
     this.validator,
     required this.focusBorderColor,
+    required this.hint,
+    this.maxLines,
+    this.fillColor
   });
 
   @override
@@ -30,21 +36,24 @@ class CustomTextField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
+      maxLines: maxLines ?? 1,
       style: const TextStyle(color: AppColors.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: AppColors.textSecondary),
         prefixIcon: Icon(icon, color: focusBorderColor),
         suffixIcon: suffixIcon,
+        hint: Text(hint),
+        hintStyle: TextStyle(color: AppColors.textTertiary),
         filled: true,
-        fillColor: AppColors.surface.withValues(alpha: 0.5),
+        fillColor: fillColor ?? AppColors.surface.withValues(alpha: 0.5),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: AppColors.borderColor, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: focusBorderColor!, width: 1.5),
+          borderSide: BorderSide(color: focusBorderColor, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
