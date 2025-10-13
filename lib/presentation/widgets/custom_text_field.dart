@@ -41,15 +41,17 @@ class CustomTextField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: AppColors.textSecondary),
-        prefixIcon: Icon(icon, color: focusBorderColor),
+        prefixIcon: icon != null
+            ? Icon(icon, color: focusBorderColor)
+            : null,
         suffixIcon: suffixIcon,
-        hint: Text(hint),
-        hintStyle: TextStyle(color: AppColors.textTertiary),
+        hintText: hint,
+        hintStyle: TextStyle(color: AppColors.textSecondary),
         filled: true,
         fillColor: fillColor ?? AppColors.surface.withValues(alpha: 0.5),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.borderColor, width: 1),
+          borderSide: BorderSide(color: AppColors.borderColorPrimary, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -57,11 +59,11 @@ class CustomTextField extends StatelessWidget {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.red, width: 1.5),
+          borderSide: BorderSide(color: AppColors.warning, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.red, width: 1.5),
+          borderSide: BorderSide(color: AppColors.warning, width: 1.5),
         ),
         errorStyle: const TextStyle(
           color: Colors.redAccent,
