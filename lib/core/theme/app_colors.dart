@@ -7,12 +7,22 @@ class AppColors {
   static const Color secondary = Color(0xFF4ECDC4);
   static const Color error = Color(0xFFFF6B6B);
   static const Color success = Color(0xFF4CAF50);
-  static const Color warning = Color(0xFFFFA726);
+  static const Color warning = Color(0xFFF44336);
   
   static const Color textPrimary = Colors.white;
   static final Color textSecondary = Colors.white.withValues(alpha: 0.5);
   static final Color textTertiary = Colors.white.withValues(alpha: 0.3);
   
   static final Color cardOverlay = surface.withValues(alpha: 0.5);
-  static final Color borderColor = Colors.white.withValues(alpha: 0.1);
+  static final Color borderColorPrimary = Colors.white.withValues(alpha: 0.1);
+  static final Color borderColorSecondary = Colors.white.withValues(alpha: 0.1);
+
+  static final List<Map<String, dynamic>> availableColors = [
+    {'color': 0xFF6C63FF, 'name': 'Purple'},
+    {'color': 0xFF4ECDC4, 'name': 'Teal'},
+    {'color': 0xFFFF6B6B, 'name': 'Red'},
+    {'color': 0xFF4CAF50, 'name': 'Green'},
+    {'color': 0xFFFFA726, 'name': 'Orange'},
+    {'color': 0xFF42A5F5, 'name': 'Blue'},
+  ];
 }
