@@ -40,17 +40,16 @@ class AuthController extends GetxController {
       await loginUser(email, password);
       Get.snackbar('Success', 'Welcome back!',
           snackPosition: SnackPosition.BOTTOM);
-    } on FirebaseAuthException catch (e) {
+    } catch (e) {
       String message = 'Login failed';
-      if (e.code == 'user-not-found') {
-        message = 'No user found with this email';
-      } else if (e.code == 'wrong-password') {
-        message = 'Incorrect password';
+      if (e.toString().contains('internal error')) {
+        message = 'Check your internet connection';
+      } else if (e.toString().contains('invalid-credential')) {
+        message = 'Incorrect user credentials';
+      } else if (e.toString().contains('too-many-requests')) {
+        message = 'Too many login attempts. Please try again later.';
       }
       Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM);
-    } catch (e) {
-      Get.snackbar('Error', 'An error occurred',
-          snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
     }

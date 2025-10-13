@@ -76,9 +76,7 @@ class ParameterRepositoryImpl implements ParameterRepository {
         final data = doc.data() as Map<String, dynamic>;
         final userId = data['userId'];
 
-        await _firestore.collection('parameters').doc(id).update({
-          'isActive': false,
-        });
+        await _firestore.collection('parameters').doc(id).delete();
 
         await _firestore.collection('users').doc(userId).update({
           'parameterIds': FieldValue.arrayRemove([id]),

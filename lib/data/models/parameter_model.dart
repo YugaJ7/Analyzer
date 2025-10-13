@@ -107,3 +107,31 @@ class ParameterModel extends ParameterEntity {
     );
   }
 }
+
+// Extension for local updates
+extension ParameterModelCopy on ParameterModel {
+  ParameterModel copyWithFromMap(Map<String, dynamic> updates) {
+    return ParameterModel(
+      id: updates['id'] ?? id,
+      userId: userId,
+      name: updates['name'] ?? name,
+      description: updates['description'] ?? description,
+      type: updates['type'] != null
+          ? ParameterType.values.firstWhere(
+              (e) => e.toString() == 'ParameterType.${updates['type']}',
+              orElse: () => type,
+            )
+          : type,
+      order: updates['order'] ?? order,
+      isActive: updates['isActive'] ?? isActive,
+      minValue: updates['minValue'] ?? minValue,
+      maxValue: updates['maxValue'] ?? maxValue,
+      checklistItems: updates['checklistItems'] ?? checklistItems,
+      options: updates['options'] ?? options,
+      unit: updates['unit'] ?? unit,
+      valueType: updates['valueType'] ?? valueType,
+      icon: updates['icon'] ?? icon,
+      color: updates['color'] ?? color,
+    );
+  }
+}
