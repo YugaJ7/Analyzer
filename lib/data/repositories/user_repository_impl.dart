@@ -7,52 +7,51 @@ class UserRepositoryImpl implements UserRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
-  Future<UserEntity> createUser(String id, String email, String name) async {
-    try {
-      final userModel = UserModel(
-        id: id,
-        email: email,
-        name: name,
-        createdAt: DateTime.now(),
-      );
+  Future<UserEntity> createUser(
+      String id,
+      String email,
+      String name,
+      ) async {
+    final userModel = UserModel(
+      id: id,
+      email: email,
+      name: name,
+      createdAt: DateTime.now(),
+    );
 
-      await _firestore
-          .collection('users')
-          .doc(id)
-          .set(userModel.toFirestore());
+    await _firestore
+        .collection('users')
+        .doc(id)
+        .set(userModel.toFirestore());
 
-      return userModel.toEntity();
-    } catch (e) {
-      throw Exception('Failed to create user: $e');
-    }
+    return userModel.toEntity();
   }
 
   @override
   Future<UserEntity?> getUser(String id) async {
-    try {
-      final doc = await _firestore.collection('users').doc(id).get();
-      if (!doc.exists) return null;
-      return UserModel.fromFirestore(doc).toEntity();
-    } catch (e) {
-      throw Exception('Failed to get user: $e');
-    }
+    final doc = await _firestore
+        .collection('users')
+        .doc(id)
+        .get();
+
+    if (!doc.exists) return null;
+
+    return UserModel.fromFirestore(doc).toEntity();
   }
 
   @override
   Future<void> updateUser(String id, Map<String, dynamic> data) async {
-    try {
-      await _firestore.collection('users').doc(id).update(data);
-    } catch (e) {
-      throw Exception('Failed to update user: $e');
-    }
+    await _firestore
+        .collection('users')
+        .doc(id)
+        .update(data);
   }
 
   @override
   Future<void> deleteUser(String id) async {
-    try {
-      await _firestore.collection('users').doc(id).delete();
-    } catch (e) {
-      throw Exception('Failed to delete user: $e');
-    }
+    await _firestore
+        .collection('users')
+        .doc(id)
+        .delete();
   }
 }

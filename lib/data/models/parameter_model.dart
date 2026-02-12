@@ -2,9 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/parameter_entity.dart';
 
 class ParameterModel extends ParameterEntity {
-  ParameterModel({
+  const ParameterModel({
     required super.id,
     required super.userId,
+    required super.createdAt,
     required super.name,
     super.description,
     required super.type,
@@ -24,6 +25,7 @@ class ParameterModel extends ParameterEntity {
     return ParameterModel(
       id: entity.id,
       userId: entity.userId,
+      createdAt: entity.createdAt,
       name: entity.name,
       description: entity.description,
       type: entity.type,
@@ -40,15 +42,19 @@ class ParameterModel extends ParameterEntity {
     );
   }
 
-  factory ParameterModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+  factory ParameterModel.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> doc,
+      String userId,
+      ) {
+    final data = doc.data()!;
     return ParameterModel(
       id: doc.id,
-      userId: data['userId'] ?? '',
+      userId: userId,
+      createdAt: (data['createdAt'] as Timestamp).toDate(),
       name: data['name'] ?? '',
       description: data['description'],
       type: ParameterType.values.firstWhere(
-        (e) => e.toString() == 'ParameterType.${data['type']}',
+            (e) => e.name == data['type'],
         orElse: () => ParameterType.scale,
       ),
       order: data['order'] ?? 0,
@@ -58,8 +64,8 @@ class ParameterModel extends ParameterEntity {
       checklistItems: data['checklistItems'] != null
           ? List<String>.from(data['checklistItems'])
           : null,
-      options: data['options'] != null 
-          ? List<String>.from(data['options']) 
+      options: data['options'] != null
+          ? List<String>.from(data['options'])
           : null,
       unit: data['unit'],
       valueType: data['valueType'],
@@ -70,10 +76,10 @@ class ParameterModel extends ParameterEntity {
 
   Map<String, dynamic> toFirestore() {
     return {
-      'userId': userId,
+      'createdAt': Timestamp.fromDate(createdAt),
       'name': name,
       'description': description,
-      'type': type.toString().split('.').last,
+      'type': type.name,
       'order': order,
       'isActive': isActive,
       'minValue': minValue,
@@ -87,51 +93,5 @@ class ParameterModel extends ParameterEntity {
     };
   }
 
-  ParameterEntity toEntity() {
-    return ParameterEntity(
-      id: id,
-      userId: userId,
-      name: name,
-      description: description,
-      type: type,
-      order: order,
-      isActive: isActive,
-      minValue: minValue,
-      maxValue: maxValue,
-      checklistItems: checklistItems,
-      options: options,
-      unit: unit,
-      valueType: valueType,
-      icon: icon,
-      color: color,
-    );
-  }
-}
-
-// Extension for local updates
-extension ParameterModelCopy on ParameterModel {
-  ParameterModel copyWithFromMap(Map<String, dynamic> updates) {
-    return ParameterModel(
-      id: updates['id'] ?? id,
-      userId: userId,
-      name: updates['name'] ?? name,
-      description: updates['description'] ?? description,
-      type: updates['type'] != null
-          ? ParameterType.values.firstWhere(
-              (e) => e.toString() == 'ParameterType.${updates['type']}',
-              orElse: () => type,
-            )
-          : type,
-      order: updates['order'] ?? order,
-      isActive: updates['isActive'] ?? isActive,
-      minValue: updates['minValue'] ?? minValue,
-      maxValue: updates['maxValue'] ?? maxValue,
-      checklistItems: updates['checklistItems'] ?? checklistItems,
-      options: updates['options'] ?? options,
-      unit: updates['unit'] ?? unit,
-      valueType: updates['valueType'] ?? valueType,
-      icon: updates['icon'] ?? icon,
-      color: updates['color'] ?? color,
-    );
-  }
+  ParameterEntity toEntity() => this;
 }

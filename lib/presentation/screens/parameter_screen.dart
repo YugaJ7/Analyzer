@@ -1,5 +1,6 @@
 import 'package:analyzer/core/routes/app_routes.dart';
 import 'package:analyzer/domain/entities/parameter_entity.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
@@ -99,6 +100,7 @@ class ParameterSetupScreen extends GetView<ParameterController> {
             final paramWithOrder = ParameterEntity(
               id: param.id,
               userId: param.userId,
+              createdAt: param.createdAt,
               name: param.name,
               description: param.description,
               type: param.type,
@@ -134,17 +136,47 @@ class ParameterSetupScreen extends GetView<ParameterController> {
         child: ParameterFormDialog(
           parameter: param,
           onSave: (updatedParam) async {
-            final updates = {
+            final updates = <String, dynamic>{
               'name': updatedParam.name,
               'description': updatedParam.description,
               'type': updatedParam.type.toString().split('.').last,
-              'minValue': updatedParam.minValue,
-              'maxValue': updatedParam.maxValue,
-              'checklistItems': updatedParam.checklistItems,
-              'options': updatedParam.options,
-              'unit': updatedParam.unit,
               'color': updatedParam.color,
             };
+
+            switch (updatedParam.type) {
+              case ParameterType.scale:
+                updates['minValue'] = updatedParam.minValue;
+                updates['maxValue'] = updatedParam.maxValue;
+                updates['checklistItems'] = FieldValue.delete();
+                updates['options'] = FieldValue.delete();
+                updates['unit'] = FieldValue.delete();
+                updates['valueType'] = FieldValue.delete();
+                break;
+              case ParameterType.checklist:
+                updates['checklistItems'] = updatedParam.checklistItems;
+                updates['minValue'] = FieldValue.delete();
+                updates['maxValue'] = FieldValue.delete();
+                updates['options'] = FieldValue.delete();
+                updates['unit'] = FieldValue.delete();
+                updates['valueType'] = FieldValue.delete();
+                break;
+              case ParameterType.optionSelector:
+                updates['options'] = updatedParam.options;
+                updates['minValue'] = FieldValue.delete();
+                updates['maxValue'] = FieldValue.delete();
+                updates['checklistItems'] = FieldValue.delete();
+                updates['unit'] = FieldValue.delete();
+                updates['valueType'] = FieldValue.delete();
+                break;
+              case ParameterType.value:
+                updates['unit'] = updatedParam.unit;
+                updates['valueType'] = updatedParam.valueType;
+                updates['minValue'] = FieldValue.delete();
+                updates['maxValue'] = FieldValue.delete();
+                updates['checklistItems'] = FieldValue.delete();
+                updates['options'] = FieldValue.delete();
+                break;
+            }
 
             await controller.updateExistingParameter(param.id, updates);
             Get.back();

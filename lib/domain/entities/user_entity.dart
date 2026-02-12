@@ -3,13 +3,25 @@ class UserEntity {
   final String email;
   final String name;
   final DateTime createdAt;
-  final List<String> parameterIds;
 
-  UserEntity({
+  const UserEntity({
     required this.id,
     required this.email,
     required this.name,
     required this.createdAt,
-    this.parameterIds = const [],
   });
+
+  UserEntity copyWith({
+    String? id,
+    String? email,
+    String? name,
+    DateTime? createdAt,
+  }) {
+    return UserEntity(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      name: name ?? this.name,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

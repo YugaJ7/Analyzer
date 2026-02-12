@@ -9,7 +9,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final Widget? suffixIcon;
   final FormFieldValidator<String>? validator;
-  final Color focusBorderColor;
+  final Color? focusBorderColor;
   final String hint;
   final int? maxLines;
   final Color? fillColor;
@@ -23,7 +23,7 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType,
     this.suffixIcon,
     this.validator,
-    required this.focusBorderColor,
+    this.focusBorderColor,
     required this.hint,
     this.maxLines,
     this.fillColor
@@ -42,7 +42,7 @@ class CustomTextField extends StatelessWidget {
         labelText: label,
         labelStyle: TextStyle(color: AppColors.textSecondary),
         prefixIcon: icon != null
-            ? Icon(icon, color: focusBorderColor)
+            ? Icon(icon, color: focusBorderColor ?? AppColors.primary)
             : null,
         suffixIcon: suffixIcon,
         hintText: hint,
@@ -55,7 +55,7 @@ class CustomTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: focusBorderColor, width: 1.5),
+          borderSide: BorderSide(color: focusBorderColor ?? AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

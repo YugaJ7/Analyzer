@@ -14,11 +14,13 @@ String getTypeLabel(ParameterType type) {
     }
   }
 
-  Color getColorForParam(String? colorStr) {
-    if (colorStr == null) return const Color(0xFF6C63FF);
+  Color getColorForParam(int? colorValue) {
+    if (colorValue == null) {
+      return const Color(0xFF6C63FF);
+    }
     try {
-      return Color(int.parse(colorStr));
-    } catch (e) {
+      return Color(colorValue);
+    } catch (_) {
       return const Color(0xFF6C63FF);
     }
   }

@@ -27,7 +27,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
   late List<String> checklistItems;
   late List<String> options;
   late TextEditingController unitController;
-  late String selectedColor;
+  late Color selectedColor;
 
   @override
   void initState() {
@@ -40,7 +40,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
     checklistItems = widget.parameter?.checklistItems ?? [''];
     options = widget.parameter?.options ?? [''];
     unitController = TextEditingController(text: widget.parameter?.unit ?? '');
-    selectedColor = widget.parameter?.color ?? '0xFF6C63FF';
+    selectedColor = Color(widget.parameter?.color ?? 0xFF6C63FF);
   }
 
   @override
@@ -127,9 +127,29 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                         if (_formKey.currentState!.validate()) {
                           // --- Proceed to save ---
                           final currentUser = FirebaseAuth.instance.currentUser;
+                          if (currentUser == null) {
+                            Get.snackbar(
+                              'Error',
+                              'You must be signed in to save parameters',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                            return;
+                          }
+
+                          final cleanedChecklist = checklistItems
+                              .map((e) => e.trim())
+                              .where((e) => e.isNotEmpty)
+                              .toList();
+                          final cleanedOptions = options
+                              .map((e) => e.trim())
+                              .where((e) => e.isNotEmpty)
+                              .toList();
+                          final trimmedUnit = unitController.text.trim();
                           final parameter = ParameterEntity(
                             id: widget.parameter?.id ?? '',
                             userId: currentUser!.uid,
+                            createdAt: DateTime.now(),
+
                             name: nameController.text.trim(),
                             description:
                                 descriptionController.text.trim().isEmpty
@@ -145,19 +165,21 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                                 : null,
                             checklistItems:
                                 selectedType == ParameterType.checklist
-                                ? checklistItems
+                                ? (cleanedChecklist.isEmpty
+                                    ? null
+                                    : cleanedChecklist)
                                 : null,
                             options:
                                 selectedType == ParameterType.optionSelector
-                                ? options
+                                ? (cleanedOptions.isEmpty ? null : cleanedOptions)
                                 : null,
                             unit: selectedType == ParameterType.value
-                                ? unitController.text.trim()
+                                ? (trimmedUnit.isEmpty ? null : trimmedUnit)
                                 : null,
                             valueType: selectedType == ParameterType.value
                                 ? 'number'
                                 : null,
-                            color: selectedColor,
+                            color: selectedColor.value,
                           );
                           await widget.onSave(parameter);
                           Get.back();
@@ -428,21 +450,17 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
       spacing: 18,
       runSpacing: 12,
       children: AppColors.availableColors.map((colorData) {
-        final isSelected =
-            selectedColor ==
-            '0x${colorData['color'].toRadixString(16).toUpperCase()}';
+        final color = Color(colorData['color'] as int);
+        final isSelected = selectedColor.value == color.value;
         return GestureDetector(
           onTap: () {
-            setState(
-              () => selectedColor =
-                  '0x${colorData['color'].toRadixString(16).toUpperCase()}',
-            );
+            setState(() => selectedColor = color);
           },
           child: Container(
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: Color(colorData['color']),
+              color: color,
               shape: BoxShape.circle,
               border: Border.all(
                 color: isSelected ? Colors.white : Colors.transparent,

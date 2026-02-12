@@ -1,10 +1,9 @@
-import 'package:analyzer/data/models/parameter_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get/get.dart';
 import '../../domain/entities/parameter_entity.dart';
 import '../../domain/usecases/parameter_usecases.dart';
+import '../../data/models/parameter_model.dart';
 
 class ParameterController extends GetxController {
   final GetParameters getParameters;
@@ -21,103 +20,85 @@ class ParameterController extends GetxController {
 
   final RxList<ParameterModel> parameters = <ParameterModel>[].obs;
 
+  late final String userId;
+
+  /// 🔥 In-memory cache
+  final Map<String, ParameterModel> _cache = {};
+
   @override
   void onInit() {
     super.onInit();
-    _initParameterListener();
+    userId = FirebaseAuth.instance.currentUser!.uid;
+    _listen();
   }
 
-  void _initParameterListener() {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    FirebaseFirestore.instance
-        .collection('parameters')
-        .where('userId', isEqualTo: userId)
-        .where('isActive', isEqualTo: true)
-        .orderBy('order')
-        .snapshots()
-        .listen((snapshot) {
-      parameters.value = snapshot.docs
-          .map((doc) => ParameterModel.fromFirestore(doc))
-          .toList();
+  void _listen() {
+    getParameters.repository
+        .watchParameters(userId)
+        .listen((list) {
+      final models =
+          list.map((e) => ParameterModel.fromEntity(e)).toList();
+
+      parameters.value = models;
+
+      /// 🔥 Update cache
+      _cache.clear();
+      for (var p in models) {
+        _cache[p.id] = p;
+      }
     });
   }
 
-  /// Add a new parameter with optimistic UI update
+  /// 🔥 Instant read from memory
+  ParameterModel? getFromCache(String id) {
+    return _cache[id];
+  }
+
   Future<void> addNewParameter(ParameterEntity parameter) async {
-    try {
-      // Temporary key for UI
-      final tempId = parameter.id.isNotEmpty ? parameter.id : UniqueKey().toString();
-      final tempParam = ParameterModel.fromEntity(parameter).copyWithFromMap({'id': tempId});
+    final added = await addParameter(parameter);
+    final model = ParameterModel.fromEntity(added);
 
-      // Optimistic add
-      parameters.add(tempParam);
-
-      // Add to Firestore
-      final added = await addParameter(parameter);
-
-      // Replace temporary item with Firestore ID
-      final index = parameters.indexWhere((p) => p.id == tempId);
-      if (index != -1) {
-        parameters[index] = ParameterModel.fromEntity(added);
-      }
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to add parameter: $e', snackPosition: SnackPosition.BOTTOM);
-      rethrow;
-    }
+    parameters.add(model);
+    _cache[model.id] = model;
   }
 
-  /// Update existing parameter with local update
-  Future<void> updateExistingParameter(String id, Map<String, dynamic> updates) async {
-    try {
-      await updateParameter(id, updates);
-
-      final index = parameters.indexWhere((p) => p.id == id);
-      if (index != -1) {
-        parameters[index] = parameters[index].copyWithFromMap(updates);
-      }
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to update parameter: $e', snackPosition: SnackPosition.BOTTOM);
-      rethrow;
-    }
+  Future<void> updateExistingParameter(
+    String id,
+    Map<String, dynamic> updates,
+  ) async {
+    await updateParameter(userId, id, updates);
   }
 
-  /// Delete parameter with hard delete
   Future<void> deleteExistingParameter(String id) async {
-    try {
-      
-      // Optimistically remove locally
-      parameters.removeWhere((p) => p.id == id);
-      Get.snackbar('Success', 'Parameter deleted', snackPosition: SnackPosition.BOTTOM);
-      // Firestore hard delete
-      await deleteParameter(id);
-      
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to delete parameter: $e', snackPosition: SnackPosition.BOTTOM);
-    }
+    await deleteParameter(userId, id);
+    parameters.removeWhere((p) => p.id == id);
+    _cache.remove(id);
   }
 
-  /// Reorder parameters with batch Firestore update
   Future<void> reorderParameters(int oldIndex, int newIndex) async {
     if (newIndex > oldIndex) newIndex--;
 
     final item = parameters.removeAt(oldIndex);
     parameters.insert(newIndex, item);
 
-    // Update local order
     for (int i = 0; i < parameters.length; i++) {
-      parameters[i] = parameters[i].copyWithFromMap({'order': i});
+      parameters[i] =
+          parameters[i].copyWith(order: i) as ParameterModel;
+      _cache[parameters[i].id] = parameters[i];
     }
 
-    try {
-      final batch = FirebaseFirestore.instance.batch();
-      for (final param in parameters) {
-        final docRef = FirebaseFirestore.instance.collection('parameters').doc(param.id);
-        batch.update(docRef, {'order': param.order});
-      }
-      await batch.commit();
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to reorder parameters: $e', snackPosition: SnackPosition.BOTTOM);
+    final batch = FirebaseFirestore.instance.batch();
+
+    for (final param in parameters) {
+      final docRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('parameters')
+          .doc(param.id);
+
+      batch.update(docRef, {'order': param.order});
     }
+
+    await batch.commit();
   }
 }
-

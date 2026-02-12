@@ -33,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
       try {
         final userData = await _userRepo.getUser(user.uid);
 
-        if (userData == null || userData.parameterIds.isEmpty) {
+        if (userData == null ) {
           Get.offAllNamed(AppRoutes.parameterSetup);
         } else {
           Get.offAllNamed(AppRoutes.home);

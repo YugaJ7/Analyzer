@@ -7,7 +7,8 @@ enum ParameterType {
 
 class ParameterEntity {
   final String id;
-  final String userId;
+  final String userId; // still needed for repository path
+  final DateTime createdAt;
   final String name;
   final String? description;
   final ParameterType type;
@@ -20,11 +21,12 @@ class ParameterEntity {
   final String? unit;
   final String? valueType;
   final String? icon;
-  final String? color;
+  final int? color;
 
-  ParameterEntity({
+  const ParameterEntity({
     required this.id,
     required this.userId,
+    required this.createdAt,
     required this.name,
     this.description,
     required this.type,
@@ -39,4 +41,42 @@ class ParameterEntity {
     this.icon,
     this.color,
   });
+
+  ParameterEntity copyWith({
+    String? id,
+    String? userId,
+    DateTime? createdAt,
+    String? name,
+    String? description,
+    ParameterType? type,
+    int? order,
+    bool? isActive,
+    int? minValue,
+    int? maxValue,
+    List<String>? checklistItems,
+    List<String>? options,
+    String? unit,
+    String? valueType,
+    String? icon,
+    int? color,
+  }) {
+    return ParameterEntity(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      createdAt: createdAt ?? this.createdAt,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      type: type ?? this.type,
+      order: order ?? this.order,
+      isActive: isActive ?? this.isActive,
+      minValue: minValue ?? this.minValue,
+      maxValue: maxValue ?? this.maxValue,
+      checklistItems: checklistItems ?? this.checklistItems,
+      options: options ?? this.options,
+      unit: unit ?? this.unit,
+      valueType: valueType ?? this.valueType,
+      icon: icon ?? this.icon,
+      color: color ?? this.color,
+    );
+  }
 }

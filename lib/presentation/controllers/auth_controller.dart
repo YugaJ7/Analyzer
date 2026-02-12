@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:analyzer/core/routes/app_routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -21,14 +23,14 @@ class AuthController extends GetxController {
   final Rx<User?> firebaseUser = Rx<User?>(null);
   final Rx<UserEntity?> currentUser = Rx<UserEntity?>(null);
   final RxBool isLoading = false.obs;
-  final UserRepositoryImpl _userRepo = UserRepositoryImpl();
 
+  final UserRepositoryImpl _userRepo = UserRepositoryImpl();
 
   Future<void> _loadUserData(String uid) async {
     try {
       final user = await _userRepo.getUser(uid);
       currentUser.value = user;
-    } catch (e) {
+    } catch (_) {
       Get.snackbar('Error', 'Failed to load user data',
           snackPosition: SnackPosition.BOTTOM);
     }
@@ -38,29 +40,39 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
       await loginUser(email, password);
+
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+      await _loadUserData(uid);
+
       Get.snackbar('Success', 'Welcome back!',
           snackPosition: SnackPosition.BOTTOM);
+
+      Get.offAllNamed(AppRoutes.home);
     } catch (e) {
-      String message = 'Login failed';
-      if (e.toString().contains('internal error')) {
-        message = 'Check your internet connection';
-      } else if (e.toString().contains('invalid-credential')) {
-        message = 'Incorrect user credentials';
-      } else if (e.toString().contains('too-many-requests')) {
-        message = 'Too many login attempts. Please try again later.';
-      }
-      Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('Error', 'Login failed',
+          snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> register(String email, String password, String name) async {
+  Future<void> register(
+      String email,
+      String password,
+      String name,
+      ) async {
     try {
       isLoading.value = true;
-      await registerUser(email, password, name);
+      log("Starting registration...");
+      final user = await registerUser(email, password, name);
+      log("User created in Firestore");
+
+      currentUser.value = user;
+
+
       Get.snackbar('Success', 'Account created successfully!',
           snackPosition: SnackPosition.BOTTOM);
+
       Get.offNamed(AppRoutes.parameterSetup);
     } on FirebaseAuthException catch (e) {
       String message = 'Registration failed';
@@ -69,9 +81,8 @@ class AuthController extends GetxController {
       } else if (e.code == 'email-already-in-use') {
         message = 'Email already registered';
       }
-      Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM);
-    } catch (e) {
-      Get.snackbar('Error', 'An error occurred',
+
+      Get.snackbar('Error', message,
           snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
@@ -79,23 +90,18 @@ class AuthController extends GetxController {
   }
 
   Future<void> logout() async {
-    try {
-      await logoutUser();
-    } catch (e) {
-      Get.snackbar('Error', 'Logout failed',
-          snackPosition: SnackPosition.BOTTOM);
-    }
+    await logoutUser();
   }
 
   Future<void> updateUserName(String newName) async {
     try {
       isLoading.value = true;
-      await _userRepo.updateUser(firebaseUser.value!.uid, {'name': newName});
-      await _loadUserData(firebaseUser.value!.uid);
+
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+      await _userRepo.updateUser(uid, {'name': newName});
+      await _loadUserData(uid);
+
       Get.snackbar('Success', 'Name updated',
-          snackPosition: SnackPosition.BOTTOM);
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to update name',
           snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
