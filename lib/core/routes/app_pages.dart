@@ -34,15 +34,5 @@ class AppPages {
       page: () => ParameterSetupScreen(),
       binding: HomeBinding(),
     ),
-    // GetPage(
-    //   name: AppRoutes.analytics,
-    //   page: () => AnalyticsScreen(),
-    //   binding: HomeBinding(),
-    // ),
-    // GetPage(
-    //   name: AppRoutes.profile,
-    //   page: () => ProfileScreen(),
-    //   binding: HomeBinding(),
-    // ),
   ];
 }
