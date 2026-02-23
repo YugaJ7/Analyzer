@@ -55,7 +55,6 @@ class ParameterModel extends ParameterEntity {
       description: data['description'],
       type: ParameterType.values.firstWhere(
             (e) => e.name == data['type'],
-        orElse: () => ParameterType.scale,
       ),
       order: data['order'] ?? 0,
       isActive: data['isActive'] ?? true,
