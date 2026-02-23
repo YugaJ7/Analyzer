@@ -53,12 +53,9 @@ class ParameterSetupScreen extends GetView<ParameterController> {
                 icon: Icons.tune_rounded,
               );
             }
-            return ReorderableListView.builder(
+            return ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: controller.parameters.length,
-              onReorder: (oldIndex, newIndex) {
-                controller.reorderParameters(oldIndex, newIndex);
-              },
               itemBuilder: (context, index) {
                 final param = controller.parameters[index];
                 return Container(
@@ -106,8 +103,6 @@ class ParameterSetupScreen extends GetView<ParameterController> {
               type: param.type,
               order: controller.parameters.length,
               isActive: param.isActive,
-              minValue: param.minValue,
-              maxValue: param.maxValue,
               checklistItems: param.checklistItems,
               options: param.options,
               unit: param.unit,
@@ -144,14 +139,6 @@ class ParameterSetupScreen extends GetView<ParameterController> {
             };
 
             switch (updatedParam.type) {
-              case ParameterType.scale:
-                updates['minValue'] = updatedParam.minValue;
-                updates['maxValue'] = updatedParam.maxValue;
-                updates['checklistItems'] = FieldValue.delete();
-                updates['options'] = FieldValue.delete();
-                updates['unit'] = FieldValue.delete();
-                updates['valueType'] = FieldValue.delete();
-                break;
               case ParameterType.checklist:
                 updates['checklistItems'] = updatedParam.checklistItems;
                 updates['minValue'] = FieldValue.delete();

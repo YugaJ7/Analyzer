@@ -22,7 +22,6 @@ class HomeBinding extends Bindings {
     Get.put<DeleteParameter>(DeleteParameter(Get.find<ParameterRepository>()));
 
     // Entry Use Cases
-    // Entry Use Cases
 Get.put<GetEntriesForDate>(
     GetEntriesForDate(Get.find<EntryRepository>()));
 

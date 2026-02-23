@@ -5,8 +5,6 @@ String getTypeLabel(ParameterType type) {
     switch (type) {
       case ParameterType.checklist:
         return 'Checklist';
-      case ParameterType.scale:
-        return 'Scale';
       case ParameterType.value:
         return 'Value Entry';
       case ParameterType.optionSelector:
@@ -29,8 +27,6 @@ String getTypeLabel(ParameterType type) {
     switch (type) {
       case ParameterType.checklist:
         return Icons.checklist_rounded;
-      case ParameterType.scale:
-        return Icons.linear_scale_rounded;
       case ParameterType.value:
         return Icons.numbers_rounded;
       case ParameterType.optionSelector:

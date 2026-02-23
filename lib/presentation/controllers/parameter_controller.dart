@@ -55,7 +55,30 @@ class ParameterController extends GetxController {
   }
 
   Future<void> addNewParameter(ParameterEntity parameter) async {
-    final added = await addParameter(parameter);
+    final docRef = FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .collection('parameters')
+      .doc();
+
+  final newParameter = ParameterEntity(
+    id: docRef.id, // ✅ unique Firestore ID
+    userId: parameter.userId,
+    createdAt: parameter.createdAt,
+    name: parameter.name,
+    description: parameter.description,
+    type: parameter.type,
+    order: parameter.order,
+    isActive: parameter.isActive,
+    checklistItems: parameter.checklistItems,
+    options: parameter.options,
+    unit: parameter.unit,
+    valueType: parameter.valueType,
+    icon: parameter.icon,
+    color: parameter.color,
+  );
+
+    final added = await addParameter(newParameter);
     final model = ParameterModel.fromEntity(added);
 
     parameters.add(model);

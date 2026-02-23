@@ -9,13 +9,27 @@ import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
-class HomeScreen extends StatelessWidget {
-  HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   final ParameterController _paramController = Get.find<ParameterController>();
   final EntryController _entryController = Get.find<EntryController>();
-  
+
   final RxInt _selectedIndex = 0.obs;
+
+@override
+void initState() {
+  super.initState();
+
+  Future.microtask(() async {
+    await _entryController.loadEntries();
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +51,7 @@ class HomeScreen extends StatelessWidget {
               color: const Color(0xFF1E2749),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha :0.2),
                   blurRadius: 20,
                   offset: const Offset(0, -5),
                 ),
@@ -75,7 +89,7 @@ class HomeScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF6C63FF).withOpacity(0.2) : Colors.transparent,
+          color: isSelected ? const Color(0xFF6C63FF).withValues(alpha :0.2) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -83,14 +97,14 @@ class HomeScreen extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? const Color(0xFF6C63FF) : Colors.white.withOpacity(0.5),
+              color: isSelected ? const Color(0xFF6C63FF) : Colors.white.withValues(alpha :0.5),
               size: 26,
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? const Color(0xFF6C63FF) : Colors.white.withOpacity(0.5),
+                color: isSelected ? const Color(0xFF6C63FF) : Colors.white.withValues(alpha :0.5),
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
@@ -147,7 +161,7 @@ class HomeScreen extends StatelessWidget {
               'Hello,',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha :0.6),
               ),
             ),
             const Text(
@@ -163,7 +177,7 @@ class HomeScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF6C63FF).withOpacity(0.2),
+            color: const Color(0xFF6C63FF).withValues(alpha :0.2),
             shape: BoxShape.circle,
           ),
           child: const Icon(
@@ -187,7 +201,7 @@ class HomeScreen extends StatelessWidget {
           color: const Color(0xFF1E2749),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha :0.1),
           ),
         ),
         child: Row(
@@ -230,7 +244,7 @@ class HomeScreen extends StatelessWidget {
                     DateFormat('EEEE').format(selectedDate),
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha :0.6),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -247,7 +261,7 @@ class HomeScreen extends StatelessWidget {
                       margin: const EdgeInsets.only(top: 4),
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4ECDC4).withOpacity(0.2),
+                        color: const Color(0xFF4ECDC4).withValues(alpha :0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text(
@@ -262,7 +276,7 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
-            IconButton(
+            IconButton( 
               onPressed: _isSameDay(selectedDate, DateTime.now())
                   ? null
                   : () {
@@ -273,7 +287,7 @@ class HomeScreen extends StatelessWidget {
               icon: Icon(
                 Icons.chevron_right,
                 color: _isSameDay(selectedDate, DateTime.now())
-                    ? Colors.white.withOpacity(0.3)
+                    ? Colors.white.withValues(alpha :0.3)
                     : Colors.white,
               ),
             ),
@@ -323,7 +337,7 @@ class HomeScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6C63FF).withOpacity(0.3),
+            color: const Color(0xFF6C63FF).withValues(alpha :0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -359,7 +373,7 @@ class HomeScreen extends StatelessWidget {
             child: LinearProgressIndicator(
               value: completion / 100,
               minHeight: 12,
-              backgroundColor: Colors.white.withOpacity(0.3),
+              backgroundColor: Colors.white.withValues(alpha :0.3),
               valueColor:
                   const AlwaysStoppedAnimation<Color>(Colors.white),
             ),
@@ -378,66 +392,6 @@ class HomeScreen extends StatelessWidget {
     );
   });
 }
-
-
-  // Widget _buildParametersList() {
-  //   return Obx(() {
-  //     // No isLoading check needed since we're using real-time listener
-      
-  //     if (_paramController.parameters.isEmpty) {
-  //       return SliverFillRemaining(
-  //         child: Center(
-  //           child: Column(
-  //             mainAxisAlignment: MainAxisAlignment.center,
-  //             children: [
-  //               const Icon(
-  //                 Icons.tune_rounded,
-  //                 size: 80,
-  //                 color: Color(0xFF6C63FF),
-  //               ),
-  //               const SizedBox(height: 16),
-  //               const Text(
-  //                 'No Parameters Yet',
-  //                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-  //               ),
-  //               const SizedBox(height: 8),
-  //               Text(
-  //                 'Add parameters to start tracking',
-  //                 style: TextStyle(color: Colors.white.withOpacity(0.6)),
-  //               ),
-  //               const SizedBox(height: 24),
-  //               ElevatedButton.icon(
-  //                 onPressed: () => Get.toNamed(AppRoutes.parameterSetup),
-  //                 icon: const Icon(Icons.add),
-  //                 label: const Text('Add Parameters'),
-  //                 style: ElevatedButton.styleFrom(
-  //                   backgroundColor: const Color(0xFF6C63FF),
-  //                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       );
-  //     }
-
-  //     return SliverPadding(
-  //       padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-  //       sliver: SliverList(
-  //         delegate: SliverChildBuilderDelegate(
-  //           (context, index) {
-  //             final param = _paramController.parameters[index];
-  //             return _buildParameterEntryCard(param)
-  //                 .animate()
-  //                 .fadeIn(delay: Duration(milliseconds: 100 * index))
-  //                 .slideX(begin: 0.2, end: 0);
-  //           },
-  //           childCount: _paramController.parameters.length,
-  //         ),
-  //       ),
-  //     );
-  //   });
-  // }
 
   Widget _buildParametersList() {
   return Obx(() {
@@ -492,167 +446,207 @@ class HomeScreen extends StatelessWidget {
 
 
   Widget _buildParameterEntryCard(ParameterModel param) {
-  final isCompleted = _entryController.hasEntry(param.id);
-  final currentValue =
-      _entryController.selectedDateEntries[param.id]?.value;
-
   final color = getColorForParam(param.color);
 
-  return Card(
-    margin: const EdgeInsets.only(bottom: 16),
-    child: InkWell(
-      onTap: () => _showEntryDialog(param),
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
+  return Obx(() {
+    final entry =
+        _entryController.selectedDateEntries[param.id];
+    final isCompleted = entry != null;
+
+    return GestureDetector(
+      onTap: () {
+        if (param.type == ParameterType.checklist) {
+          _entryController.toggleEntry(param.id, true);
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 18),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E2749),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.05),
+          ),
+        ),
+        child: Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 26,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isCompleted
+                            ? const Color(0xFF6C63FF)
+                            : Colors.white.withValues(alpha: 0.4),
+                        width: 2,
+                      ),
+                      color: isCompleted
+                          ? const Color(0xFF6C63FF)
+                          : Colors.transparent,
+                    ),
+                    child: isCompleted
+                        ? const Icon(Icons.check,
+                            size: 16, color: Colors.white)
+                        : null,
                   ),
-                  child: Icon(
-                    getIconForType(param.type),
-                    color: color,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      param.name,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Text(
-                        param.name,
-                        style: const TextStyle(
+                      Icon(Icons.local_fire_department_rounded,
+                          color: color, size: 22),
+                      const SizedBox(width: 6),
+                      const Text(
+                        "0",
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
                       ),
-                      if (param.description != null)
-                        Text(
-                          param.description!,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color:
-                                Colors.white.withOpacity(0.5),
-                          ),
-                        ),
                     ],
-                  ),
-                ),
-
-                /// ✅ AUTO TOGGLE CHECKBOX
-                Checkbox(
-                  value: isCompleted,
-                  activeColor: const Color(0xFF4ECDC4),
-                  onChanged: (_) async {
-                    await _entryController.toggleEntry(
-                        param.id, true);
-                  },
-                ),
-              ],
-            ),
-
-            if (isCompleted && currentValue != null) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius:
-                      BorderRadius.circular(12),
-                ),
-                child:
-                    _buildValueDisplay(param, currentValue),
+                  )
+                ],
               ),
+              const SizedBox(height: 20),
+              ?_buildModernValueDisplay(param),
             ],
-          ],
+          ),
         ),
+      ),
+    );
+  });
+}
+
+
+
+
+  Widget? _buildModernValueDisplay(ParameterModel param) {
+  switch (param.type) {
+    case ParameterType.checklist:
+      return null;
+
+    case ParameterType.value:
+      return _buildNumericPreview(param);
+
+    case ParameterType.optionSelector:
+      return _buildOptionPreview(param);
+
+  }
+}
+
+Widget _buildOptionPreview(ParameterModel param) {
+  final entry = _entryController.selectedDateEntries[param.id];
+  final selectedValue = entry?.value;
+
+  return SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: Row(
+      children: param.options!.map<Widget>((option) {
+        final isSelected = selectedValue == option;
+
+        return GestureDetector(
+          onTap: () {
+            _entryController.toggleEntry(param.id, option);
+          },
+          child: Container(
+            margin: const EdgeInsets.only(right: 12),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? const Color(0xFF6C63FF)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isSelected
+                    ? const Color(0xFF6C63FF)
+                    : Colors.white.withValues(alpha: 0.3),
+                width: 2,
+              ),
+            ),
+            child: Text(
+              option,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: isSelected
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.6),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    ),
+  );
+}
+
+
+
+Widget _buildNumericPreview(ParameterModel param) {
+  final entry = _entryController.selectedDateEntries[param.id];
+  final value = entry?.value ?? 0;
+
+  return GestureDetector(
+    onTap: () {
+      final newValue = (value as int) + 1;
+      _entryController.toggleEntry(param.id, newValue);
+    },
+    child: Container(
+      alignment: Alignment.center,
+      padding:
+          const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            value.toString(),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            param.unit ?? '',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white.withValues(alpha: 0.6),
+            ),
+          )
+        ],
       ),
     ),
   );
 }
 
 
-  Widget _buildValueDisplay(ParameterModel param, dynamic value) {
-    switch (param.type) {
-      case ParameterType.scale:
-        return Row(
-          children: [
-            const Icon(Icons.linear_scale_rounded, size: 16),
-            const SizedBox(width: 8),
-            Text(
-              '$value / ${param.maxValue}',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ],
-        );
-      case ParameterType.checklist:
-        if (value is List) {
-          return Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: value.map((item) => Chip(
-              label: Text(item.toString(), style: const TextStyle(fontSize: 12)),
-              backgroundColor: const Color(0xFF6C63FF).withOpacity(0.2),
-            )).toList(),
-          );
-        }
-        return const Text('No items checked');
-      case ParameterType.value:
-        return Row(
-          children: [
-            const Icon(Icons.numbers_rounded, size: 16),
-            const SizedBox(width: 8),
-            Text(
-              '$value ${param.unit ?? ''}',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ],
-        );
-      case ParameterType.optionSelector:
-        return Row(
-          children: [
-            const Icon(Icons.check_circle_outline, size: 16),
-            const SizedBox(width: 8),
-            Text(
-              value?.toString() ?? 'Not selected',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ],
-        );
-    }
-  }
 
-  void _showEntryDialog(ParameterModel param) {
-    final hasEntry = _entryController.hasEntry(param.id);
-final currentValue = hasEntry
-    ? _entryController.selectedDateEntries[param.id]?.value
-    : null;
-
-    Get.dialog(
-      Dialog(
-        backgroundColor: const Color(0xFF1E2749),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: _EntryFormDialog(
-          parameter: param,
-          initialValue: currentValue,
-          onSave: (value, notes) async {
-            await _entryController.toggleEntry(param.id, value, notes: notes);
-
-            Get.back();
-          },
-        ),
-      ),
-    );
-  }
+  
 
   Widget _buildAnalyticsPlaceholder() {
     return const Center(
@@ -670,281 +664,4 @@ final currentValue = hasEntry
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
-}
-
-// Entry Form Dialog
-class _EntryFormDialog extends StatefulWidget {
-  final ParameterModel parameter;
-  final dynamic initialValue;
-  final Function(dynamic, String?) onSave;
-
-  const _EntryFormDialog({
-    required this.parameter,
-    this.initialValue,
-    required this.onSave,
-  });
-
-  @override
-  State<_EntryFormDialog> createState() => _EntryFormDialogState();
-}
-
-class _EntryFormDialogState extends State<_EntryFormDialog> {
-  late dynamic currentValue;
-  late TextEditingController notesController;
-  late TextEditingController valueController;
-
-  @override
-  void initState() {
-    super.initState();
-    notesController = TextEditingController();
-    valueController = TextEditingController();
-    
-    switch (widget.parameter.type) {
-      case ParameterType.scale:
-        currentValue = widget.initialValue ?? widget.parameter.minValue ?? 1;
-        break;
-      case ParameterType.checklist:
-        currentValue = widget.initialValue ?? <String>[];
-        break;
-      case ParameterType.value:
-        currentValue = widget.initialValue ?? 0;
-        valueController.text = currentValue?.toString() ?? '0';
-        break;
-      case ParameterType.optionSelector:
-        currentValue = widget.initialValue;
-        break;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            widget.parameter.name,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          if (widget.parameter.description != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              widget.parameter.description!,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white.withOpacity(0.6),
-              ),
-            ),
-          ],
-          const SizedBox(height: 24),
-          _buildInputWidget(),
-          const SizedBox(height: 20),
-          TextField(
-            controller: notesController,
-            maxLines: 3,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              labelText: 'Notes (Optional)',
-              labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-              filled: true,
-              fillColor: const Color(0xFF0A0E27),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Get.back(),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.white.withOpacity(0.3)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text('Cancel'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    widget.onSave(
-                      currentValue,
-                      notesController.text.trim().isEmpty
-                          ? null
-                          : notesController.text.trim(),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6C63FF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text('Save'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInputWidget() {
-    switch (widget.parameter.type) {
-      case ParameterType.scale:
-        return _buildScaleInput();
-      case ParameterType.checklist:
-        return _buildChecklistInput();
-      case ParameterType.value:
-        return _buildValueInput();
-      case ParameterType.optionSelector:
-        return _buildOptionSelectorInput();
-    }
-  }
-
-  Widget _buildScaleInput() {
-    final min = widget.parameter.minValue ?? 1;
-    final max = widget.parameter.maxValue ?? 10;
-
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Value: $currentValue',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-            Text('$min - $max',
-                style: TextStyle(color: Colors.white.withOpacity(0.5))),
-          ],
-        ),
-        const SizedBox(height: 16),
-        SliderTheme(
-          data: SliderThemeData(
-            activeTrackColor: const Color(0xFF6C63FF),
-            inactiveTrackColor: const Color(0xFF6C63FF).withOpacity(0.2),
-            thumbColor: const Color(0xFF6C63FF),
-            overlayColor: const Color(0xFF6C63FF).withOpacity(0.2),
-            trackHeight: 8,
-          ),
-          child: Slider(
-            value: currentValue.toDouble(),
-            min: min.toDouble(),
-            max: max.toDouble(),
-            divisions: max - min,
-            onChanged: (value) {
-              setState(() => currentValue = value.round());
-            },
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(
-            (max - min) ~/ ((max - min) > 10 ? 2 : 1) + 1,
-            (index) {
-              int value = min + (index * ((max - min) > 10 ? 2 : 1));
-              if (value <= max) {
-                return Text(
-                  value.toString(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.5),
-                  ),
-                );
-              }
-              return const SizedBox();
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildChecklistInput() {
-    final items = widget.parameter.checklistItems ?? [];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: items.map((item) {
-        final isChecked = (currentValue as List<String>).contains(item);
-        return CheckboxListTile(
-          title: Text(item),
-          value: isChecked,
-          onChanged: (checked) {
-            setState(() {
-              if (checked == true) {
-                (currentValue as List<String>).add(item);
-              } else {
-                (currentValue as List<String>).remove(item);
-              }
-            });
-          },
-          activeColor: const Color(0xFF6C63FF),
-          contentPadding: EdgeInsets.zero,
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildValueInput() {
-    return TextField(
-      controller: valueController,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      style: const TextStyle(color: Colors.white, fontSize: 18),
-      onChanged: (value) {
-        currentValue = double.tryParse(value) ?? 0;
-      },
-      decoration: InputDecoration(
-        labelText: 'Enter value',
-        suffix: Text(
-          widget.parameter.unit ?? '',
-          style: TextStyle(color: Colors.white.withOpacity(0.6)),
-        ),
-        labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-        filled: true,
-        fillColor: const Color(0xFF0A0E27),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOptionSelectorInput() {
-    final options = widget.parameter.options ?? [];
-    return Column(
-      children: options.map((option) {
-        return RadioListTile<String>(
-          title: Text(option),
-          value: option,
-          groupValue: currentValue,
-          onChanged: (value) {
-            setState(() => currentValue = value);
-          },
-          activeColor: const Color(0xFF6C63FF),
-          contentPadding: EdgeInsets.zero,
-        );
-      }).toList(),
-    );
-  }
-
-  @override
-  void dispose() {
-    notesController.dispose();
-    valueController.dispose();
-    super.dispose();
-  }
 }

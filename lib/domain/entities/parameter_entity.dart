@@ -1,21 +1,18 @@
 enum ParameterType {
   checklist,
-  scale,
   value,
   optionSelector,
 }
 
 class ParameterEntity {
   final String id;
-  final String userId; // still needed for repository path
+  final String userId; 
   final DateTime createdAt;
   final String name;
   final String? description;
   final ParameterType type;
   final int order;
   final bool isActive;
-  final int? minValue;
-  final int? maxValue;
   final List<String>? checklistItems;
   final List<String>? options;
   final String? unit;
@@ -32,8 +29,6 @@ class ParameterEntity {
     required this.type,
     required this.order,
     this.isActive = true,
-    this.minValue,
-    this.maxValue,
     this.checklistItems,
     this.options,
     this.unit,
@@ -51,8 +46,6 @@ class ParameterEntity {
     ParameterType? type,
     int? order,
     bool? isActive,
-    int? minValue,
-    int? maxValue,
     List<String>? checklistItems,
     List<String>? options,
     String? unit,
@@ -69,8 +62,6 @@ class ParameterEntity {
       type: type ?? this.type,
       order: order ?? this.order,
       isActive: isActive ?? this.isActive,
-      minValue: minValue ?? this.minValue,
-      maxValue: maxValue ?? this.maxValue,
       checklistItems: checklistItems ?? this.checklistItems,
       options: options ?? this.options,
       unit: unit ?? this.unit,

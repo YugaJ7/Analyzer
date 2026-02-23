@@ -22,8 +22,6 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
   late TextEditingController nameController;
   late TextEditingController descriptionController;
   late ParameterType selectedType;
-  late int minValue;
-  late int maxValue;
   late List<String> checklistItems;
   late List<String> options;
   late TextEditingController unitController;
@@ -35,8 +33,6 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
     nameController = TextEditingController(text: widget.parameter?.name ?? '');
     descriptionController = TextEditingController(text: widget.parameter?.description ?? '');
     selectedType = widget.parameter?.type ?? ParameterType.checklist;
-    minValue = widget.parameter?.minValue ?? 1;
-    maxValue = widget.parameter?.maxValue ?? 10;
     checklistItems = widget.parameter?.checklistItems ?? [''];
     options = widget.parameter?.options ?? [''];
     unitController = TextEditingController(text: widget.parameter?.unit ?? '');
@@ -147,7 +143,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                           final trimmedUnit = unitController.text.trim();
                           final parameter = ParameterEntity(
                             id: widget.parameter?.id ?? '',
-                            userId: currentUser!.uid,
+                            userId: currentUser.uid,
                             createdAt: DateTime.now(),
 
                             name: nameController.text.trim(),
@@ -157,12 +153,6 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                                 : descriptionController.text.trim(),
                             type: selectedType,
                             order: widget.parameter?.order ?? 0,
-                            minValue: selectedType == ParameterType.scale
-                                ? minValue
-                                : null,
-                            maxValue: selectedType == ParameterType.scale
-                                ? maxValue
-                                : null,
                             checklistItems:
                                 selectedType == ParameterType.checklist
                                 ? (cleanedChecklist.isEmpty
@@ -179,7 +169,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                             valueType: selectedType == ParameterType.value
                                 ? 'number'
                                 : null,
-                            color: selectedColor.value,
+                            color: selectedColor.toARGB32(),
                           );
                           await widget.onSave(parameter);
                           Get.back();
@@ -224,78 +214,6 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
 
   Widget _buildTypeSpecificFields() {
     switch (selectedType) {
-      case ParameterType.scale:
-        return Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                initialValue: minValue.toString(),
-                keyboardType: TextInputType.number,
-                validator: (val) {
-                  if (val == null || val.isEmpty) return 'Required';
-                  if (int.tryParse(val) == null) return 'Invalid number';
-                  return null;
-                },
-                onChanged: (val) =>
-                    setState(() => minValue = int.tryParse(val) ?? 1),
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Min Value',
-                  labelStyle: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
-                  ),
-                  filled: true,
-                  fillColor: const Color(0xFF0A0E27),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                  errorStyle: const TextStyle(
-                    color: Colors.redAccent,
-                    fontSize: 12,
-                    height: 0.8,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextFormField(
-                initialValue: maxValue.toString(),
-                keyboardType: TextInputType.number,
-                validator: (val) {
-                  if (val == null || val.isEmpty) return 'Required';
-                  if (int.tryParse(val) == null) return 'Invalid number';
-                  if (int.tryParse(val)! <= minValue) {
-                    return 'Must be > Min';
-                  }
-                  return null;
-                },
-                onChanged: (val) =>
-                    setState(() => maxValue = int.tryParse(val) ?? 10),
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Max Value',
-                  labelStyle: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
-                  ),
-                  filled: true,
-                  fillColor: const Color(0xFF0A0E27),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                  errorStyle: const TextStyle(
-                    color: Colors.redAccent,
-                    fontSize: 12,
-                    height: 0.8,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-
       case ParameterType.checklist:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,7 +369,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
       runSpacing: 12,
       children: AppColors.availableColors.map((colorData) {
         final color = Color(colorData['color'] as int);
-        final isSelected = selectedColor.value == color.value;
+        final isSelected = selectedColor.toARGB32() == color.toARGB32();
         return GestureDetector(
           onTap: () {
             setState(() => selectedColor = color);
