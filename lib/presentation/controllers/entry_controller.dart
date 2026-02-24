@@ -17,15 +17,12 @@ class EntryController extends GetxController {
     required this.deleteEntry,
   });
 
-  /// 🔥 Currently visible entries
   final RxMap<String, EntryEntity> selectedDateEntries =
       <String, EntryEntity>{}.obs;
 
   final Rx<DateTime> selectedDate = DateTime.now().obs;
-
   final RxBool isLoading = false.obs;
 
-  /// 🔥 Daily memory cache
   final Map<String, Map<String, EntryEntity>> _dailyCache = {};
 
   @override
@@ -40,6 +37,7 @@ class EntryController extends GetxController {
 
   Future<void> loadEntries() async {
     final userId = FirebaseAuth.instance.currentUser!.uid;
+
     final normalizedDate = DateTime(
       selectedDate.value.year,
       selectedDate.value.month,
@@ -48,9 +46,8 @@ class EntryController extends GetxController {
 
     final key = _dateKey(normalizedDate);
 
-    /// 🔥 If already cached → instant return
     if (_dailyCache.containsKey(key)) {
-      selectedDateEntries.value = _dailyCache[key]!;
+      selectedDateEntries.assignAll(_dailyCache[key]!);
       return;
     }
 
@@ -66,47 +63,74 @@ class EntryController extends GetxController {
     }
 
     _dailyCache[key] = map;
-    selectedDateEntries.value = map;
+    selectedDateEntries.assignAll(map);
 
     isLoading.value = false;
   }
 
   Future<void> toggleEntry(
-  String parameterId,
-  dynamic value, {
-  String? notes,
-}) async {
-  final userId = FirebaseAuth.instance.currentUser!.uid;
+    String parameterId,
+    dynamic value, {
+    String? notes,
+  }) async {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
 
-  final normalizedDate = DateTime(
-    selectedDate.value.year,
-    selectedDate.value.month,
-    selectedDate.value.day,
-  );
+    final normalizedDate = DateTime(
+      selectedDate.value.year,
+      selectedDate.value.month,
+      selectedDate.value.day,
+    );
 
-  final key = _dateKey(normalizedDate);
+    final key = _dateKey(normalizedDate);
 
-  if (!_dailyCache.containsKey(key)) {
-    _dailyCache[key] = {};
+    if (!_dailyCache.containsKey(key)) {
+      _dailyCache[key] = {};
+    }
+
+    final existingEntry =
+        selectedDateEntries[parameterId];
+
+    if (existingEntry != null &&
+        existingEntry.value == value) {
+      selectedDateEntries.remove(parameterId);
+      _dailyCache[key]!.remove(parameterId);
+
+      deleteEntry(userId, normalizedDate, parameterId);
+      return;
+    }
+
+    final entry = EntryEntity(
+      id: parameterId,
+      userId: userId,
+      parameterId: parameterId,
+      date: normalizedDate,
+      value: value,
+      notes: notes,
+      createdAt: DateTime.now(),
+    );
+
+    selectedDateEntries[parameterId] = entry;
+    _dailyCache[key]![parameterId] = entry;
+
+    saveEntry(entry);
   }
+  
+  Future<void> deleteEntryManually(String parameterId) async {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
 
-  /// 🔥 OPTIMISTIC UPDATE (Instant UI)
-  final entry = EntryEntity(
-    id: parameterId,
-    userId: userId,
-    parameterId: parameterId,
-    date: normalizedDate,
-    value: value,
-    notes: notes,
-    createdAt: DateTime.now(),
-  );
+    final normalizedDate = DateTime(
+      selectedDate.value.year,
+      selectedDate.value.month,
+      selectedDate.value.day,
+    );
 
-  selectedDateEntries[parameterId] = entry;
-  _dailyCache[key]![parameterId] = entry;
+    final key = _dateKey(normalizedDate);
 
-  /// 🔥 Save in background (no await)
-  saveEntry(entry);
-}
+    selectedDateEntries.remove(parameterId);
+    _dailyCache[key]?.remove(parameterId);
+
+    await deleteEntry(userId, normalizedDate, parameterId);
+  }
 
   void changeSelectedDate(DateTime date) {
     selectedDate.value = date;

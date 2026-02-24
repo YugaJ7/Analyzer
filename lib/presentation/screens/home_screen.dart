@@ -18,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ParameterController _paramController = Get.find<ParameterController>();
   final EntryController _entryController = Get.find<EntryController>();
-
+  final FocusNode _focusNode = FocusNode();
   final RxInt _selectedIndex = 0.obs;
 
   @override
@@ -79,6 +79,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  @override
+void dispose() {
+  _focusNode.dispose();
+  super.dispose();
+}
+
   Widget _buildHomeContent() {
     return SafeArea(
       child: CustomScrollView(
@@ -96,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildProgressCard(),
                   const SizedBox(height: 24),
                   const Text(
-                    'Today\'s Parameters',
+                    'Your Habits',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -265,6 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildProgressCard() {
     return Obx(() {
       final selectedDate = _entryController.selectedDate.value;
+      final isToday = _isSameDay(selectedDate, DateTime.now());
 
       final visibleParams = _paramController.parameters.where((param) {
         final paramDate = DateTime(
@@ -313,9 +320,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Today\'s Progress',
-                  style: TextStyle(
+                Text(
+                  isToday ? 'Today\'s Progress' : 'Progress',
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -435,7 +442,8 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(
                   children: [
@@ -493,7 +501,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                //const SizedBox(height: 20),
                 ?_buildModernValueDisplay(param),
               ],
             ),
@@ -531,7 +539,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _entryController.toggleEntry(param.id, option);
             },
             child: Container(
-              margin: const EdgeInsets.only(right: 12),
+              margin: const EdgeInsets.fromLTRB(0, 20, 12, 0),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: isSelected
@@ -563,44 +571,79 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildNumericPreview(ParameterModel param) {
-    final entry = _entryController.selectedDateEntries[param.id];
-    final value = entry?.value ?? 0;
+    return Obx(() {
+      final entry = _entryController.selectedDateEntries[param.id];
+      final currentValue = entry?.value?.toString() ?? '';
 
-    return GestureDetector(
-      onTap: () {
-        final newValue = (value as int) + 1;
-        _entryController.toggleEntry(param.id, newValue);
-      },
-      child: Container(
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+      final controller = TextEditingController(text: currentValue);
+
+      controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: controller.text.length),
+      );
+
+      return AnimatedBuilder(
+  animation: _focusNode,
+  builder: (context, child) {
+    final bool isFocused = _focusNode.hasFocus;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: Colors.transparent,
+        border: Border.all(
+          strokeAlign: BorderSide.strokeAlignCenter, // 🔥 ensures border doesn't affect layout
+          color: isFocused
+              ? const Color(0xFF6C63FF)             // 🔥 focused color
+              : Colors.white.withOpacity(0.3),
+          width: isFocused ? 2 : 1,           // 🔥 stroke thickness
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              value.toString(),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          IntrinsicWidth(
+            child: TextField(
+              focusNode: _focusNode,  // 🔥 IMPORTANT
+              controller: controller,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              param.unit ?? '',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white.withValues(alpha: 0.6),
+              decoration: const InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                hintText: "Enter value",
+                hintStyle: TextStyle(
+                  color: Colors.white38,
+                  fontSize: 16,
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            param.unit ?? '',
+            style: const TextStyle(
+              color: Colors.white38,
+              fontSize: 16,
+            ),
+          ),
+        ],
       ),
     );
+  },
+);
+    });
   }
 
   Widget _buildAnalyticsPlaceholder() {
