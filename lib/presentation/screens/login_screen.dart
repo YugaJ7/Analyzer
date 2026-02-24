@@ -5,7 +5,7 @@ import '../../core/routes/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/validator.dart';
 import '../controllers/auth_controller.dart';
-import '../widgets/app_background.dart';
+import '../../core/routes/app_background.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
 

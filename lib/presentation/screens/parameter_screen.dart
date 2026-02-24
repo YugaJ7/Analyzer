@@ -6,7 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
 import '../controllers/parameter_controller.dart';
-import '../widgets/app_background.dart';
+import '../../core/routes/app_background.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/parameter_card.dart';
 import '../widgets/parameter_form_dialog.dart';
