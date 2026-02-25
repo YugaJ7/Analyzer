@@ -1,3 +1,4 @@
+import 'package:analyzer/presentation/controllers/analytics_controller.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:get/get.dart';
 import '../../data/repositories/entry_repository_impl.dart';
@@ -14,7 +15,7 @@ class HomeBinding extends Bindings {
     // Repositories
     Get.put<ParameterRepository>(ParameterRepositoryImpl());
     Get.put<EntryRepository>(EntryRepositoryImpl());
-    
+
     // Parameter Use Cases
     Get.put<GetParameters>(GetParameters(Get.find<ParameterRepository>()));
     Get.put<AddParameter>(AddParameter(Get.find<ParameterRepository>()));
@@ -22,19 +23,14 @@ class HomeBinding extends Bindings {
     Get.put<DeleteParameter>(DeleteParameter(Get.find<ParameterRepository>()));
 
     // Entry Use Cases
-Get.put<GetEntriesForDate>(
-    GetEntriesForDate(Get.find<EntryRepository>()));
+    Get.put<GetEntriesForDate>(GetEntriesForDate(Get.find<EntryRepository>()));
 
-Get.put<SaveEntry>(
-    SaveEntry(Get.find<EntryRepository>()));
+    Get.put<SaveEntry>(SaveEntry(Get.find<EntryRepository>()));
 
-Get.put<UpdateEntry>(
-    UpdateEntry(Get.find<EntryRepository>()));
+    Get.put<UpdateEntry>(UpdateEntry(Get.find<EntryRepository>()));
 
-Get.put<DeleteEntry>(
-    DeleteEntry(Get.find<EntryRepository>()));
+    Get.put<DeleteEntry>(DeleteEntry(Get.find<EntryRepository>()));
 
-    
     // Controllers
     Get.put<ParameterController>(
       ParameterController(
@@ -50,6 +46,14 @@ Get.put<DeleteEntry>(
         saveEntry: Get.find<SaveEntry>(),
         updateEntry: Get.find<UpdateEntry>(),
         deleteEntry: Get.find<DeleteEntry>(),
+      ),
+    );
+
+    // Analytics Controller
+    Get.lazyPut<AnalyticsController>(
+      () => AnalyticsController(
+        entryRepository: Get.find<EntryRepository>(),
+        parameterController: Get.find<ParameterController>(),
       ),
     );
   }

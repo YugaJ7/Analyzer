@@ -1,4 +1,5 @@
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
+import 'package:analyzer/presentation/screens/analytics/analytics_screen.dart';
 import 'package:analyzer/presentation/screens/home/widgets/date_selector.dart';
 import 'package:analyzer/presentation/screens/home/widgets/home_header.dart';
 import 'package:analyzer/presentation/screens/home/widgets/parameter_list.dart';
@@ -33,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
           case 0:
             return const _HomeTab();
           case 1:
-            return const Center(child: Text("Analytics"));
+            return const AnalyticsScreen();
           case 2:
             return const Center(child: Text("Profile"));
           default:
