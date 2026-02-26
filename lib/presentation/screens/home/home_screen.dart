@@ -15,8 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final EntryController _entryController =
-      Get.find<EntryController>();
+  final EntryController _entryController = Get.find<EntryController>();
 
   final RxInt _selectedIndex = 0.obs;
 
@@ -29,18 +28,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Obx(() {
-        switch (_selectedIndex.value) {
-          case 0:
-            return const _HomeTab();
-          case 1:
-            return const AnalyticsScreen();
-          case 2:
-            return const Center(child: Text("Profile"));
-          default:
-            return const _HomeTab();
-        }
-      }),
+      body: IndexedStack(
+        index: _selectedIndex.value,
+        children: const [
+          _HomeTab(),
+          AnalyticsScreen(),
+          Center(child: Text("Profile")),
+        ],
+      ),
       bottomNavigationBar: Obx(
         () => BottomNavigationBar(
           currentIndex: _selectedIndex.value,
@@ -49,12 +44,12 @@ class _HomeScreenState extends State<HomeScreen> {
           selectedItemColor: const Color(0xFF6C63FF),
           unselectedItemColor: Colors.white70,
           items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
             BottomNavigationBarItem(
-                icon: Icon(Icons.home), label: "Home"),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.insights), label: "Analytics"),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.person), label: "Profile"),
+              icon: Icon(Icons.insights),
+              label: "Analytics",
+            ),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
           ],
         ),
       ),

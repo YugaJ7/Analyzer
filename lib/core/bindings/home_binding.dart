@@ -39,6 +39,7 @@ class HomeBinding extends Bindings {
         updateParameter: Get.find<UpdateParameter>(),
         deleteParameter: Get.find<DeleteParameter>(),
       ),
+      permanent: true,
     );
     Get.put<EntryController>(
       EntryController(
@@ -47,14 +48,16 @@ class HomeBinding extends Bindings {
         updateEntry: Get.find<UpdateEntry>(),
         deleteEntry: Get.find<DeleteEntry>(),
       ),
+      permanent: true,
     );
 
     // Analytics Controller
-    Get.lazyPut<AnalyticsController>(
-      () => AnalyticsController(
+    Get.put<AnalyticsController>(
+      AnalyticsController(
         entryRepository: Get.find<EntryRepository>(),
         parameterController: Get.find<ParameterController>(),
       ),
+      permanent: true,
     );
   }
 }
