@@ -1,6 +1,7 @@
 import 'package:analyzer/core/utils/helper.dart';
 import 'package:analyzer/data/models/parameter_model.dart';
 import 'package:analyzer/domain/entities/parameter_entity.dart';
+import 'package:analyzer/presentation/controllers/streak_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../controllers/entry_controller.dart';
@@ -84,14 +85,17 @@ class ParameterEntryCard extends StatelessWidget {
                           size: 22,
                         ),
                         const SizedBox(width: 6),
-                        const Text(
-                          "0",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
+                        Obx(() {
+                          final streakController = Get.find<StreakController>();
+                          return Text(
+                            streakController.getCurrent(param.id).toString(),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          );
+                        }),
                       ],
                     ),
                   ],
