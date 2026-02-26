@@ -28,13 +28,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex.value,
-        children: const [
-          _HomeTab(),
-          AnalyticsScreen(),
-          Center(child: Text("Profile")),
-        ],
+      body: Obx(
+        () => IndexedStack(
+          index: _selectedIndex.value,
+          children: const [
+            _HomeTab(),
+            AnalyticsScreen(),
+            Center(child: Text("Profile")),
+          ],
+        ),
       ),
       bottomNavigationBar: Obx(
         () => BottomNavigationBar(

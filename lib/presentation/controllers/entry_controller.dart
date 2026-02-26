@@ -55,8 +55,7 @@ class EntryController extends GetxController {
 
     isLoading.value = true;
 
-    final entries =
-        await getEntriesForDate(userId, normalizedDate);
+    final entries = await getEntriesForDate(userId, normalizedDate);
 
     final map = <String, EntryEntity>{};
 
@@ -71,68 +70,61 @@ class EntryController extends GetxController {
   }
 
   Future<void> toggleEntry(
-  String parameterId,
-  dynamic value, {
-  String? notes,
-}) async {
-  final userId =
-      FirebaseAuth.instance.currentUser!.uid;
+    String parameterId,
+    dynamic value, {
+    String? notes,
+  }) async {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
 
-  final normalizedDate = DateTime(
-    selectedDate.value.year,
-    selectedDate.value.month,
-    selectedDate.value.day,
-  );
-
-  final existingEntry =
-      selectedDateEntries[parameterId];
-
-  if (existingEntry != null &&
-      existingEntry.value == value) {
-    selectedDateEntries.remove(parameterId);
-
-    await deleteEntry(
-      userId,
-      normalizedDate,
-      parameterId,
+    final normalizedDate = DateTime(
+      selectedDate.value.year,
+      selectedDate.value.month,
+      selectedDate.value.day,
     );
 
-    Get.find<AnalyticsController>()
-        .updateFromEntryChange(
-            parameterId, normalizedDate, false);
+    final existingEntry = selectedDateEntries[parameterId];
 
-    Get.find<StreakController>()
-        .recalculate(parameterId);
+    if (existingEntry != null && existingEntry.value == value) {
+      selectedDateEntries.remove(parameterId);
 
-    return;
+      await deleteEntry(userId, normalizedDate, parameterId);
+
+      Get.find<AnalyticsController>().updateFromEntryChange(
+        parameterId,
+        normalizedDate,
+        false,
+      );
+
+      Get.find<StreakController>().recalculate(parameterId);
+
+      return;
+    }
+
+    final entryId = "$parameterId-${normalizedDate.toIso8601String()}";
+
+    final entry = EntryEntity(
+      id: entryId,
+      userId: userId,
+      parameterId: parameterId,
+      date: normalizedDate,
+      value: value,
+      notes: notes,
+      createdAt: DateTime.now(),
+    );
+
+    selectedDateEntries[parameterId] = entry;
+
+    await saveEntry(entry);
+
+    Get.find<AnalyticsController>().updateFromEntryChange(
+      parameterId,
+      normalizedDate,
+      true,
+    );
+
+    Get.find<StreakController>().recalculate(parameterId);
   }
 
-  final entryId =
-      "$parameterId-${normalizedDate.toIso8601String()}";
-
-  final entry = EntryEntity(
-    id: entryId,
-    userId: userId,
-    parameterId: parameterId,
-    date: normalizedDate,
-    value: value,
-    notes: notes,
-    createdAt: DateTime.now(),
-  );
-
-  selectedDateEntries[parameterId] =
-      entry;
-
-  await saveEntry(entry);
-
-  Get.find<AnalyticsController>()
-      .updateFromEntryChange(
-          parameterId, normalizedDate, true);
-
-  Get.find<StreakController>()
-      .recalculate(parameterId);
-}
-  
   Future<void> deleteEntryManually(String parameterId) async {
     final userId = FirebaseAuth.instance.currentUser!.uid;
 
@@ -147,6 +139,7 @@ class EntryController extends GetxController {
     selectedDateEntries.remove(parameterId);
     _dailyCache[key]?.remove(parameterId);
 
+    Get.find<StreakController>().recalculate(parameterId);
     await deleteEntry(userId, normalizedDate, parameterId);
   }
 

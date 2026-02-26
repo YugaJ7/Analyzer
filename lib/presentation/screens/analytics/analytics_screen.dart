@@ -1,5 +1,10 @@
 import 'package:analyzer/presentation/screens/analytics/widgets/completion_trend_chart.dart';
+import 'package:analyzer/presentation/screens/analytics/widgets/correlation_card.dart';
+import 'package:analyzer/presentation/screens/analytics/widgets/heatmap_widget.dart';
+import 'package:analyzer/presentation/screens/analytics/widgets/month_comparison_card.dart';
+import 'package:analyzer/presentation/screens/analytics/widgets/top_habits_card.dart';
 import 'package:analyzer/presentation/screens/analytics/widgets/weekday_bar_chart.dart';
+import 'package:analyzer/presentation/screens/analytics/widgets/weekly_summary_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/analytics_controller.dart';
@@ -28,11 +33,21 @@ class AnalyticsScreen extends StatelessWidget {
             children: const [
               PerformanceScoreCard(),
               SizedBox(height: 24),
-              OverviewStatsCard(),
+              //OverviewStatsCard(),
+              SizedBox(height: 24),
+              WeeklySummaryCard(),
               SizedBox(height: 24),
               CompletionTrendChart(),
               SizedBox(height: 24),
               WeekdayBarChart(),
+              SizedBox(height: 24),
+              MonthComparisonCard(),
+              SizedBox(height: 24),
+              TopHabitsCard(),
+              SizedBox(height: 24),
+              //CorrelationCard(),
+              SizedBox(height: 24),
+              HeatmapWidget(),
             ],
           ),
         ),

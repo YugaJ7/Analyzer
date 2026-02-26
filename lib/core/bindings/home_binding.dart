@@ -1,3 +1,4 @@
+import 'package:analyzer/data/repositories/streak_repository_impl.dart';
 import 'package:analyzer/domain/repositories/streak_repository.dart';
 import 'package:analyzer/presentation/controllers/analytics_controller.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
@@ -17,6 +18,7 @@ class HomeBinding extends Bindings {
     // Repositories
     Get.put<ParameterRepository>(ParameterRepositoryImpl());
     Get.put<EntryRepository>(EntryRepositoryImpl());
+    Get.put<StreakRepository>(StreakRepositoryImpl());
 
     // Parameter Use Cases
     Get.put<GetParameters>(GetParameters(Get.find<ParameterRepository>()));

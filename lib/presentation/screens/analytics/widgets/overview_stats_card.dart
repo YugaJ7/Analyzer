@@ -38,10 +38,10 @@ class OverviewStatsCard extends StatelessWidget {
                 "Completion Rate",
                 "${controller.overallCompletionRate.value.toStringAsFixed(0)}%",
               ),
-              _buildStatCard(
-                "Best Streak",
-                controller.bestStreak.value.toString(),
-              ),
+              // _buildStatCard(
+              //   "Best Streak",
+              //   controller.bestStreak.value.toString(),
+              // ),
               _buildStatCard(
                 "Tracked Days",
                 "90",
