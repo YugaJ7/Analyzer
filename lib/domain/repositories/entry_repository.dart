@@ -3,6 +3,11 @@ import '../entities/entry_entity.dart';
 abstract class EntryRepository {
   Future<List<EntryEntity>> getEntriesForDate(String userId, DateTime date);
 
+  Future<Map<DateTime, List<EntryEntity>>> getEntriesForLastNDays(
+    String userId,
+    int days,
+  );
+
   Future<void> saveEntry(EntryEntity entry);
 
   Future<void> updateEntry(
@@ -13,9 +18,4 @@ abstract class EntryRepository {
   );
 
   Future<void> deleteEntry(String userId, DateTime date, String parameterId);
-
-  Future<Map<DateTime, List<EntryEntity>>> getEntriesForLastNDays(
-    String userId,
-    int days,
-  );
 }

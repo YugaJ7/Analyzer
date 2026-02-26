@@ -1,9 +1,12 @@
+import 'package:analyzer/data/cache/analytics_cache_service.dart';
 import 'package:analyzer/data/repositories/streak_repository_impl.dart';
 import 'package:analyzer/domain/repositories/streak_repository.dart';
 import 'package:analyzer/presentation/controllers/analytics_controller.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:analyzer/presentation/controllers/streak_controller.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import '../../data/repositories/entry_repository_impl.dart';
 import '../../data/repositories/parameter_repository_impl.dart';
 import '../../domain/repositories/entry_repository.dart';
@@ -15,9 +18,23 @@ import '../../presentation/controllers/parameter_controller.dart';
 class HomeBinding extends Bindings {
   @override
   void dependencies() {
+    //Cache Service
+    Get.put<AnalyticsCacheService>(
+    AnalyticsCacheService(
+      Hive.box(AnalyticsCacheService.boxName),
+    ),
+    permanent: true,
+  );
+
     // Repositories
+    Get.put<EntryRepository>(
+      EntryRepositoryImpl(
+        FirebaseFirestore.instance,
+        Get.find<AnalyticsCacheService>(),
+      ),
+      permanent: true,
+    );
     Get.put<ParameterRepository>(ParameterRepositoryImpl());
-    Get.put<EntryRepository>(EntryRepositoryImpl());
     Get.put<StreakRepository>(StreakRepositoryImpl());
 
     // Parameter Use Cases
@@ -67,7 +84,6 @@ class HomeBinding extends Bindings {
     //Streak Controller
     Get.put<StreakController>(
       StreakController(
-        entryRepository: Get.find<EntryRepository>(),
         streakRepository: Get.find<StreakRepository>(),
       ),
       permanent: true,

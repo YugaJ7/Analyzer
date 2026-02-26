@@ -1,9 +1,11 @@
 import 'dart:developer';
+import 'package:analyzer/data/cache/analytics_cache_service.dart';
+import 'package:analyzer/presentation/controllers/streak_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import '../../domain/entities/entry_entity.dart';
 import '../../domain/repositories/entry_repository.dart';
-import '../../presentation/controllers/parameter_controller.dart';
+import 'parameter_controller.dart';
 
 class AnalyticsController extends GetxController {
   final EntryRepository entryRepository;
@@ -18,6 +20,8 @@ class AnalyticsController extends GetxController {
 
   final Map<DateTime, List<EntryEntity>> _history = {};
 
+  Map<DateTime, List<EntryEntity>> get history => _history;
+
   final RxDouble performanceScore = 0.0.obs;
   final RxDouble overallCompletionRate = 0.0.obs;
   final RxInt totalActiveHabits = 0.obs;
@@ -28,8 +32,7 @@ class AnalyticsController extends GetxController {
   final RxList<double> last7DaysTrend = <double>[].obs;
   final RxList<double> last30DaysTrend = <double>[].obs;
 
-  final RxMap<int, double> weekdayBreakdown =
-      <int, double>{}.obs;
+  final RxMap<int, double> weekdayBreakdown = <int, double>{}.obs;
 
   final RxInt weeklyCompleted = 0.obs;
   final RxInt weeklyTotal = 0.obs;
@@ -38,9 +41,7 @@ class AnalyticsController extends GetxController {
 
   final RxList<String> topHabits = <String>[].obs;
 
-  final RxMap<DateTime, double> heatmapData =
-      <DateTime, double>{}.obs;
-
+  final RxMap<DateTime, double> heatmapData = <DateTime, double>{}.obs;
 
   @override
   void onInit() {
@@ -51,14 +52,9 @@ class AnalyticsController extends GetxController {
   Future<void> loadAnalytics() async {
     isLoading.value = true;
 
-    final userId =
-        FirebaseAuth.instance.currentUser!.uid;
+    final userId = FirebaseAuth.instance.currentUser!.uid;
 
-    final data =
-        await entryRepository.getEntriesForLastNDays(
-      userId,
-      365,
-    );
+    final data = await entryRepository.getEntriesForLastNDays(userId, 365);
 
     log("Loaded history days: ${data.length}");
 
@@ -67,20 +63,12 @@ class AnalyticsController extends GetxController {
       ..addAll(data);
 
     _computeAnalytics();
-
+    Get.find<StreakController>().loadAllStreaks();
     isLoading.value = false;
   }
 
-  void updateFromEntryChange(
-    String parameterId,
-    DateTime date,
-    bool isAdded,
-  ) {
-    final normalized = DateTime(
-      date.year,
-      date.month,
-      date.day,
-    );
+  void updateFromEntryChange(String parameterId, DateTime date, bool isAdded) {
+    final normalized = DateTime(date.year, date.month, date.day);
 
     _history.putIfAbsent(normalized, () => []);
 
@@ -96,14 +84,12 @@ class AnalyticsController extends GetxController {
         ),
       );
     } else {
-      _history[normalized]!.removeWhere(
-        (e) => e.parameterId == parameterId,
-      );
+      _history[normalized]!.removeWhere((e) => e.parameterId == parameterId);
     }
-
+    final cache = Get.find<AnalyticsCacheService>();
+    cache.save(_history);
     _computeAnalytics();
   }
-
 
   void _computeAnalytics() {
     final activeHabits = parameterController.parameters
@@ -112,17 +98,15 @@ class AnalyticsController extends GetxController {
 
     totalActiveHabits.value = activeHabits.length;
 
-    if (activeHabits.isEmpty) {
-      return;
-    }
+    if (activeHabits.isEmpty) return;
 
     final now = DateTime.now();
 
     int totalCompletions = 0;
     int totalPossible = 0;
 
-    int overallCurrent = 0;
-    int overallBest = 0;
+    int currentStreak = 0;
+    int bestStreak = 0;
 
     int weeklyComp = 0;
     int weeklyPoss = 0;
@@ -147,18 +131,15 @@ class AnalyticsController extends GetxController {
       int completedToday = 0;
 
       for (final habit in activeHabits) {
-        final matched =
-            entries.any((e) => e.parameterId == habit.id);
+        final matched = entries.any((e) => e.parameterId == habit.id);
 
         if (matched) {
           completedToday++;
-          habitCount[habit.name] =
-              (habitCount[habit.name] ?? 0) + 1;
+          habitCount[habit.name] = (habitCount[habit.name] ?? 0) + 1;
         }
       }
 
-      final completionRate =
-          completedToday / activeHabits.length;
+      final completionRate = completedToday / activeHabits.length;
 
       totalCompletions += completedToday;
       totalPossible += activeHabits.length;
@@ -179,26 +160,23 @@ class AnalyticsController extends GetxController {
       weekdayMap[date.weekday]!.add(completionRate);
 
       if (completedToday > 0) {
-        overallCurrent++;
-        if (overallCurrent > overallBest) {
-          overallBest = overallCurrent;
+        currentStreak++;
+        if (currentStreak > bestStreak) {
+          bestStreak = currentStreak;
         }
       } else {
-        overallCurrent = 0;
+        currentStreak = 0;
       }
     }
 
-    overallCompletionRate.value =
-        totalPossible == 0
-            ? 0
-            : (totalCompletions / totalPossible) *
-                100;
+    overallCompletionRate.value = totalPossible == 0
+        ? 0
+        : (totalCompletions / totalPossible) * 100;
 
-    performanceScore.value =
-        overallCompletionRate.value;
+    performanceScore.value = overallCompletionRate.value;
 
-    overallCurrentStreak.value = overallCurrent;
-    overallBestStreak.value = overallBest;
+    overallCurrentStreak.value = currentStreak;
+    overallBestStreak.value = bestStreak;
 
     weeklyCompleted.value = weeklyComp;
     weeklyTotal.value = weeklyPoss;
@@ -208,27 +186,21 @@ class AnalyticsController extends GetxController {
 
     final Map<int, double> weekdayAvg = {};
     weekdayMap.forEach((weekday, list) {
-      final avg =
-          list.reduce((a, b) => a + b) / list.length;
+      final avg = list.reduce((a, b) => a + b) / list.length;
       weekdayAvg[weekday] = avg * 100;
     });
+
     weekdayBreakdown.assignAll(weekdayAvg);
 
     if (trend30.isNotEmpty) {
-      final lastMonthAvg =
-          trend30.reduce((a, b) => a + b) /
-              trend30.length;
+      final lastMonthAvg = trend30.reduce((a, b) => a + b) / trend30.length;
 
-      monthComparison.value =
-          lastMonthAvg -
-              overallCompletionRate.value;
+      monthComparison.value = lastMonthAvg - overallCompletionRate.value;
     }
 
     final sorted = habitCount.entries.toList()
-      ..sort((a, b) =>
-          b.value.compareTo(a.value));
+      ..sort((a, b) => b.value.compareTo(a.value));
 
-    topHabits.assignAll(
-        sorted.take(3).map((e) => e.key));
+    topHabits.assignAll(sorted.take(3).map((e) => e.key));
   }
 }
