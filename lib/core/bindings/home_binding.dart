@@ -1,5 +1,7 @@
+import 'package:analyzer/domain/repositories/streak_repository.dart';
 import 'package:analyzer/presentation/controllers/analytics_controller.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
+import 'package:analyzer/presentation/controllers/streak_controller.dart';
 import 'package:get/get.dart';
 import '../../data/repositories/entry_repository_impl.dart';
 import '../../data/repositories/parameter_repository_impl.dart';
@@ -56,6 +58,15 @@ class HomeBinding extends Bindings {
       AnalyticsController(
         entryRepository: Get.find<EntryRepository>(),
         parameterController: Get.find<ParameterController>(),
+      ),
+      permanent: true,
+    );
+
+    //Streak Controller
+    Get.put<StreakController>(
+      StreakController(
+        entryRepository: Get.find<EntryRepository>(),
+        streakRepository: Get.find<StreakRepository>(),
       ),
       permanent: true,
     );

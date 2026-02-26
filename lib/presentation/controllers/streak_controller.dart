@@ -1,12 +1,15 @@
-import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get/get.dart';
 import '../../domain/repositories/entry_repository.dart';
+import '../../domain/repositories/streak_repository.dart';
 
 class StreakController extends GetxController {
   final EntryRepository entryRepository;
+  final StreakRepository streakRepository;
 
   StreakController({
     required this.entryRepository,
+    required this.streakRepository,
   });
 
   final RxMap<String, int> currentStreaks =
@@ -64,8 +67,18 @@ class StreakController extends GetxController {
     currentStreaks[parameterId] =
         current;
     bestStreaks[parameterId] = best;
+
+    await streakRepository.saveStreak(
+      userId,
+      parameterId,
+      current,
+      best,
+    );
   }
 
   int getCurrent(String parameterId) =>
       currentStreaks[parameterId] ?? 0;
+
+  int getBest(String parameterId) =>
+      bestStreaks[parameterId] ?? 0;
 }
