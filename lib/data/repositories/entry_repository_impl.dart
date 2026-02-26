@@ -5,32 +5,29 @@ import '../../domain/repositories/entry_repository.dart';
 class EntryRepositoryImpl implements EntryRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  String _formatDate(DateTime date) {
-    return "${date.year.toString().padLeft(4, '0')}-"
-        "${date.month.toString().padLeft(2, '0')}-"
-        "${date.day.toString().padLeft(2, '0')}";
-  }
-
-  CollectionReference<Map<String, dynamic>> _dailyParams(
-    String userId,
-    DateTime date,
-  ) {
-    final dateId = _formatDate(date);
-
+  CollectionReference<Map<String, dynamic>> _entries(
+      String userId) {
     return _firestore
         .collection('users')
         .doc(userId)
-        .collection('entries')
-        .doc(dateId)
-        .collection('parameters');
+        .collection('entries');
   }
 
   @override
   Future<List<EntryEntity>> getEntriesForDate(
-    String userId,
-    DateTime date,
+      String userId,
+      DateTime date,
   ) async {
-    final snapshot = await _dailyParams(userId, date).get();
+    final normalized = DateTime(
+      date.year,
+      date.month,
+      date.day,
+    );
+
+    final snapshot = await _entries(userId)
+        .where('date',
+            isEqualTo: Timestamp.fromDate(normalized))
+        .get();
 
     return snapshot.docs.map((doc) {
       final data = doc.data();
@@ -38,21 +35,25 @@ class EntryRepositoryImpl implements EntryRepository {
       return EntryEntity(
         id: doc.id,
         userId: userId,
-        parameterId: doc.id,
-        date: date,
+        parameterId: data['parameterId'],
+        date: (data['date'] as Timestamp).toDate(),
         value: data['value'],
         notes: data['notes'],
-        createdAt: (data['createdAt'] as Timestamp).toDate(),
+        createdAt:
+            (data['createdAt'] as Timestamp).toDate(),
       );
     }).toList();
   }
 
   @override
   Future<void> saveEntry(EntryEntity entry) async {
-    await _dailyParams(entry.userId, entry.date).doc(entry.parameterId).set({
+    await _entries(entry.userId).doc(entry.id).set({
+      'parameterId': entry.parameterId,
+      'date': Timestamp.fromDate(entry.date),
       'value': entry.value,
       'notes': entry.notes,
-      'createdAt': Timestamp.fromDate(entry.createdAt),
+      'createdAt':
+          Timestamp.fromDate(entry.createdAt),
     });
   }
 
@@ -63,7 +64,16 @@ class EntryRepositoryImpl implements EntryRepository {
     String parameterId,
     Map<String, dynamic> updates,
   ) async {
-    await _dailyParams(userId, date).doc(parameterId).update(updates);
+    final snapshot = await _entries(userId)
+        .where('parameterId', isEqualTo: parameterId)
+        .where('date',
+            isEqualTo:
+                Timestamp.fromDate(date))
+        .get();
+
+    for (final doc in snapshot.docs) {
+      await doc.reference.update(updates);
+    }
   }
 
   @override
@@ -72,54 +82,66 @@ class EntryRepositoryImpl implements EntryRepository {
     DateTime date,
     String parameterId,
   ) async {
-    await _dailyParams(userId, date).doc(parameterId).delete();
+    final snapshot = await _entries(userId)
+        .where('parameterId', isEqualTo: parameterId)
+        .where('date',
+            isEqualTo:
+                Timestamp.fromDate(date))
+        .get();
+
+    for (final doc in snapshot.docs) {
+      await doc.reference.delete();
+    }
   }
 
   @override
-  Future<Map<DateTime, List<EntryEntity>>> getEntriesForLastNDays(
+  Future<Map<DateTime, List<EntryEntity>>>
+      getEntriesForLastNDays(
     String userId,
     int days,
   ) async {
     final now = DateTime.now();
-    final startDate = now.subtract(Duration(days: days));
+    final startDate = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: days));
 
-    final entriesCollection = _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('entries');
+    final snapshot = await _entries(userId)
+        .where('date',
+            isGreaterThanOrEqualTo:
+                Timestamp.fromDate(startDate))
+        .get();
 
-    final snapshot = await entriesCollection.get();
-
-    final Map<DateTime, List<EntryEntity>> result = {};
+    final Map<DateTime, List<EntryEntity>>
+        result = {};
 
     for (final doc in snapshot.docs) {
-      final dateParts = doc.id.split('-');
-      if (dateParts.length != 3) continue;
+      final data = doc.data();
+      final date =
+          (data['date'] as Timestamp).toDate();
 
-      final date = DateTime(
-        int.parse(dateParts[0]),
-        int.parse(dateParts[1]),
-        int.parse(dateParts[2]),
+      final normalized = DateTime(
+        date.year,
+        date.month,
+        date.day,
       );
 
-      if (date.isBefore(startDate)) continue;
+      final entry = EntryEntity(
+        id: doc.id,
+        userId: userId,
+        parameterId: data['parameterId'],
+        date: normalized,
+        value: data['value'],
+        notes: data['notes'],
+        createdAt:
+            (data['createdAt'] as Timestamp)
+                .toDate(),
+      );
 
-      final paramsSnapshot = await doc.reference.collection('parameters').get();
-
-      final entries = paramsSnapshot.docs.map((p) {
-        final data = p.data();
-        return EntryEntity(
-          id: p.id,
-          userId: userId,
-          parameterId: p.id,
-          date: date,
-          value: data['value'],
-          notes: data['notes'],
-          createdAt: (data['createdAt'] as Timestamp).toDate(),
-        );
-      }).toList();
-
-      result[date] = entries;
+      result.putIfAbsent(
+          normalized, () => []);
+      result[normalized]!.add(entry);
     }
 
     return result;
