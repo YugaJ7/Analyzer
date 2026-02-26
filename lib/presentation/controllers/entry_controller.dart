@@ -1,3 +1,5 @@
+import 'package:analyzer/presentation/controllers/analytics_controller.dart';
+import 'package:analyzer/presentation/controllers/streak_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -69,51 +71,67 @@ class EntryController extends GetxController {
   }
 
   Future<void> toggleEntry(
-    String parameterId,
-    dynamic value, {
-    String? notes,
-  }) async {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
+  String parameterId,
+  dynamic value, {
+  String? notes,
+}) async {
+  final userId =
+      FirebaseAuth.instance.currentUser!.uid;
 
-    final normalizedDate = DateTime(
-      selectedDate.value.year,
-      selectedDate.value.month,
-      selectedDate.value.day,
+  final normalizedDate = DateTime(
+    selectedDate.value.year,
+    selectedDate.value.month,
+    selectedDate.value.day,
+  );
+
+  final existingEntry =
+      selectedDateEntries[parameterId];
+
+  if (existingEntry != null &&
+      existingEntry.value == value) {
+    selectedDateEntries.remove(parameterId);
+
+    await deleteEntry(
+      userId,
+      normalizedDate,
+      parameterId,
     );
 
-    final key = _dateKey(normalizedDate);
+    Get.find<AnalyticsController>()
+        .updateFromEntryChange(
+            parameterId, normalizedDate, false);
 
-    if (!_dailyCache.containsKey(key)) {
-      _dailyCache[key] = {};
-    }
+    Get.find<StreakController>()
+        .recalculate(parameterId);
 
-    final existingEntry =
-        selectedDateEntries[parameterId];
-
-    if (existingEntry != null &&
-        existingEntry.value == value) {
-      selectedDateEntries.remove(parameterId);
-      _dailyCache[key]!.remove(parameterId);
-
-      deleteEntry(userId, normalizedDate, parameterId);
-      return;
-    }
-
-    final entry = EntryEntity(
-      id: parameterId,
-      userId: userId,
-      parameterId: parameterId,
-      date: normalizedDate,
-      value: value,
-      notes: notes,
-      createdAt: DateTime.now(),
-    );
-
-    selectedDateEntries[parameterId] = entry;
-    _dailyCache[key]![parameterId] = entry;
-
-    saveEntry(entry);
+    return;
   }
+
+  final entryId =
+      "$parameterId-${normalizedDate.toIso8601String()}";
+
+  final entry = EntryEntity(
+    id: entryId,
+    userId: userId,
+    parameterId: parameterId,
+    date: normalizedDate,
+    value: value,
+    notes: notes,
+    createdAt: DateTime.now(),
+  );
+
+  selectedDateEntries[parameterId] =
+      entry;
+
+  await saveEntry(entry);
+
+  Get.find<AnalyticsController>()
+      .updateFromEntryChange(
+          parameterId, normalizedDate, true);
+
+  Get.find<StreakController>()
+      .recalculate(parameterId);
+}
   
   Future<void> deleteEntryManually(String parameterId) async {
     final userId = FirebaseAuth.instance.currentUser!.uid;
