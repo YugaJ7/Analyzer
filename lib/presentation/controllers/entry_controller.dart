@@ -89,13 +89,10 @@ class EntryController extends GetxController {
 
       await deleteEntry(userId, normalizedDate, parameterId);
 
-      Get.find<AnalyticsController>().updateFromEntryChange(
-        parameterId,
-        normalizedDate,
-        false,
-      );
+      final analytics = Get.find<AnalyticsController>();
+      analytics.updateFromEntryChange(parameterId, normalizedDate, false);
 
-      Get.find<StreakController>().recalculate(parameterId);
+      Get.find<StreakController>().updateSingleHabit(parameterId);
 
       return;
     }
@@ -116,13 +113,10 @@ class EntryController extends GetxController {
 
     await saveEntry(entry);
 
-    Get.find<AnalyticsController>().updateFromEntryChange(
-      parameterId,
-      normalizedDate,
-      true,
-    );
+    final analytics = Get.find<AnalyticsController>();
+    analytics.updateFromEntryChange(parameterId, normalizedDate, true);
 
-    Get.find<StreakController>().recalculate(parameterId);
+    Get.find<StreakController>().updateSingleHabit(parameterId);
   }
 
   Future<void> deleteEntryManually(String parameterId) async {
@@ -139,7 +133,6 @@ class EntryController extends GetxController {
     selectedDateEntries.remove(parameterId);
     _dailyCache[key]?.remove(parameterId);
 
-    Get.find<StreakController>().recalculate(parameterId);
     await deleteEntry(userId, normalizedDate, parameterId);
   }
 

@@ -1,14 +1,12 @@
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:get/get.dart';
-import '../../domain/repositories/entry_repository.dart';
+import '../../presentation/controllers/analytics_controller.dart';
 import '../../domain/repositories/streak_repository.dart';
 
 class StreakController extends GetxController {
-  final EntryRepository entryRepository;
   final StreakRepository streakRepository;
 
   StreakController({
-    required this.entryRepository,
     required this.streakRepository,
   });
 
@@ -18,63 +16,107 @@ class StreakController extends GetxController {
   final RxMap<String, int> bestStreaks =
       <String, int>{}.obs;
 
-  Future<void> recalculate(
-      String parameterId) async {
-    final userId =
-        FirebaseAuth.instance.currentUser!.uid;
+  /// Initial load 
+  void loadAllStreaks() {
+    final analytics =
+        Get.find<AnalyticsController>();
 
-    final history =
-        await entryRepository
-            .getEntriesForLastNDays(
-                userId, 365);
+    final history = analytics.history;
 
-    final dates = history.entries
-        .where((entry) => entry.value.any(
-            (e) =>
-                e.parameterId ==
-                parameterId))
-        .map((e) => e.key)
-        .toList()
-      ..sort();
+    final Map<String, List<DateTime>> habitDates =
+        {};
 
-    int best = 0;
-    int current = 0;
+    history.forEach((date, entries) {
+      for (final e in entries) {
+        habitDates.putIfAbsent(
+            e.parameterId, () => []);
+        habitDates[e.parameterId]!
+            .add(date);
+      }
+    });
 
-    DateTime? previous;
+    habitDates.forEach((parameterId, dates) {
+      _computeAndSet(parameterId, dates);
+    });
+  }
 
-    for (final date in dates) {
-      if (previous == null) {
-        current = 1;
+  /// Instant update for single habit
+  void updateSingleHabit(String parameterId) {
+    final analytics =
+        Get.find<AnalyticsController>();
+
+    final history = analytics.history;
+
+    final List<DateTime> dates = [];
+
+    history.forEach((date, entries) {
+      if (entries.any(
+          (e) => e.parameterId == parameterId)) {
+        dates.add(date);
+      }
+    });
+
+    _computeAndSet(parameterId, dates);
+  }
+
+  /// Core calculation (fast + sync)
+  void _computeAndSet(
+  String parameterId,
+  List<DateTime> dates,
+) {
+  if (dates.isEmpty) {
+    currentStreaks[parameterId] = 0;
+    bestStreaks[parameterId] = 0;
+    return;
+  }
+
+  dates.sort();
+
+  final dateSet = dates
+      .map((d) => DateTime(d.year, d.month, d.day))
+      .toSet();
+
+  // BEST STREAK
+  int best = 0;
+  int temp = 0;
+  DateTime? previous;
+
+  for (final date in dates) {
+    if (previous == null) {
+      temp = 1;
+    } else {
+      final diff =
+          date.difference(previous).inDays;
+
+      if (diff == 1) {
+        temp++;
       } else {
-        final diff =
-            date.difference(previous)
-                .inDays;
-
-        if (diff == 1) {
-          current++;
-        } else {
-          current = 1;
-        }
+        temp = 1;
       }
-
-      if (current > best) {
-        best = current;
-      }
-
-      previous = date;
     }
 
-    currentStreaks[parameterId] =
-        current;
-    bestStreaks[parameterId] = best;
+    if (temp > best) {
+      best = temp;
+    }
 
-    await streakRepository.saveStreak(
-      userId,
-      parameterId,
-      current,
-      best,
-    );
+    previous = date;
   }
+
+  // CURRENT STREAK (anchored to today)
+  int current = 0;
+  DateTime cursor = DateTime.now();
+  cursor = DateTime(cursor.year, cursor.month, cursor.day);
+
+  while (dateSet.contains(cursor)) {
+    current++;
+    cursor = cursor.subtract(const Duration(days: 1));
+  }
+
+  // Memory update only
+  currentStreaks[parameterId] = current;
+  bestStreaks[parameterId] = best;
+
+}
 
   int getCurrent(String parameterId) =>
       currentStreaks[parameterId] ?? 0;

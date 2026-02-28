@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/entry_entity.dart';
 import '../../domain/repositories/entry_repository.dart';
@@ -112,6 +110,9 @@ class EntryRepositoryImpl implements EntryRepository {
     DateTime date,
     String parameterId,
   ) async {
-    await _entriesRef(userId).doc(parameterId).delete();
+    final entryId =
+        "$parameterId-${DateTime(date.year, date.month, date.day).toIso8601String()}";
+
+    await _entriesRef(userId).doc(entryId).delete();
   }
 }
