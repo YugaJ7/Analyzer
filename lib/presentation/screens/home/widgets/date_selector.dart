@@ -10,10 +10,10 @@ class DateSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _entryController = Get.find<EntryController>();
+    final entryController = Get.find<EntryController>();
 
     return Obx(() {
-      final selectedDate = _entryController.selectedDate.value;
+      final selectedDate = entryController.selectedDate.value;
       final isToday = isSameDay(selectedDate, DateTime.now());
 
       return Container(
@@ -28,7 +28,7 @@ class DateSelector extends StatelessWidget {
           children: [
             IconButton(
               onPressed: () {
-                _entryController.changeSelectedDate(
+                entryController.changeSelectedDate(
                   selectedDate.subtract(const Duration(days: 1)),
                 );
               },
@@ -54,7 +54,7 @@ class DateSelector extends StatelessWidget {
                   },
                 );
                 if (picked != null) {
-                  _entryController.changeSelectedDate(picked);
+                  entryController.changeSelectedDate(picked);
                 }
               },
               child: Column(
@@ -102,7 +102,7 @@ class DateSelector extends StatelessWidget {
               onPressed: isSameDay(selectedDate, DateTime.now())
                   ? null
                   : () {
-                      _entryController.changeSelectedDate(
+                      entryController.changeSelectedDate(
                         selectedDate.add(const Duration(days: 1)),
                       );
                     },
