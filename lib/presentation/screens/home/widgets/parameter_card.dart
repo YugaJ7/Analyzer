@@ -86,9 +86,9 @@ class ParameterEntryCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Obx(() {
-                          final streakController = Get.find<StreakController>();
+                          final value = Get.find<StreakController>().getCurrent(param.id);
                           return Text(
-                            streakController.getCurrent(param.id).toString(),
+                            value.toString(),
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,

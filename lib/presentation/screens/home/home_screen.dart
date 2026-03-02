@@ -1,7 +1,10 @@
+import 'package:analyzer/presentation/controllers/analytics_controller.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
+import 'package:analyzer/presentation/controllers/parameter_controller.dart';
 import 'package:analyzer/presentation/screens/analytics/analytics_screen.dart';
 import 'package:analyzer/presentation/screens/home/widgets/date_selector.dart';
 import 'package:analyzer/presentation/screens/home/widgets/home_header.dart';
+import 'package:analyzer/presentation/screens/home/widgets/home_skeleton.dart';
 import 'package:analyzer/presentation/screens/home/widgets/parameter_list.dart';
 import 'package:analyzer/presentation/screens/home/widgets/progress_card.dart';
 import 'package:flutter/material.dart';
@@ -28,16 +31,24 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Obx(
-        () => IndexedStack(
+      body: Obx(() {
+        final paramController = Get.find<ParameterController>();
+        final analyticsController = Get.find<AnalyticsController>();
+
+        if (paramController.isLoading.value ||
+            analyticsController.isLoading.value) {
+          return const HomeSkeleton();
+        }
+
+        return IndexedStack(
           index: _selectedIndex.value,
           children: const [
             _HomeTab(),
             AnalyticsScreen(),
             Center(child: Text("Profile")),
           ],
-        ),
-      ),
+        );
+      }),
       bottomNavigationBar: Obx(
         () => BottomNavigationBar(
           currentIndex: _selectedIndex.value,
