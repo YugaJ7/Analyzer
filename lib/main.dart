@@ -1,4 +1,5 @@
 import 'package:analyzer/data/cache/analytics_cache_service.dart';
+import 'package:analyzer/data/cache/streak_cache_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,30 +12,30 @@ import 'core/routes/app_pages.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await Firebase.initializeApp();
-  
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
     ),
   );
-  
-  FirebaseFirestore.instance.settings =
-      const Settings(
+
+  FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: true,
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
   await Hive.initFlutter();
 
   await Hive.openBox(AnalyticsCacheService.boxName);
-  
+  await Hive.openBox(StreakCacheService.boxName);
+
   runApp(const MyApp());
 }
 

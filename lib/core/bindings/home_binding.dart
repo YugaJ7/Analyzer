@@ -1,4 +1,5 @@
 import 'package:analyzer/data/cache/analytics_cache_service.dart';
+import 'package:analyzer/data/cache/streak_cache_service.dart';
 import 'package:analyzer/data/repositories/streak_repository_impl.dart';
 import 'package:analyzer/domain/repositories/streak_repository.dart';
 import 'package:analyzer/presentation/controllers/analytics_controller.dart';
@@ -20,13 +21,15 @@ class HomeBinding extends Bindings {
   void dependencies() {
     //Cache Service
     Get.put<AnalyticsCacheService>(
-    AnalyticsCacheService(
-      Hive.box(AnalyticsCacheService.boxName),
-    ),
-    permanent: true,
-  );
+      AnalyticsCacheService(Hive.box(AnalyticsCacheService.boxName)),
+      permanent: true,
+    );
 
-    // Repositories
+    Get.put<StreakCacheService>(
+      StreakCacheService(Hive.box(StreakCacheService.boxName)),
+      permanent: true,
+    );
+    //Repositories
     Get.put<EntryRepository>(
       EntryRepositoryImpl(
         FirebaseFirestore.instance,
@@ -34,25 +37,48 @@ class HomeBinding extends Bindings {
       ),
       permanent: true,
     );
-    Get.put<ParameterRepository>(ParameterRepositoryImpl());
-    Get.put<StreakRepository>(StreakRepositoryImpl());
 
-    // Parameter Use Cases
-    Get.put<GetParameters>(GetParameters(Get.find<ParameterRepository>()));
-    Get.put<AddParameter>(AddParameter(Get.find<ParameterRepository>()));
-    Get.put<UpdateParameter>(UpdateParameter(Get.find<ParameterRepository>()));
-    Get.put<DeleteParameter>(DeleteParameter(Get.find<ParameterRepository>()));
+    Get.put<ParameterRepository>(ParameterRepositoryImpl(), permanent: true);
 
-    // Entry Use Cases
-    Get.put<GetEntriesForDate>(GetEntriesForDate(Get.find<EntryRepository>()));
+    Get.put<StreakRepository>(StreakRepositoryImpl(), permanent: true);
+    //use cases
+    Get.put<GetParameters>(
+      GetParameters(Get.find<ParameterRepository>()),
+      permanent: true,
+    );
 
-    Get.put<SaveEntry>(SaveEntry(Get.find<EntryRepository>()));
+    Get.put<AddParameter>(
+      AddParameter(Get.find<ParameterRepository>()),
+      permanent: true,
+    );
 
-    Get.put<UpdateEntry>(UpdateEntry(Get.find<EntryRepository>()));
+    Get.put<UpdateParameter>(
+      UpdateParameter(Get.find<ParameterRepository>()),
+      permanent: true,
+    );
 
-    Get.put<DeleteEntry>(DeleteEntry(Get.find<EntryRepository>()));
+    Get.put<DeleteParameter>(
+      DeleteParameter(Get.find<ParameterRepository>()),
+      permanent: true,
+    );
 
-    // Controllers
+    Get.put<GetEntriesForDate>(
+      GetEntriesForDate(Get.find<EntryRepository>()),
+      permanent: true,
+    );
+
+    Get.put<SaveEntry>(SaveEntry(Get.find<EntryRepository>()), permanent: true);
+
+    Get.put<UpdateEntry>(
+      UpdateEntry(Get.find<EntryRepository>()),
+      permanent: true,
+    );
+
+    Get.put<DeleteEntry>(
+      DeleteEntry(Get.find<EntryRepository>()),
+      permanent: true,
+    );
+    //Cotrollers
     Get.put<ParameterController>(
       ParameterController(
         getParameters: Get.find<GetParameters>(),
@@ -62,6 +88,7 @@ class HomeBinding extends Bindings {
       ),
       permanent: true,
     );
+
     Get.put<EntryController>(
       EntryController(
         getEntriesForDate: Get.find<GetEntriesForDate>(),
@@ -72,19 +99,19 @@ class HomeBinding extends Bindings {
       permanent: true,
     );
 
-    // Analytics Controller
     Get.put<AnalyticsController>(
       AnalyticsController(
         entryRepository: Get.find<EntryRepository>(),
         parameterController: Get.find<ParameterController>(),
+        cacheService: Get.find<AnalyticsCacheService>(),
       ),
       permanent: true,
     );
 
-    //Streak Controller
     Get.put<StreakController>(
       StreakController(
         streakRepository: Get.find<StreakRepository>(),
+        streakCache: Get.find<StreakCacheService>(),
       ),
       permanent: true,
     );
