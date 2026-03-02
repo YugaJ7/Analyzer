@@ -1,6 +1,4 @@
-import 'dart:developer';
 import 'package:analyzer/data/cache/analytics_cache_service.dart';
-import 'package:analyzer/presentation/controllers/streak_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import '../../domain/entities/entry_entity.dart';
@@ -10,16 +8,17 @@ import 'parameter_controller.dart';
 class AnalyticsController extends GetxController {
   final EntryRepository entryRepository;
   final ParameterController parameterController;
+  final AnalyticsCacheService cacheService;
 
   AnalyticsController({
     required this.entryRepository,
     required this.parameterController,
+    required this.cacheService,
   });
 
   final RxBool isLoading = false.obs;
 
   final Map<DateTime, List<EntryEntity>> _history = {};
-
   Map<DateTime, List<EntryEntity>> get history => _history;
 
   final RxDouble performanceScore = 0.0.obs;
@@ -38,9 +37,7 @@ class AnalyticsController extends GetxController {
   final RxInt weeklyTotal = 0.obs;
 
   final RxDouble monthComparison = 0.0.obs;
-
   final RxList<String> topHabits = <String>[].obs;
-
   final RxMap<DateTime, double> heatmapData = <DateTime, double>{}.obs;
 
   @override
@@ -50,21 +47,15 @@ class AnalyticsController extends GetxController {
   }
 
   Future<void> loadAnalytics() async {
-    isLoading.value = true;
-
     final userId = FirebaseAuth.instance.currentUser!.uid;
 
     final data = await entryRepository.getEntriesForLastNDays(userId, 365);
-
-    log("Loaded history days: ${data.length}");
 
     _history
       ..clear()
       ..addAll(data);
 
     _computeAnalytics();
-    Get.find<StreakController>().loadAllStreaks();
-    isLoading.value = false;
   }
 
   void updateFromEntryChange(String parameterId, DateTime date, bool isAdded) {
@@ -86,8 +77,8 @@ class AnalyticsController extends GetxController {
     } else {
       _history[normalized]!.removeWhere((e) => e.parameterId == parameterId);
     }
-    final cache = Get.find<AnalyticsCacheService>();
-    cache.save(_history);
+
+    cacheService.save(_history);
     _computeAnalytics();
   }
 
@@ -97,7 +88,6 @@ class AnalyticsController extends GetxController {
         .toList();
 
     totalActiveHabits.value = activeHabits.length;
-
     if (activeHabits.isEmpty) return;
 
     final now = DateTime.now();
@@ -105,8 +95,8 @@ class AnalyticsController extends GetxController {
     int totalCompletions = 0;
     int totalPossible = 0;
 
-    int currentStreak = 0;
-    int bestStreak = 0;
+    int overallCurrent = 0;
+    int overallBest = 0;
 
     int weeklyComp = 0;
     int weeklyPoss = 0;
@@ -160,12 +150,12 @@ class AnalyticsController extends GetxController {
       weekdayMap[date.weekday]!.add(completionRate);
 
       if (completedToday > 0) {
-        currentStreak++;
-        if (currentStreak > bestStreak) {
-          bestStreak = currentStreak;
+        overallCurrent++;
+        if (overallCurrent > overallBest) {
+          overallBest = overallCurrent;
         }
       } else {
-        currentStreak = 0;
+        overallCurrent = 0;
       }
     }
 
@@ -175,8 +165,8 @@ class AnalyticsController extends GetxController {
 
     performanceScore.value = overallCompletionRate.value;
 
-    overallCurrentStreak.value = currentStreak;
-    overallBestStreak.value = bestStreak;
+    overallCurrentStreak.value = overallCurrent;
+    overallBestStreak.value = overallBest;
 
     weeklyCompleted.value = weeklyComp;
     weeklyTotal.value = weeklyPoss;

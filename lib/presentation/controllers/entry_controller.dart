@@ -82,23 +82,53 @@ class EntryController extends GetxController {
       selectedDate.value.day,
     );
 
+    final today = DateTime.now();
+    final normalizedToday = DateTime(today.year, today.month, today.day);
+
     final existingEntry = selectedDateEntries[parameterId];
 
-    if (existingEntry != null && existingEntry.value == value) {
+    final entryId = "$parameterId-${normalizedDate.toIso8601String()}";
+
+    final analyticsController = Get.find<AnalyticsController>();
+
+    final streakController = Get.find<StreakController>();
+
+    final isToday = normalizedDate == normalizedToday;
+    //Removing a entry
+    if (existingEntry != null) {
       selectedDateEntries.remove(parameterId);
 
-      await deleteEntry(userId, normalizedDate, parameterId);
+      // Updating analytics memory first
+      analyticsController.updateFromEntryChange(
+        parameterId,
+        normalizedDate,
+        false,
+      );
 
-      final analytics = Get.find<AnalyticsController>();
-      analytics.updateFromEntryChange(parameterId, normalizedDate, false);
+      if (isToday) {
+        // Check if yesterday was completed
+        final yesterday = normalizedToday.subtract(const Duration(days: 1));
 
-      Get.find<StreakController>().updateSingleHabit(parameterId);
+        final yesterdayCompleted =
+            analyticsController.history[yesterday]?.any(
+              (e) => e.parameterId == parameterId,
+            ) ??
+            false;
+        streakController.unmarkToday(parameterId, yesterdayCompleted);
+      } else {
+        // Editing past date → full recompute
+        await streakController.recomputeFromHistory(
+          parameterId,
+          analyticsController.history,
+        );
+      }
+      // Firestore async (no await → no UI lag)
+      deleteEntry(userId, normalizedDate, parameterId);
 
       return;
     }
 
-    final entryId = "$parameterId-${normalizedDate.toIso8601String()}";
-
+    //Adding a entry
     final entry = EntryEntity(
       id: entryId,
       userId: userId,
@@ -111,37 +141,36 @@ class EntryController extends GetxController {
 
     selectedDateEntries[parameterId] = entry;
 
-    await saveEntry(entry);
-
-    final analytics = Get.find<AnalyticsController>();
-    analytics.updateFromEntryChange(parameterId, normalizedDate, true);
-
-    Get.find<StreakController>().updateSingleHabit(parameterId);
-  }
-
-  Future<void> deleteEntryManually(String parameterId) async {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-
-    final normalizedDate = DateTime(
-      selectedDate.value.year,
-      selectedDate.value.month,
-      selectedDate.value.day,
+    // Updating analytics memory first
+    analyticsController.updateFromEntryChange(
+      parameterId,
+      normalizedDate,
+      true,
     );
 
-    final key = _dateKey(normalizedDate);
+    if (isToday) {
+      final yesterday = normalizedToday.subtract(const Duration(days: 1));
 
-    selectedDateEntries.remove(parameterId);
-    _dailyCache[key]?.remove(parameterId);
+      final yesterdayCompleted =
+          analyticsController.history[yesterday]?.any(
+            (e) => e.parameterId == parameterId,
+          ) ??
+          false;
 
-    await deleteEntry(userId, normalizedDate, parameterId);
+      streakController.markToday(parameterId, yesterdayCompleted);
+    } else {
+      // Editing past date → full recompute
+      await streakController.recomputeFromHistory(
+        parameterId,
+        analyticsController.history,
+      );
+    }
+    // Firestore async (no await → no UI lag)
+    saveEntry(entry);
   }
 
   void changeSelectedDate(DateTime date) {
     selectedDate.value = date;
     loadEntries();
-  }
-
-  bool hasEntry(String parameterId) {
-    return selectedDateEntries.containsKey(parameterId);
   }
 }

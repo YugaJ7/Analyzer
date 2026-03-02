@@ -1,126 +1,191 @@
+import 'dart:developer';
 
+import 'package:analyzer/domain/entities/entry_entity.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
-import '../../presentation/controllers/analytics_controller.dart';
 import '../../domain/repositories/streak_repository.dart';
+import '../../data/cache/streak_cache_service.dart';
 
 class StreakController extends GetxController {
   final StreakRepository streakRepository;
+  final StreakCacheService streakCache;
 
-  StreakController({
-    required this.streakRepository,
-  });
+  StreakController({required this.streakRepository, required this.streakCache});
 
-  final RxMap<String, int> currentStreaks =
-      <String, int>{}.obs;
+  final RxMap<String, int> currentStreaks = <String, int>{}.obs;
 
-  final RxMap<String, int> bestStreaks =
-      <String, int>{}.obs;
+  final RxMap<String, int> bestStreaks = <String, int>{}.obs;
+  @override
+  void onInit() {
+    super.onInit();
+    _initialize();
+  }
 
-  /// Initial load 
-  void loadAllStreaks() {
-    final analytics =
-        Get.find<AnalyticsController>();
+  Future<void> _initialize() async {
+    _loadFromCache();
 
-    final history = analytics.history;
+    if (currentStreaks.isEmpty) {
+      await loadAllFromFirestore();
+    }
+  }
 
-    final Map<String, List<DateTime>> habitDates =
-        {};
+  //Loading Streak from Firestore
+  Future<void> loadAllFromFirestore() async {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
 
-    history.forEach((date, entries) {
-      for (final e in entries) {
-        habitDates.putIfAbsent(
-            e.parameterId, () => []);
-        habitDates[e.parameterId]!
-            .add(date);
+    final snapshot = await streakRepository.getAllStreaks(userId);
+
+    if (snapshot.isEmpty) return;
+
+    final Map<String, int> currentMap = {};
+    final Map<String, int> bestMap = {};
+
+    snapshot.forEach((parameterId, data) {
+      currentMap[parameterId] = data['currentStreak'] ?? 0;
+      bestMap[parameterId] = data['bestStreak'] ?? 0;
+
+      streakCache.save(
+        parameterId,
+        currentMap[parameterId]!,
+        bestMap[parameterId]!,
+      );
+    });
+
+    currentStreaks.assignAll(currentMap);
+    bestStreaks.assignAll(bestMap);
+  }
+
+  //Loading from Cache
+  void _loadFromCache() {
+    final raw = streakCache.loadAll();
+    log("CACHE RAW: $raw");
+    if (raw.isEmpty) return;
+
+    final Map<String, int> currentMap = {};
+    final Map<String, int> bestMap = {};
+
+    log("ASSIGNING CURRENT: $currentMap");
+    log("ASSIGNING BEST: $bestMap");
+
+    raw.forEach((habitId, data) {
+      if (data is Map) {
+        currentMap[habitId] = data['current'] ?? 0;
+
+        bestMap[habitId] = data['best'] ?? 0;
       }
     });
 
-    habitDates.forEach((parameterId, dates) {
-      _computeAndSet(parameterId, dates);
-    });
+    currentStreaks.assignAll(currentMap);
+    bestStreaks.assignAll(bestMap);
+    log("AFTER ASSIGN currentStreaks: $currentStreaks");
   }
 
-  /// Instant update for single habit
-  void updateSingleHabit(String parameterId) {
-    final analytics =
-        Get.find<AnalyticsController>();
+  // MARK TODAY
+  void markToday(String parameterId, bool yesterdayCompleted) {
+    int current = currentStreaks[parameterId] ?? 0;
 
-    final history = analytics.history;
+    if (yesterdayCompleted) {
+      current++;
+    } else {
+      current = 1;
+    }
 
+    currentStreaks[parameterId] = current;
+
+    if (current > (bestStreaks[parameterId] ?? 0)) {
+      bestStreaks[parameterId] = current;
+    }
+
+    _persist(parameterId);
+  }
+
+  /// UNMARK TODAY
+  void unmarkToday(String parameterId, bool yesterdayCompleted) {
+    int current = currentStreaks[parameterId] ?? 0;
+
+    if (yesterdayCompleted && current > 0) {
+      current = current - 1;
+    } else {
+      current = 0;
+    }
+
+    currentStreaks[parameterId] = current;
+
+    _persist(parameterId);
+  }
+
+  //Saving to cache then firestore
+  void _persist(String parameterId) {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+
+    final current = currentStreaks[parameterId] ?? 0;
+    final best = bestStreaks[parameterId] ?? 0;
+
+    streakCache.save(parameterId, current, best);
+
+    streakRepository.saveStreak(userId, parameterId, current, best);
+  }
+
+  //Recompute history streak if middle date is changed
+  Future<void> recomputeFromHistory(
+    String parameterId,
+    Map<DateTime, List<EntryEntity>> history,
+  ) async {
     final List<DateTime> dates = [];
 
     history.forEach((date, entries) {
-      if (entries.any(
-          (e) => e.parameterId == parameterId)) {
-        dates.add(date);
+      if (entries.any((e) => e.parameterId == parameterId)) {
+        dates.add(DateTime(date.year, date.month, date.day));
       }
     });
 
-    _computeAndSet(parameterId, dates);
-  }
+    if (dates.isEmpty) {
+      currentStreaks[parameterId] = 0;
+      bestStreaks[parameterId] = 0;
+      _persist(parameterId);
+      return;
+    }
 
-  /// Core calculation (fast + sync)
-  void _computeAndSet(
-  String parameterId,
-  List<DateTime> dates,
-) {
-  if (dates.isEmpty) {
-    currentStreaks[parameterId] = 0;
-    bestStreaks[parameterId] = 0;
-    return;
-  }
+    dates.sort();
 
-  dates.sort();
+    int best = 0;
+    int temp = 0;
+    DateTime? previous;
 
-  final dateSet = dates
-      .map((d) => DateTime(d.year, d.month, d.day))
-      .toSet();
-
-  // BEST STREAK
-  int best = 0;
-  int temp = 0;
-  DateTime? previous;
-
-  for (final date in dates) {
-    if (previous == null) {
-      temp = 1;
-    } else {
-      final diff =
-          date.difference(previous).inDays;
-
-      if (diff == 1) {
-        temp++;
-      } else {
+    for (final date in dates) {
+      if (previous == null) {
         temp = 1;
+      } else {
+        final diff = date.difference(previous).inDays;
+        if (diff == 1) {
+          temp++;
+        } else {
+          temp = 1;
+        }
       }
+
+      if (temp > best) best = temp;
+      previous = date;
     }
 
-    if (temp > best) {
-      best = temp;
+    int current = 0;
+    DateTime cursor = DateTime.now();
+    cursor = DateTime(cursor.year, cursor.month, cursor.day);
+
+    final dateSet = dates.toSet();
+
+    while (dateSet.contains(cursor)) {
+      current++;
+      cursor = cursor.subtract(const Duration(days: 1));
     }
 
-    previous = date;
+    currentStreaks[parameterId] = current;
+    bestStreaks[parameterId] = best;
+
+    _persist(parameterId);
   }
 
-  // CURRENT STREAK (anchored to today)
-  int current = 0;
-  DateTime cursor = DateTime.now();
-  cursor = DateTime(cursor.year, cursor.month, cursor.day);
+  int getCurrent(String parameterId) => currentStreaks[parameterId] ?? 0;
 
-  while (dateSet.contains(cursor)) {
-    current++;
-    cursor = cursor.subtract(const Duration(days: 1));
-  }
-
-  // Memory update only
-  currentStreaks[parameterId] = current;
-  bestStreaks[parameterId] = best;
-
-}
-
-  int getCurrent(String parameterId) =>
-      currentStreaks[parameterId] ?? 0;
-
-  int getBest(String parameterId) =>
-      bestStreaks[parameterId] ?? 0;
+  int getBest(String parameterId) => bestStreaks[parameterId] ?? 0;
 }
