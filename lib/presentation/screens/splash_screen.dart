@@ -25,23 +25,25 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initializeApp() async {
     await Future.delayed(const Duration(seconds: 2));
-    final user = FirebaseAuth.instance.currentUser;
 
-    if (user == null) {
-      Get.offAllNamed(AppRoutes.login);
-    } else {
+    FirebaseAuth.instance.authStateChanges().first.then((user) async {
+      if (user == null) {
+        Get.offAllNamed(AppRoutes.login);
+        return;
+      }
+
       try {
         final userData = await _userRepo.getUser(user.uid);
 
-        if (userData == null ) {
+        if (userData == null) {
           Get.offAllNamed(AppRoutes.parameterSetup);
-        } else {
-          Get.offAllNamed(AppRoutes.home);
+          return;
         }
+        Get.offAllNamed(AppRoutes.home);
       } catch (e) {
         Get.offAllNamed(AppRoutes.login);
       }
-    }
+    });
   }
 
   @override
