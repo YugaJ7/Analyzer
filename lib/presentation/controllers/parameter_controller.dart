@@ -21,8 +21,8 @@ class ParameterController extends GetxController {
   final RxList<ParameterModel> parameters = <ParameterModel>[].obs;
 
   late final String userId;
+  final RxBool isLoading = true.obs;
 
-  /// 🔥 In-memory cache
   final Map<String, ParameterModel> _cache = {};
 
   @override
@@ -33,21 +33,24 @@ class ParameterController extends GetxController {
   }
 
   void _listen() {
-    getParameters.repository
-        .watchParameters(userId)
-        .listen((list) {
-      final models =
-          list.map((e) => ParameterModel.fromEntity(e)).toList();
+  isLoading.value = true;
 
-      parameters.value = models;
+  getParameters.repository
+      .watchParameters(userId)
+      .listen((list) {
+    final models =
+        list.map((e) => ParameterModel.fromEntity(e)).toList();
 
-      /// 🔥 Update cache
-      _cache.clear();
-      for (var p in models) {
-        _cache[p.id] = p;
-      }
-    });
-  }
+    parameters.value = models;
+
+    _cache.clear();
+    for (var p in models) {
+      _cache[p.id] = p;
+    }
+
+    isLoading.value = false;
+  });
+}
 
   /// 🔥 Instant read from memory
   ParameterModel? getFromCache(String id) {
