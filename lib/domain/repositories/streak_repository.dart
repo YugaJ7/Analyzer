@@ -6,8 +6,5 @@ abstract class StreakRepository {
     int best,
   );
 
-  Future<Map<String, dynamic>?> getStreak(
-    String userId,
-    String parameterId,
-  );
+  Future<Map<String, Map<String, dynamic>>> getAllStreaks(String userId);
 }

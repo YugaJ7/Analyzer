@@ -45,6 +45,23 @@ class EntryRepositoryImpl implements EntryRepository {
     String userId,
     int days,
   ) async {
+    final cached = _cache.load();
+
+    if (cached.isNotEmpty) {
+      _refreshFromFirestore(userId, days);
+      return cached;
+    }
+    final fresh = await _fetchFromFirestore(userId, days);
+
+    _cache.save(fresh);
+
+    return fresh;
+  }
+
+  Future<Map<DateTime, List<EntryEntity>>> _fetchFromFirestore(
+    String userId,
+    int days,
+  ) async {
     final Map<DateTime, List<EntryEntity>> result = {};
 
     final now = DateTime.now();
@@ -77,10 +94,12 @@ class EntryRepositoryImpl implements EntryRepository {
       result[normalized]!.add(entry);
     }
 
-    // Save to Hive for persistence
-    _cache.save(result);
-
     return result;
+  }
+
+  void _refreshFromFirestore(String userId, int days) async {
+    final fresh = await _fetchFromFirestore(userId, days);
+    _cache.save(fresh);
   }
 
   @override
