@@ -169,10 +169,13 @@ class StreakController extends GetxController {
     }
 
     int current = 0;
-    DateTime cursor = DateTime.now();
-    cursor = DateTime(cursor.year, cursor.month, cursor.day);
+
+    DateTime today = DateTime.now();
+    today = DateTime(today.year, today.month, today.day);
 
     final dateSet = dates.toSet();
+
+    DateTime cursor = dateSet.contains(today) ? today : dates.last;
 
     while (dateSet.contains(cursor)) {
       current++;
