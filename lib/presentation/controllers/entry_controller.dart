@@ -70,35 +70,41 @@ class EntryController extends GetxController {
   }
 
   Future<void> toggleEntry(
-    String parameterId,
-    dynamic value, {
-    String? notes,
-  }) async {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
+  String parameterId,
+  dynamic value, {
+  String? notes,
+}) async {
+  final userId = FirebaseAuth.instance.currentUser!.uid;
 
-    final normalizedDate = DateTime(
-      selectedDate.value.year,
-      selectedDate.value.month,
-      selectedDate.value.day,
-    );
+  final normalizedDate = DateTime(
+    selectedDate.value.year,
+    selectedDate.value.month,
+    selectedDate.value.day,
+  );
 
-    final today = DateTime.now();
-    final normalizedToday = DateTime(today.year, today.month, today.day);
+  final today = DateTime.now();
+  final normalizedToday =
+      DateTime(today.year, today.month, today.day);
 
-    final existingEntry = selectedDateEntries[parameterId];
+  final existingEntry = selectedDateEntries[parameterId];
+  final entryId =
+      "$parameterId-${normalizedDate.toIso8601String()}";
 
-    final entryId = "$parameterId-${normalizedDate.toIso8601String()}";
+  final analyticsController =
+      Get.find<AnalyticsController>();
 
-    final analyticsController = Get.find<AnalyticsController>();
+  final streakController =
+      Get.find<StreakController>();
 
-    final streakController = Get.find<StreakController>();
+  final isToday = normalizedDate == normalizedToday;
 
-    final isToday = normalizedDate == normalizedToday;
-    //Removing a entry
+  final bool isBoolean = value is bool;
+
+  if (isBoolean) {
     if (existingEntry != null) {
+      // UNMARK
       selectedDateEntries.remove(parameterId);
 
-      // Updating analytics memory first
       analyticsController.updateFromEntryChange(
         parameterId,
         normalizedDate,
@@ -106,42 +112,40 @@ class EntryController extends GetxController {
       );
 
       if (isToday) {
-        // Check if yesterday was completed
-        final yesterday = normalizedToday.subtract(const Duration(days: 1));
+        final yesterday =
+            normalizedToday.subtract(const Duration(days: 1));
 
         final yesterdayCompleted =
-            analyticsController.history[yesterday]?.any(
-              (e) => e.parameterId == parameterId,
-            ) ??
-            false;
-        streakController.unmarkToday(parameterId, yesterdayCompleted);
+            analyticsController.history[yesterday]
+                    ?.any((e) => e.parameterId == parameterId) ??
+                false;
+
+        streakController.unmarkToday(
+            parameterId, yesterdayCompleted);
       } else {
-        // Editing past date → full recompute
         await streakController.recomputeFromHistory(
           parameterId,
           analyticsController.history,
         );
       }
-      // Firestore async (no await → no UI lag)
-      deleteEntry(userId, normalizedDate, parameterId);
 
+      deleteEntry(userId, normalizedDate, parameterId);
       return;
     }
 
-    //Adding a entry
+    // MARK
     final entry = EntryEntity(
       id: entryId,
       userId: userId,
       parameterId: parameterId,
       date: normalizedDate,
-      value: value,
+      value: true,
       notes: notes,
       createdAt: DateTime.now(),
     );
 
     selectedDateEntries[parameterId] = entry;
 
-    // Updating analytics memory first
     analyticsController.updateFromEntryChange(
       parameterId,
       normalizedDate,
@@ -149,25 +153,117 @@ class EntryController extends GetxController {
     );
 
     if (isToday) {
-      final yesterday = normalizedToday.subtract(const Duration(days: 1));
+      final yesterday =
+          normalizedToday.subtract(const Duration(days: 1));
 
       final yesterdayCompleted =
-          analyticsController.history[yesterday]?.any(
-            (e) => e.parameterId == parameterId,
-          ) ??
-          false;
+          analyticsController.history[yesterday]
+                  ?.any((e) => e.parameterId == parameterId) ??
+              false;
 
-      streakController.markToday(parameterId, yesterdayCompleted);
+      streakController.markToday(
+          parameterId, yesterdayCompleted);
     } else {
-      // Editing past date → full recompute
       await streakController.recomputeFromHistory(
         parameterId,
         analyticsController.history,
       );
     }
-    // Firestore async (no await → no UI lag)
+
     saveEntry(entry);
+    return;
   }
+  
+  // CLEAR numeric
+  if (value == null) {
+    if (existingEntry == null) return;
+
+    selectedDateEntries.remove(parameterId);
+
+    analyticsController.updateFromEntryChange(
+      parameterId,
+      normalizedDate,
+      false,
+    );
+
+    if (isToday) {
+      final yesterday =
+          normalizedToday.subtract(const Duration(days: 1));
+
+      final yesterdayCompleted =
+          analyticsController.history[yesterday]
+                  ?.any((e) => e.parameterId == parameterId) ??
+              false;
+
+      streakController.unmarkToday(
+          parameterId, yesterdayCompleted);
+    } else {
+      await streakController.recomputeFromHistory(
+        parameterId,
+        analyticsController.history,
+      );
+    }
+
+    deleteEntry(userId, normalizedDate, parameterId);
+    return;
+  }
+
+  // UPDATE numeric
+  if (existingEntry != null) {
+    final updated =
+        existingEntry.copyWith(value: value);
+
+    selectedDateEntries[parameterId] = updated;
+
+    await updateEntry(
+      userId,
+      normalizedDate,
+      parameterId,
+      {'value': value},
+    );
+
+    return;
+  }
+
+  // CREATE numeric
+  final entry = EntryEntity(
+    id: entryId,
+    userId: userId,
+    parameterId: parameterId,
+    date: normalizedDate,
+    value: value,
+    notes: notes,
+    createdAt: DateTime.now(),
+  );
+
+  selectedDateEntries[parameterId] = entry;
+
+  analyticsController.updateFromEntryChange(
+    parameterId,
+    normalizedDate,
+    true,
+  );
+
+  if (isToday) {
+    final yesterday =
+        normalizedToday.subtract(const Duration(days: 1));
+
+    final yesterdayCompleted =
+        analyticsController.history[yesterday]
+                ?.any((e) => e.parameterId == parameterId) ??
+            false;
+
+    streakController.markToday(
+        parameterId, yesterdayCompleted);
+  } else {
+    await streakController.recomputeFromHistory(
+      parameterId,
+      analyticsController.history,
+    );
+  }
+
+  saveEntry(entry);
+}
 
   void changeSelectedDate(DateTime date) {
     selectedDate.value = date;

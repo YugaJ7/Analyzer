@@ -114,14 +114,17 @@ class EntryRepositoryImpl implements EntryRepository {
   }
 
   @override
-  Future<void> updateEntry(
-    String userId,
-    DateTime date,
-    String parameterId,
-    Map<String, dynamic> updates,
-  ) async {
-    await _entriesRef(userId).doc(parameterId).update(updates);
-  }
+Future<void> updateEntry(
+  String userId,
+  DateTime date,
+  String parameterId,
+  Map<String, dynamic> updates,
+) async {
+  final entryId =
+      "$parameterId-${DateTime(date.year, date.month, date.day).toIso8601String()}";
+
+  await _entriesRef(userId).doc(entryId).update(updates);
+}
 
   @override
   Future<void> deleteEntry(

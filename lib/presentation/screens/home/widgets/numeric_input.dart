@@ -85,20 +85,25 @@ class _NumericInputState extends State<NumericInput> {
                       focusedBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
                       hintText: "Enter value",
-                      hintStyle: TextStyle(
-                        color: Colors.white38,
-                        fontSize: 16,
-                      ),
+                      hintStyle: TextStyle(color: Colors.white38, fontSize: 16),
                     ),
+                    onChanged: (value) {
+                      final entryController = Get.find<EntryController>();
+                      if (value.isEmpty) {
+                        entryController.toggleEntry(widget.param.id, null);
+                        return;
+                      }
+                      final parsed = num.tryParse(value);
+                      if (parsed != null) {
+                        entryController.toggleEntry(widget.param.id, parsed);
+                      }
+                    },
                   ),
                 ),
                 const SizedBox(width: 6),
                 Text(
                   widget.param.unit ?? '',
-                  style: const TextStyle(
-                    color: Colors.white38,
-                    fontSize: 16,
-                  ),
+                  style: const TextStyle(color: Colors.white38, fontSize: 16),
                 ),
               ],
             ),
