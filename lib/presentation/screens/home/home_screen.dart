@@ -1,7 +1,6 @@
 import 'package:analyzer/presentation/controllers/analytics_controller.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:analyzer/presentation/controllers/parameter_controller.dart';
-import 'package:analyzer/presentation/screens/analytics/analytics_screen.dart';
 import 'package:analyzer/presentation/screens/home/widgets/date_selector.dart';
 import 'package:analyzer/presentation/screens/home/widgets/home_header.dart';
 import 'package:analyzer/presentation/screens/home/widgets/home_skeleton.dart';
@@ -19,52 +18,67 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final EntryController _entryController = Get.find<EntryController>();
+  final ParameterController _paramController = Get.find<ParameterController>();
+  final AnalyticsController _analyticsController =
+      Get.find<AnalyticsController>();
 
-  final RxInt _selectedIndex = 0.obs;
+  bool _showSkeleton = true;
+  late DateTime _startTime;
 
   @override
   void initState() {
     super.initState();
+
+    _startTime = DateTime.now();
+
     Future.microtask(() => _entryController.loadEntries());
+
+    everAll([
+      _paramController.isLoading,
+      _analyticsController.isLoading,
+    ], (_) => _checkLoadingComplete());
+  }
+
+  Future<void> _checkLoadingComplete() async {
+    final stillLoading =
+        _paramController.isLoading.value ||
+        _analyticsController.isLoading.value;
+
+    if (!stillLoading && _showSkeleton) {
+      final elapsed = DateTime.now().difference(_startTime).inMilliseconds;
+
+      if (elapsed < 300) {
+        await Future.delayed(Duration(milliseconds: 300 - elapsed));
+      }
+
+      if (mounted) {
+        setState(() {
+          _showSkeleton = false;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Obx(() {
-        final paramController = Get.find<ParameterController>();
-        final analyticsController = Get.find<AnalyticsController>();
+    return Material(
+      color: Colors.transparent,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 500),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) {
+          final slide = Tween<Offset>(
+            begin: const Offset(0, 0.06),
+            end: Offset.zero,
+          ).animate(animation);
 
-        if (paramController.isLoading.value ||
-            analyticsController.isLoading.value) {
-          return const HomeSkeleton();
-        }
-
-        return IndexedStack(
-          index: _selectedIndex.value,
-          children: const [
-            _HomeTab(),
-            AnalyticsScreen(),
-            Center(child: Text("Profile")),
-          ],
-        );
-      }),
-      bottomNavigationBar: Obx(
-        () => BottomNavigationBar(
-          currentIndex: _selectedIndex.value,
-          onTap: (i) => _selectedIndex.value = i,
-          backgroundColor: const Color(0xFF1E2749),
-          selectedItemColor: const Color(0xFF6C63FF),
-          unselectedItemColor: Colors.white70,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.insights),
-              label: "Analytics",
-            ),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-          ],
-        ),
+          return SlideTransition(
+            position: slide,
+            child: FadeTransition(opacity: animation, child: child),
+          );
+        },
+        child: _showSkeleton ? const HomeSkeleton() : const _HomeTab(),
       ),
     );
   }

@@ -87,7 +87,7 @@ class ProgressCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               child: TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0, end: completion / 100),
-                duration: const Duration(milliseconds: 1200),
+                duration: const Duration(milliseconds: 1000),
                 curve: Curves.easeOutCubic,
                 builder: (context, value, _) {
                   return LinearProgressIndicator(

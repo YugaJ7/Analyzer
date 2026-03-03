@@ -1,7 +1,7 @@
 import 'package:analyzer/core/bindings/auth_binding.dart';
 import 'package:analyzer/core/bindings/home_binding.dart';
 import 'package:analyzer/core/routes/app_routes.dart';
-import 'package:analyzer/presentation/screens/home/home_screen.dart';
+import 'package:analyzer/presentation/screens/app_shell/app_shell.dart';
 import 'package:analyzer/presentation/screens/login_screen.dart';
 import 'package:analyzer/presentation/screens/parameter_screen.dart';
 import 'package:analyzer/presentation/screens/register_screen.dart';
@@ -26,7 +26,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.home,
-      page: () => HomeScreen(),
+      page: () => AppShell(),
       binding: HomeBinding(),
     ),
     GetPage(

@@ -46,12 +46,13 @@ class ParameterList extends StatelessWidget {
       return SliverPadding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         sliver: SliverList(
-          delegate: SliverChildBuilderDelegate((context, index) =>
-                ParameterEntryCard(param: visibleParams[index]).animate()
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => ParameterEntryCard(param: visibleParams[index])
+                .animate()
                 .fadeIn(delay: Duration(milliseconds: 100 * index))
-                .slideX(begin: 0.2, end: 0),
+                .slideY(begin: 0.2, end: 0),
             childCount: visibleParams.length,
-          )
+          ),
         ),
       );
     });
