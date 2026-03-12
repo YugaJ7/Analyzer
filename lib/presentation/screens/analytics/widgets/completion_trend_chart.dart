@@ -98,7 +98,7 @@ class _CompletionTrendChartState
                         gradient: LinearGradient(
                           colors: [
                             const Color(0xFF6C63FF)
-                                .withOpacity(0.4),
+                                .withValues(alpha: 0.4),
                             Colors.transparent,
                           ],
                           begin: Alignment.topCenter,

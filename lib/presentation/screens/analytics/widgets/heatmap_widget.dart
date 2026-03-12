@@ -186,11 +186,11 @@ class HeatmapWidget extends StatelessWidget {
     if (percent == 0) return Colors.white10;
 
     if (percent < 25) {
-      return accentColor.withOpacity(0.3);
+      return accentColor.withValues(alpha: 0.3);
     } else if (percent < 50) {
-      return accentColor.withOpacity(0.5);
+      return accentColor.withValues(alpha: 0.5);
     } else if (percent < 75) {
-      return accentColor.withOpacity(0.7);
+      return accentColor.withValues(alpha: 0.7);
     } else {
       return accentColor;
     }

@@ -1,5 +1,4 @@
 import 'package:analyzer/presentation/screens/analytics/widgets/completion_trend_chart.dart';
-import 'package:analyzer/presentation/screens/analytics/widgets/correlation_card.dart';
 import 'package:analyzer/presentation/screens/analytics/widgets/heatmap_widget.dart';
 import 'package:analyzer/presentation/screens/analytics/widgets/month_comparison_card.dart';
 import 'package:analyzer/presentation/screens/analytics/widgets/top_habits_card.dart';
@@ -9,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/analytics_controller.dart';
 import 'widgets/performance_score_card.dart';
-import 'widgets/overview_stats_card.dart';
 
 class AnalyticsScreen extends StatelessWidget {
   const AnalyticsScreen({super.key});

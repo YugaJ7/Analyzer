@@ -13,12 +13,12 @@ class HomeSkeleton extends StatelessWidget {
           height: height,
           width: width ?? double.infinity,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.06),
+            color: Colors.white.withValues(alpha: 0.06),
             borderRadius: radius ?? BorderRadius.circular(12),
           ),
         )
         .animate(onPlay: (c) => c.repeat())
-        .shimmer(duration: 1200.ms, color: Colors.white.withOpacity(0.15));
+        .shimmer(duration: 1200.ms, color: Colors.white.withValues(alpha: 0.15));
   }
 
   Widget _habitCardSkeleton() {
@@ -28,7 +28,7 @@ class HomeSkeleton extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF1E2749),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
@@ -38,7 +38,7 @@ class HomeSkeleton extends StatelessWidget {
             height: 26,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.08),
+              color: Colors.white.withValues(alpha: 0.08),
             ),
           ),
           const SizedBox(width: 16),
@@ -56,7 +56,7 @@ class HomeSkeleton extends StatelessWidget {
                 height: 18,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.08),
+                  color: Colors.white.withValues(alpha: 0.08),
                 ),
               ),
               const SizedBox(width: 6),
@@ -96,7 +96,7 @@ class HomeSkeleton extends StatelessWidget {
                         height: 44,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.08),
+                          color: Colors.white.withValues(alpha: 0.08),
                         ),
                       ),
                     ],
@@ -135,7 +135,7 @@ class HomeSkeleton extends StatelessWidget {
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
-                      color: const Color(0xFF6C63FF).withOpacity(0.3),
+                      color: const Color(0xFF6C63FF).withValues(alpha: 0.3),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
