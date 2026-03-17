@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../controllers/analytics_controller.dart';
 
 class HeatmapWidget extends StatelessWidget {
   const HeatmapWidget({super.key});
 
-  static const Color cardColor = Color(0xFF1E2749);
-  static const Color primaryColor = Color(0xFF6C63FF);
-  static const Color accentColor = Color(0xFF4ECDC4);
+  static const Color _emptyColor = Color(0xFF151B36);
+  static const List<Color> _heatColors = [
+    Color(0xFF1a2340), // 0%  — near-empty
+    Color(0xFF2A4858), // 1-25%
+    Color(0xFF2E7D6E), // 25-50%
+    Color(0xFF3EB489), // 50-75%
+    Color(0xFF4ECDC4), // 75-100%
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -15,42 +21,155 @@ class HeatmapWidget extends StatelessWidget {
 
     return Obx(() {
       if (controller.heatmapData.isEmpty) {
-        return const SizedBox();
+        return const SizedBox.shrink();
       }
 
-      final sortedDates = controller.heatmapData.keys.toList()
-        ..sort();
+      // Only show the last 90 days for a cleaner view 
+      final now = DateTime.now();
+      final cutoff = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 90));
+      
+      final filteredEntries = controller.heatmapData.entries
+          .where((e) => e.key.isAfter(cutoff) || e.key.isAtSameMomentAs(cutoff))
+          .toList()
+        ..sort((a, b) => a.key.compareTo(b.key));
+
+      if (filteredEntries.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      // Build week columns
+      final weeks = <List<_DayData>>[];
+      List<_DayData> currentWeek = [];
+
+      // Fill leading blanks for first week
+      final firstDate = filteredEntries.first.key;
+      final startWeekday = firstDate.weekday; // 1=Mon, 7=Sun
+      for (int i = 1; i < startWeekday; i++) {
+        currentWeek.add(_DayData.empty());
+      }
+
+      final dataMap = Map.fromEntries(filteredEntries);
+
+      // Iterate through each day
+      DateTime cursor = firstDate;
+      final lastDate = filteredEntries.last.key;
+
+      while (!cursor.isAfter(lastDate)) {
+        if (cursor.weekday == 1 && currentWeek.isNotEmpty) {
+          weeks.add(currentWeek);
+          currentWeek = [];
+        }
+
+        final percent = dataMap[cursor] ?? 0.0;
+        currentWeek.add(_DayData(date: cursor, percent: percent));
+        cursor = cursor.add(const Duration(days: 1));
+      }
+
+      // Add remaining week
+      if (currentWeek.isNotEmpty) {
+        weeks.add(currentWeek);
+      }
 
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(24),
+          color: const Color(0xFF1E2749),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Habit Heat Map",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+            // Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Activity Heatmap',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  'Last 90 days',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.4),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-            /// Horizontal scroll for months
+            // Heatmap grid
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildWeekdayColumn(),
-                  const SizedBox(width: 12),
-                  _buildMonthGrid(sortedDates, controller),
+                  // Weekday labels
+                  Column(
+                    children: const [
+                      _DayLabel('M'),
+                      _DayLabel('T'),
+                      _DayLabel('W'),
+                      _DayLabel('T'),
+                      _DayLabel('F'),
+                      _DayLabel('S'),
+                      _DayLabel('S'),
+                    ],
+                  ),
+                  const SizedBox(width: 6),
+                  // Week columns
+                  ...weeks.map((week) {
+                    return Column(
+                      children: List.generate(7, (dayIndex) {
+                        if (dayIndex < week.length) {
+                          return _HeatCell(data: week[dayIndex]);
+                        }
+                        return _HeatCell(data: _DayData.empty());
+                      }),
+                    );
+                  }),
                 ],
               ),
+            ),
+            const SizedBox(height: 16),
+
+            // Legend
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Less',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white.withValues(alpha: 0.4),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                ..._heatColors.map(
+                  (color) => Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'More',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white.withValues(alpha: 0.4),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -58,155 +177,90 @@ class HeatmapWidget extends StatelessWidget {
     });
   }
 
-  /// Weekday labels (M T W T F S S)
-  Widget _buildWeekdayColumn() {
-    const labels = ["M", "T", "W", "T", "F", "S", "S"];
-
-    return Column(
-      children: labels
-          .map(
-            (e) => Container(
-              height: 26,
-              alignment: Alignment.center,
-              child: Text(
-                e,
-                style: const TextStyle(
-                  color: Colors.white38,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          )
-          .toList(),
-    );
+  static Color colorFromPercent(double percent) {
+    if (percent <= 0) return _emptyColor;
+    if (percent < 25) return _heatColors[1];
+    if (percent < 50) return _heatColors[2];
+    if (percent < 75) return _heatColors[3];
+    return _heatColors[4];
   }
+}
 
-  /// Month Grid
-  Widget _buildMonthGrid(
-      List<DateTime> dates,
-      AnalyticsController controller) {
-    final Map<String, List<DateTime>> months = {};
+class _DayData {
+  final DateTime? date;
+  final double percent;
+  final bool isEmpty;
 
-    for (final date in dates) {
-      final key = "${date.year}-${date.month}";
-      months.putIfAbsent(key, () => []);
-      months[key]!.add(date);
-    }
+  _DayData({this.date, this.percent = 0})
+      : isEmpty = date == null;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: months.entries.map((entry) {
-        final monthDates = entry.value;
-        final monthLabel =
-            "${_monthName(monthDates.first.month)} ${monthDates.first.year}";
+  factory _DayData.empty() => _DayData();
+}
 
-        return Padding(
-          padding: const EdgeInsets.only(right: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                monthLabel,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 10),
-              _buildMonthColumns(monthDates, controller),
-            ],
+class _DayLabel extends StatelessWidget {
+  final String label;
+  const _DayLabel(this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 22,
+      height: 22,
+      child: Center(
+        child: Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.3),
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
           ),
-        );
-      }).toList(),
-    );
-  }
-
-  /// Build weekly columns
-  Widget _buildMonthColumns(
-      List<DateTime> monthDates,
-      AnalyticsController controller) {
-    monthDates.sort();
-
-    final Map<int, List<DateTime>> weekColumns = {};
-
-    for (final date in monthDates) {
-      final weekIndex = _weekOfMonth(date);
-      weekColumns.putIfAbsent(weekIndex, () => []);
-      weekColumns[weekIndex]!.add(date);
-    }
-
-    return Row(
-      children: weekColumns.entries.map((entry) {
-        final days = entry.value;
-
-        return Column(
-          children: List.generate(7, (i) {
-            final day = days.firstWhereOrNull(
-                (d) => d.weekday == i + 1);
-
-            if (day == null) {
-              return _emptyBox();
-            }
-
-            final percent =
-                controller.heatmapData[day] ?? 0;
-
-            return _heatBox(percent);
-          }),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _heatBox(double percent) {
-    return Container(
-      margin: const EdgeInsets.all(3),
-      width: 18,
-      height: 18,
-      decoration: BoxDecoration(
-        color: _colorFromPercent(percent),
-        borderRadius: BorderRadius.circular(5),
+        ),
       ),
     );
   }
+}
 
-  Widget _emptyBox() {
-    return Container(
-      margin: const EdgeInsets.all(3),
-      width: 18,
-      height: 18,
-      decoration: BoxDecoration(
-        color: Colors.white10,
-        borderRadius: BorderRadius.circular(5),
+class _HeatCell extends StatelessWidget {
+  final _DayData data;
+  const _HeatCell({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final isToday = data.date != null &&
+        data.date!.year == DateTime.now().year &&
+        data.date!.month == DateTime.now().month &&
+        data.date!.day == DateTime.now().day;
+
+    return GestureDetector(
+      onTap: data.isEmpty
+          ? null
+          : () {
+              final dateStr = DateFormat('MMM dd, yyyy').format(data.date!);
+              Get.snackbar(
+                dateStr,
+                '${data.percent.toStringAsFixed(0)}% completed',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: const Color(0xFF2D3561),
+                colorText: Colors.white,
+                duration: const Duration(seconds: 2),
+                margin: const EdgeInsets.all(12),
+                borderRadius: 12,
+              );
+            },
+      child: Container(
+        margin: const EdgeInsets.all(2),
+        width: 18,
+        height: 18,
+        decoration: BoxDecoration(
+          color: data.isEmpty
+              ? Colors.transparent
+              : HeatmapWidget.colorFromPercent(data.percent),
+          borderRadius: BorderRadius.circular(4),
+          border: isToday
+              ? Border.all(color: Colors.white, width: 1.5)
+              : null,
+        ),
       ),
     );
-  }
-
-  Color _colorFromPercent(double percent) {
-    if (percent == 0) return Colors.white10;
-
-    if (percent < 25) {
-      return accentColor.withValues(alpha: 0.3);
-    } else if (percent < 50) {
-      return accentColor.withValues(alpha: 0.5);
-    } else if (percent < 75) {
-      return accentColor.withValues(alpha: 0.7);
-    } else {
-      return accentColor;
-    }
-  }
-
-  int _weekOfMonth(DateTime date) {
-    final firstDay = DateTime(date.year, date.month, 1);
-    return ((date.day + firstDay.weekday - 1) / 7).floor();
-  }
-
-  String _monthName(int month) {
-    const names = [
-      "Jan", "Feb", "Mar", "Apr",
-      "May", "Jun", "Jul", "Aug",
-      "Sep", "Oct", "Nov", "Dec"
-    ];
-    return names[month - 1];
   }
 }

@@ -32,6 +32,7 @@ class AnalyticsController extends GetxController {
   final RxList<double> last30DaysTrend = <double>[].obs;
 
   final RxMap<int, double> weekdayBreakdown = <int, double>{}.obs;
+  final RxMap<int, double> currentWeekBreakdown = <int, double>{}.obs;
 
   final RxInt weeklyCompleted = 0.obs;
   final RxInt weeklyTotal = 0.obs;
@@ -43,10 +44,20 @@ class AnalyticsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    isLoading.value = true;
     loadAnalytics();
+
+    // Recompute when parameters change (covers initial load race condition
+    // where parameters arrive after entries are already fetched)
+    ever(parameterController.parameters, (_) {
+      if (_history.isNotEmpty) {
+        _computeAnalytics();
+      }
+    });
   }
 
   Future<void> loadAnalytics() async {
+    isLoading.value = true;
     final userId = FirebaseAuth.instance.currentUser!.uid;
 
     final data = await entryRepository.getEntriesForLastNDays(userId, 365);
@@ -56,6 +67,7 @@ class AnalyticsController extends GetxController {
       ..addAll(data);
 
     _computeAnalytics();
+    isLoading.value = false;
   }
 
   void updateFromEntryChange(String parameterId, DateTime date, bool isAdded) {
@@ -102,10 +114,16 @@ class AnalyticsController extends GetxController {
     int weeklyPoss = 0;
 
     final Map<int, List<double>> weekdayMap = {};
+    final Map<int, double> currentWeekMap = {
+      1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0
+    };
     final Map<String, int> habitCount = {};
 
     final List<double> trend7 = [];
     final List<double> trend30 = [];
+
+    final startOfToday = DateTime(now.year, now.month, now.day);
+    final mondayOfThisWeek = startOfToday.subtract(Duration(days: now.weekday - 1));
 
     heatmapData.clear();
 
@@ -137,9 +155,13 @@ class AnalyticsController extends GetxController {
       heatmapData[date] = completionRate * 100;
 
       if (i < 7) {
+        trend7.insert(0, completionRate * 100);
+      }
+
+      if (!date.isBefore(mondayOfThisWeek)) {
         weeklyComp += completedToday;
         weeklyPoss += activeHabits.length;
-        trend7.insert(0, completionRate * 100);
+        currentWeekMap[date.weekday] = completionRate * 100;
       }
 
       if (i < 30) {
@@ -181,6 +203,7 @@ class AnalyticsController extends GetxController {
     });
 
     weekdayBreakdown.assignAll(weekdayAvg);
+    currentWeekBreakdown.assignAll(currentWeekMap);
 
     if (trend30.isNotEmpty) {
       final lastMonthAvg = trend30.reduce((a, b) => a + b) / trend30.length;

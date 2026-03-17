@@ -7,114 +7,205 @@ class CompletionTrendChart extends StatefulWidget {
   const CompletionTrendChart({super.key});
 
   @override
-  State<CompletionTrendChart> createState() =>
-      _CompletionTrendChartState();
+  State<CompletionTrendChart> createState() => _CompletionTrendChartState();
 }
 
-class _CompletionTrendChartState
-    extends State<CompletionTrendChart> {
+class _CompletionTrendChartState extends State<CompletionTrendChart> {
   final controller = Get.find<AnalyticsController>();
-
-  int selectedRange = 7; // 7 or 30
+  int selectedRange = 7;
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final data = selectedRange == 7
-          ? controller.last7DaysTrend
-          : controller.last30DaysTrend;
+      final data =
+          selectedRange == 7
+              ? controller.last7DaysTrend
+              : controller.last30DaysTrend;
+
+      final avg =
+          data.isEmpty ? 0.0 : data.reduce((a, b) => a + b) / data.length;
 
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: const Color(0xFF1E2749),
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// Header
             Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Completion Trend",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Completion Trend',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Avg: ${avg.toStringAsFixed(1)}%',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: const Color(0xFF4ECDC4).withValues(alpha: 0.8),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      _rangeButton('7D', 7),
+                      _rangeButton('30D', 30),
+                    ],
                   ),
                 ),
-                Row(
-                  children: [
-                    _rangeButton("7D", 7),
-                    const SizedBox(width: 8),
-                    _rangeButton("30D", 30),
-                  ],
-                )
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             /// Chart
             SizedBox(
               height: 220,
-              child: LineChart(
-                LineChartData(
-                  gridData: const FlGridData(show: false),
-                  borderData:
-                      FlBorderData(show: false),
-                  titlesData: const FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles:
-                          SideTitles(showTitles: false),
-                    ),
-                    rightTitles: AxisTitles(
-                      sideTitles:
-                          SideTitles(showTitles: false),
-                    ),
-                    topTitles: AxisTitles(
-                      sideTitles:
-                          SideTitles(showTitles: false),
-                    ),
-                  ),
-                  lineBarsData: [
-                    LineChartBarData(
-                      isCurved: true,
-                      spots: List.generate(
-                        data.length,
-                        (index) => FlSpot(
-                          index.toDouble(),
-                          data[index],
-                        ),
+              child: data.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No data yet',
+                        style: TextStyle(color: Colors.white38),
                       ),
-                      barWidth: 3,
-                      isStrokeCapRound: true,
-                      dotData:
-                          const FlDotData(show: false),
-                      belowBarData: BarAreaData(
-                        show: true,
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color(0xFF6C63FF)
-                                .withValues(alpha: 0.4),
-                            Colors.transparent,
+                    )
+                  : LineChart(
+                      LineChartData(
+                        minY: 0,
+                        maxY: 100,
+                        gridData: FlGridData(
+                          show: true,
+                          drawVerticalLine: false,
+                          horizontalInterval: 25,
+                          getDrawingHorizontalLine: (value) {
+                            return FlLine(
+                              color: Colors.white.withValues(alpha: 0.05),
+                              strokeWidth: 1,
+                            );
+                          },
+                        ),
+                        borderData: FlBorderData(show: false),
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 32,
+                              interval: 25,
+                              getTitlesWidget: (value, meta) {
+                                return Text(
+                                  '${value.toInt()}',
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.3),
+                                    fontSize: 10,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          bottomTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                        ),
+                        lineTouchData: LineTouchData(
+                          enabled: true,
+                          touchTooltipData: LineTouchTooltipData(
+                            getTooltipColor: (_) => const Color(0xFF2D3561),
+                            getTooltipItems: (touchedSpots) {
+                              return touchedSpots.map((spot) {
+                                return LineTooltipItem(
+                                  '${spot.y.toStringAsFixed(0)}%',
+                                  const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                );
+                              }).toList();
+                            },
+                          ),
+                          handleBuiltInTouches: true,
+                        ),
+                        // Average line
+                        extraLinesData: ExtraLinesData(
+                          horizontalLines: [
+                            HorizontalLine(
+                              y: avg,
+                              color: const Color(
+                                0xFF4ECDC4,
+                              ).withValues(alpha: 0.4),
+                              strokeWidth: 1,
+                              dashArray: [6, 4],
+                            ),
                           ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
                         ),
-                      ),
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF6C63FF),
-                          Color(0xFF4ECDC4),
+                        lineBarsData: [
+                          LineChartBarData(
+                            isCurved: true,
+                            curveSmoothness: 0.3,
+                            spots: List.generate(
+                              data.length,
+                              (index) => FlSpot(
+                                index.toDouble(),
+                                data[index],
+                              ),
+                            ),
+                            barWidth: 3,
+                            isStrokeCapRound: true,
+                            dotData: FlDotData(
+                              show: true,
+                              getDotPainter: (spot, xPercentage, bar, index) {
+                                return FlDotCirclePainter(
+                                  radius: 3,
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                  strokeColor: const Color(0xFF6C63FF),
+                                );
+                              },
+                            ),
+                            belowBarData: BarAreaData(
+                              show: true,
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFF6C63FF).withValues(alpha: 0.3),
+                                  const Color(0xFF6C63FF).withValues(alpha: 0.05),
+                                  Colors.transparent,
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                            ),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF6C63FF), Color(0xFF4ECDC4)],
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -131,23 +222,23 @@ class _CompletionTrendChartState
           selectedRange = value;
         });
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 12, vertical: 6),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected
               ? const Color(0xFF6C63FF)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFF6C63FF),
-          ),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color:
-                isSelected ? Colors.white : Colors.white70,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isSelected
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.5),
           ),
         ),
       ),
