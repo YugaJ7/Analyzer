@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../core/routes/app_routes.dart';
-import '../../../data/repositories/user_repository_impl.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/routes/app_background.dart';
+import '../../../../core/routes/app_routes.dart';
+import '../../../../data/repositories/user_repository_impl.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/routes/app_background.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
