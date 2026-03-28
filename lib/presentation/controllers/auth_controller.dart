@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:analyzer/core/routes/app_routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../domain/entities/user_entity.dart';
 import '../../../domain/usecases/login_user.dart';
 import '../../../domain/usecases/register_user.dart';
@@ -68,7 +69,8 @@ class AuthController extends GetxController {
       log("User created in Firestore");
 
       currentUser.value = user;
-
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_name', name);
 
       Get.snackbar('Success', 'Account created successfully!',
           snackPosition: SnackPosition.BOTTOM);
@@ -83,25 +85,6 @@ class AuthController extends GetxController {
       }
 
       Get.snackbar('Error', message,
-          snackPosition: SnackPosition.BOTTOM);
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> logout() async {
-    await logoutUser();
-  }
-
-  Future<void> updateUserName(String newName) async {
-    try {
-      isLoading.value = true;
-
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-      await _userRepo.updateUser(uid, {'name': newName});
-      await _loadUserData(uid);
-
-      Get.snackbar('Success', 'Name updated',
           snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;

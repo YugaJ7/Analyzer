@@ -14,7 +14,6 @@ class AppShell extends StatelessWidget {
     final navController = Get.put(AppNavigationController());
 
     return Scaffold(
-      extendBody: true,
       body: Obx(() {
         return IndexedStack(
           index: navController.currentIndex,
