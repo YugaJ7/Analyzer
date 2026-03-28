@@ -18,4 +18,6 @@ abstract class EntryRepository {
   );
 
   Future<void> deleteEntry(String userId, DateTime date, String parameterId);
+
+  Future<void> deleteAllEntriesForParameter(String userId, String parameterId);
 }

@@ -1,4 +1,6 @@
-class EntryEntity {
+import 'package:equatable/equatable.dart';
+
+class EntryEntity extends Equatable {
   final String id;
   final String userId;
   final String parameterId;
@@ -36,4 +38,7 @@ class EntryEntity {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  @override
+  List<Object?> get props => [id, userId, parameterId, date, value, notes, createdAt];
 }

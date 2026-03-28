@@ -1,12 +1,14 @@
+import 'package:equatable/equatable.dart';
+
 enum ParameterType {
   checklist,
   value,
   optionSelector,
 }
 
-class ParameterEntity {
+class ParameterEntity extends Equatable {
   final String id;
-  final String userId; 
+  final String userId;
   final DateTime createdAt;
   final String name;
   final String? description;
@@ -70,4 +72,10 @@ class ParameterEntity {
       color: color ?? this.color,
     );
   }
+
+  @override
+  List<Object?> get props => [
+    id, userId, createdAt, name, description, type, order, isActive,
+    checklistItems, options, unit, valueType, icon, color,
+  ];
 }

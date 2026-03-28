@@ -9,6 +9,8 @@ class UserModel extends UserEntity {
     required super.createdAt,
   });
 
+  //Factory constructors
+
   factory UserModel.fromEntity(UserEntity entity) {
     return UserModel(
       id: entity.id,
@@ -18,16 +20,35 @@ class UserModel extends UserEntity {
     );
   }
 
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['id'] as String,
+      email: json['email'] as String,
+      name: json['name'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
+
   factory UserModel.fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> doc,
-      ) {
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final data = doc.data()!;
     return UserModel(
       id: doc.id,
-      email: data['email'] ?? '',
-      name: data['name'] ?? '',
+      email: data['email'] as String? ?? '',
+      name: data['name'] as String? ?? '',
       createdAt: (data['createdAt'] as Timestamp).toDate(),
     );
+  }
+
+  // Serialisation
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'email': email,
+      'name': name,
+      'createdAt': createdAt.toIso8601String(),
+    };
   }
 
   Map<String, dynamic> toFirestore() {

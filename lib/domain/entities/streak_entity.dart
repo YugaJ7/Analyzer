@@ -1,4 +1,6 @@
-class StreakEntity {
+import 'package:equatable/equatable.dart';
+
+class StreakEntity extends Equatable {
   final String parameterId;
   final int currentStreak;
   final int bestStreak;
@@ -19,4 +21,7 @@ class StreakEntity {
       bestStreak: bestStreak ?? this.bestStreak,
     );
   }
+
+  @override
+  List<Object?> get props => [parameterId, currentStreak, bestStreak];
 }

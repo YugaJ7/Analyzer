@@ -19,6 +19,8 @@ class ParameterModel extends ParameterEntity {
     super.color,
   });
 
+  // Factory constructors 
+
   factory ParameterModel.fromEntity(ParameterEntity entity) {
     return ParameterModel(
       id: entity.id,
@@ -38,34 +40,80 @@ class ParameterModel extends ParameterEntity {
     );
   }
 
+  factory ParameterModel.fromJson(Map<String, dynamic> json) {
+    return ParameterModel(
+      id: json['id'] as String,
+      userId: json['userId'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      name: json['name'] as String,
+      description: json['description'] as String?,
+      type: ParameterType.values.firstWhere(
+        (e) => e.name == json['type'],
+        orElse: () => ParameterType.checklist,
+      ),
+      order: (json['order'] as num).toInt(),
+      isActive: json['isActive'] as bool? ?? true,
+      checklistItems: (json['checklistItems'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      options: (json['options'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      unit: json['unit'] as String?,
+      valueType: json['valueType'] as String?,
+      icon: json['icon'] as String?,
+      color: json['color'] as int?,
+    );
+  }
+
   factory ParameterModel.fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> doc,
-      String userId,
-      ) {
+    DocumentSnapshot<Map<String, dynamic>> doc,
+    String userId,
+  ) {
     final data = doc.data()!;
     return ParameterModel(
       id: doc.id,
       userId: userId,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
-      name: data['name'] ?? '',
-      description: data['description'],
+      name: data['name'] as String? ?? '',
+      description: data['description'] as String?,
       type: ParameterType.values.firstWhere(
-            (e) => e.name == data['type'],
+        (e) => e.name == data['type'],
         orElse: () => ParameterType.checklist,
       ),
-      order: data['order'] ?? 0,
-      isActive: data['isActive'] ?? true,
+      order: (data['order'] as num?)?.toInt() ?? 0,
+      isActive: data['isActive'] as bool? ?? true,
       checklistItems: data['checklistItems'] != null
-          ? List<String>.from(data['checklistItems'])
+          ? List<String>.from(data['checklistItems'] as List)
           : null,
       options: data['options'] != null
-          ? List<String>.from(data['options'])
+          ? List<String>.from(data['options'] as List)
           : null,
-      unit: data['unit'],
-      valueType: data['valueType'],
-      icon: data['icon'],
-      color: data['color'],
+      unit: data['unit'] as String?,
+      valueType: data['valueType'] as String?,
+      icon: data['icon'] as String?,
+      color: data['color'] as int?,
     );
+  }
+
+  // Serialisation 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'userId': userId,
+      'createdAt': createdAt.toIso8601String(),
+      'name': name,
+      'description': description,
+      'type': type.name,
+      'order': order,
+      'isActive': isActive,
+      'checklistItems': checklistItems,
+      'options': options,
+      'unit': unit,
+      'valueType': valueType,
+      'icon': icon,
+      'color': color,
+    };
   }
 
   Map<String, dynamic> toFirestore() {
