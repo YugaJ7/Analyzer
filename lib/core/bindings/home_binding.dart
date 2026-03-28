@@ -1,34 +1,42 @@
-import 'package:analyzer/data/cache/analytics_cache_service.dart';
-import 'package:analyzer/data/cache/streak_cache_service.dart';
-import 'package:analyzer/data/repositories/streak_repository_impl.dart';
-import 'package:analyzer/domain/repositories/streak_repository.dart';
-import 'package:analyzer/presentation/controllers/analytics_controller.dart';
-import 'package:analyzer/presentation/controllers/entry_controller.dart';
-import 'package:analyzer/presentation/controllers/streak_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+
+import '../../core/utils/app_constants.dart';
+import '../../data/cache/analytics_cache_service.dart';
+import '../../data/cache/streak_cache_service.dart';
 import '../../data/repositories/entry_repository_impl.dart';
 import '../../data/repositories/parameter_repository_impl.dart';
+import '../../data/repositories/streak_repository_impl.dart';
+import '../../data/repositories/user_repository_impl.dart';
 import '../../domain/repositories/entry_repository.dart';
 import '../../domain/repositories/parameter_repository.dart';
+import '../../domain/repositories/streak_repository.dart';
+import '../../domain/repositories/user_repository.dart';
 import '../../domain/usecases/entry_usecases.dart';
 import '../../domain/usecases/parameter_usecases.dart';
+import '../../domain/usecases/user_usecases.dart';
+import '../../presentation/controllers/analytics_controller.dart';
+import '../../presentation/controllers/auth_controller.dart';
+import '../../presentation/controllers/entry_controller.dart';
 import '../../presentation/controllers/parameter_controller.dart';
+import '../../presentation/controllers/profile_controller.dart';
+import '../../presentation/controllers/streak_controller.dart';
 
 class HomeBinding extends Bindings {
   @override
   void dependencies() {
-    //Cache Service
+    //Cache services
     Get.put<AnalyticsCacheService>(
-      AnalyticsCacheService(Hive.box(AnalyticsCacheService.boxName)),
+      AnalyticsCacheService(Hive.box<dynamic>(AppConstants.kAnalyticsCacheBox)),
       permanent: true,
     );
 
     Get.put<StreakCacheService>(
-      StreakCacheService(Hive.box(StreakCacheService.boxName)),
+      StreakCacheService(Hive.box<dynamic>(AppConstants.kStreakCacheBox)),
       permanent: true,
     );
+
     //Repositories
     Get.put<EntryRepository>(
       EntryRepositoryImpl(
@@ -39,26 +47,35 @@ class HomeBinding extends Bindings {
     );
 
     Get.put<ParameterRepository>(ParameterRepositoryImpl(), permanent: true);
-
     Get.put<StreakRepository>(StreakRepositoryImpl(), permanent: true);
-    //use cases
+
+    if (!Get.isRegistered<UserRepository>()) {
+      Get.put<UserRepository>(UserRepositoryImpl(), permanent: true);
+    }
+
+    //Use cases
     Get.put<GetParameters>(
       GetParameters(Get.find<ParameterRepository>()),
       permanent: true,
     );
-
+    Get.put<WatchParameters>(
+      WatchParameters(Get.find<ParameterRepository>()),
+      permanent: true,
+    );
     Get.put<AddParameter>(
       AddParameter(Get.find<ParameterRepository>()),
       permanent: true,
     );
-
     Get.put<UpdateParameter>(
       UpdateParameter(Get.find<ParameterRepository>()),
       permanent: true,
     );
-
     Get.put<DeleteParameter>(
       DeleteParameter(Get.find<ParameterRepository>()),
+      permanent: true,
+    );
+    Get.put<ReorderParameters>(
+      ReorderParameters(Get.find<ParameterRepository>()),
       permanent: true,
     );
 
@@ -66,25 +83,44 @@ class HomeBinding extends Bindings {
       GetEntriesForDate(Get.find<EntryRepository>()),
       permanent: true,
     );
-
+    Get.put<GetEntriesForLastNDays>(
+      GetEntriesForLastNDays(Get.find<EntryRepository>()),
+      permanent: true,
+    );
     Get.put<SaveEntry>(SaveEntry(Get.find<EntryRepository>()), permanent: true);
-
     Get.put<UpdateEntry>(
       UpdateEntry(Get.find<EntryRepository>()),
       permanent: true,
     );
-
     Get.put<DeleteEntry>(
       DeleteEntry(Get.find<EntryRepository>()),
       permanent: true,
     );
-    //Cotrollers
+    Get.put<DeleteAllEntriesForParameter>(
+      DeleteAllEntriesForParameter(Get.find<EntryRepository>()),
+      permanent: true,
+    );
+
+    Get.put<GetUserProfile>(
+      GetUserProfile(Get.find<UserRepository>()),
+      permanent: true,
+    );
+    Get.put<UpdateUserProfile>(
+      UpdateUserProfile(Get.find<UserRepository>()),
+      permanent: true,
+    );
+
+    //Controllers
     Get.put<ParameterController>(
       ParameterController(
         getParameters: Get.find<GetParameters>(),
         addParameter: Get.find<AddParameter>(),
         updateParameter: Get.find<UpdateParameter>(),
         deleteParameter: Get.find<DeleteParameter>(),
+        watchParameters: Get.find<WatchParameters>(),
+        reorderParameters: Get.find<ReorderParameters>(),
+        deleteAllEntriesForParameter: Get.find<DeleteAllEntriesForParameter>(),
+        streakCache: Get.find<StreakCacheService>(),
       ),
       permanent: true,
     );
@@ -115,5 +151,12 @@ class HomeBinding extends Bindings {
       ),
       permanent: true,
     );
+
+    Get.put<ProfileController>(
+      ProfileController(userRepository: Get.find<UserRepository>()),
+      permanent: true,
+    );
+
+    if (!Get.isRegistered<AuthController>()) {}
   }
 }
