@@ -4,4 +4,5 @@ class AppRoutes {
   static const String register = '/register';
   static const String home = '/home';
   static const String parameterSetup = '/parameter-setup';
+  static const String manageHabits = '/manage-habits';
 }
