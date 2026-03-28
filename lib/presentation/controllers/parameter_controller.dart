@@ -33,24 +33,21 @@ class ParameterController extends GetxController {
   }
 
   void _listen() {
-  isLoading.value = true;
+    isLoading.value = true;
 
-  getParameters.repository
-      .watchParameters(userId)
-      .listen((list) {
-    final models =
-        list.map((e) => ParameterModel.fromEntity(e)).toList();
+    getParameters.repository.watchParameters(userId).listen((list) {
+      final models = list.map((e) => ParameterModel.fromEntity(e)).toList();
 
-    parameters.value = models;
+      parameters.value = models;
 
-    _cache.clear();
-    for (var p in models) {
-      _cache[p.id] = p;
-    }
+      _cache.clear();
+      for (var p in models) {
+        _cache[p.id] = p;
+      }
 
-    isLoading.value = false;
-  });
-}
+      isLoading.value = false;
+    });
+  }
 
   /// 🔥 Instant read from memory
   ParameterModel? getFromCache(String id) {
@@ -59,33 +56,28 @@ class ParameterController extends GetxController {
 
   Future<void> addNewParameter(ParameterEntity parameter) async {
     final docRef = FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .collection('parameters')
-      .doc();
+        .collection('users')
+        .doc(userId)
+        .collection('parameters')
+        .doc();
 
-  final newParameter = ParameterEntity(
-    id: docRef.id, // ✅ unique Firestore ID
-    userId: parameter.userId,
-    createdAt: parameter.createdAt,
-    name: parameter.name,
-    description: parameter.description,
-    type: parameter.type,
-    order: parameter.order,
-    isActive: parameter.isActive,
-    checklistItems: parameter.checklistItems,
-    options: parameter.options,
-    unit: parameter.unit,
-    valueType: parameter.valueType,
-    icon: parameter.icon,
-    color: parameter.color,
-  );
-
-    final added = await addParameter(newParameter);
-    final model = ParameterModel.fromEntity(added);
-
-    parameters.add(model);
-    _cache[model.id] = model;
+    final newParameter = ParameterEntity(
+      id: docRef.id,
+      userId: parameter.userId,
+      createdAt: parameter.createdAt,
+      name: parameter.name,
+      description: parameter.description,
+      type: parameter.type,
+      order: parameter.order,
+      isActive: parameter.isActive,
+      checklistItems: parameter.checklistItems,
+      options: parameter.options,
+      unit: parameter.unit,
+      valueType: parameter.valueType,
+      icon: parameter.icon,
+      color: parameter.color,
+    );
+    await addParameter(newParameter);
   }
 
   Future<void> updateExistingParameter(
@@ -108,8 +100,7 @@ class ParameterController extends GetxController {
     parameters.insert(newIndex, item);
 
     for (int i = 0; i < parameters.length; i++) {
-      parameters[i] =
-          parameters[i].copyWith(order: i) as ParameterModel;
+      parameters[i] = parameters[i].copyWith(order: i) as ParameterModel;
       _cache[parameters[i].id] = parameters[i];
     }
 

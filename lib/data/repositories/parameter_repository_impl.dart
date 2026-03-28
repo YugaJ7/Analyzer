@@ -7,22 +7,15 @@ class ParameterRepositoryImpl implements ParameterRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> _userParams(String userId) {
-    return _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('parameters');
+    return _firestore.collection('users').doc(userId).collection('parameters');
   }
 
   @override
   Future<List<ParameterEntity>> getParameters(String userId) async {
-    final snapshot = await _userParams(userId)
-        .where('isActive', isEqualTo: true)
-        .orderBy('order')
-        .get();
+    final snapshot = await _userParams(userId).orderBy('order').get();
 
     return snapshot.docs
-        .map((doc) =>
-        ParameterModel.fromFirestore(doc, userId).toEntity())
+        .map((doc) => ParameterModel.fromFirestore(doc, userId).toEntity())
         .toList();
   }
 
@@ -30,18 +23,17 @@ class ParameterRepositoryImpl implements ParameterRepository {
   Future<ParameterEntity> addParameter(ParameterEntity parameter) async {
     final model = ParameterModel.fromEntity(parameter);
 
-    final docRef =
-    await _userParams(parameter.userId).add(model.toFirestore());
+    final docRef = await _userParams(parameter.userId).add(model.toFirestore());
 
     return parameter.copyWith(id: docRef.id);
   }
 
   @override
   Future<void> updateParameter(
-      String userId,
-      String id,
-      Map<String, dynamic> updates,
-      ) async {
+    String userId,
+    String id,
+    Map<String, dynamic> updates,
+  ) async {
     await _userParams(userId).doc(id).update(updates);
   }
 
@@ -53,12 +45,14 @@ class ParameterRepositoryImpl implements ParameterRepository {
   @override
   Stream<List<ParameterEntity>> watchParameters(String userId) {
     return _userParams(userId)
-        .where('isActive', isEqualTo: true)
         .orderBy('order')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) =>
-        ParameterModel.fromFirestore(doc, userId).toEntity())
-        .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ParameterModel.fromFirestore(doc, userId).toEntity(),
+              )
+              .toList(),
+        );
   }
 }
