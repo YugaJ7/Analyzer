@@ -1,93 +1,115 @@
-import 'dart:developer';
-
-import 'package:analyzer/core/routes/app_routes.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/errors/app_exception.dart';
+import '../../../core/routes/app_routes.dart';
+import '../../../data/services/hive_service.dart';
+import '../../../data/services/preferences_service.dart';
 import '../../../domain/entities/user_entity.dart';
 import '../../../domain/usecases/login_user.dart';
 import '../../../domain/usecases/register_user.dart';
 import '../../../domain/usecases/logout_user.dart';
-import '../../../data/repositories/user_repository_impl.dart';
+import '../../../domain/usecases/user_usecases.dart';
 
 class AuthController extends GetxController {
   final LoginUser loginUser;
   final RegisterUser registerUser;
   final LogoutUser logoutUser;
+  final GetUserProfile getUserProfile;
 
   AuthController({
     required this.loginUser,
     required this.registerUser,
     required this.logoutUser,
+    required this.getUserProfile,
   });
 
   final Rx<User?> firebaseUser = Rx<User?>(null);
   final Rx<UserEntity?> currentUser = Rx<UserEntity?>(null);
   final RxBool isLoading = false.obs;
 
-  final UserRepositoryImpl _userRepo = UserRepositoryImpl();
+  final RxString errorMessage = ''.obs;
 
   Future<void> _loadUserData(String uid) async {
     try {
-      final user = await _userRepo.getUser(uid);
+      final user = await getUserProfile(uid);
       currentUser.value = user;
+    } on AppException catch (e) {
+      errorMessage.value = e.message;
     } catch (_) {
-      Get.snackbar('Error', 'Failed to load user data',
-          snackPosition: SnackPosition.BOTTOM);
+      errorMessage.value = 'Failed to load user data.';
     }
   }
 
   Future<void> login(String email, String password) async {
     try {
       isLoading.value = true;
+      errorMessage.value = '';
+
       await loginUser(email, password);
 
       final uid = FirebaseAuth.instance.currentUser!.uid;
       await _loadUserData(uid);
 
-      Get.snackbar('Success', 'Welcome back!',
+      Get.snackbar('Welcome back!', '',
           snackPosition: SnackPosition.BOTTOM);
-
       Get.offAllNamed(AppRoutes.home);
-    } catch (e) {
-      Get.snackbar('Error', 'Login failed',
+    } on AppException catch (e) {
+      errorMessage.value = e.message;
+      Get.snackbar('Login Failed', e.message,
           snackPosition: SnackPosition.BOTTOM);
+    } catch (_) {
+      const msg = 'An unexpected error occurred.';
+      errorMessage.value = msg;
+      Get.snackbar('Error', msg, snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> register(
-      String email,
-      String password,
-      String name,
-      ) async {
+    String email,
+    String password,
+    String name,
+  ) async {
     try {
       isLoading.value = true;
-      log("Starting registration...");
+      errorMessage.value = '';
+
       final user = await registerUser(email, password, name);
-      log("User created in Firestore");
-
       currentUser.value = user;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_name', name);
 
-      Get.snackbar('Success', 'Account created successfully!',
+      // Cache display name locally via PreferencesService
+      await PreferencesService.instance.setUserName(name);
+
+      Get.snackbar('Account created!', 'Welcome to Analyzer',
           snackPosition: SnackPosition.BOTTOM);
-
       Get.offNamed(AppRoutes.parameterSetup);
-    } on FirebaseAuthException catch (e) {
-      String message = 'Registration failed';
-      if (e.code == 'weak-password') {
-        message = 'Password is too weak';
-      } else if (e.code == 'email-already-in-use') {
-        message = 'Email already registered';
-      }
-
-      Get.snackbar('Error', message,
+    } on AppException catch (e) {
+      errorMessage.value = e.message;
+      Get.snackbar('Registration Failed', e.message,
           snackPosition: SnackPosition.BOTTOM);
+    } catch (_) {
+      const msg = 'Registration failed. Please try again.';
+      errorMessage.value = msg;
+      Get.snackbar('Error', msg, snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      await logoutUser();
+      await HiveService.clearAll();
+      await PreferencesService.instance.clearAll();
+      currentUser.value = null;
+      errorMessage.value = '';
+      Get.offAllNamed(AppRoutes.login);
+    } on AppException catch (e) {
+      Get.snackbar('Error', e.message, snackPosition: SnackPosition.BOTTOM);
+    } catch (_) {
+      Get.snackbar('Error', 'Logout failed. Please try again.',
+          snackPosition: SnackPosition.BOTTOM);
     }
   }
 }

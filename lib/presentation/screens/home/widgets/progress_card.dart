@@ -18,6 +18,7 @@ class ProgressCard extends StatelessWidget {
       final isToday = isSameDay(selectedDate, DateTime.now());
 
       final visibleParams = paramController.parameters.where((param) {
+        if (!param.isActive) return false;   // only count active habits
         final paramDate = DateTime(
           param.createdAt.year,
           param.createdAt.month,

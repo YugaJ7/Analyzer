@@ -94,6 +94,23 @@ class AnalyticsController extends GetxController {
     _computeAnalytics();
   }
 
+  void removeHabitEntries(String parameterId) {
+    bool changed = false;
+
+    _history.forEach((date, entries) {
+      final before = entries.length;
+      entries.removeWhere((e) => e.parameterId == parameterId);
+      if (entries.length != before) changed = true;
+    });
+
+    _history.removeWhere((_, entries) => entries.isEmpty);
+
+    if (changed) {
+      cacheService.save(_history);
+      _computeAnalytics();
+    }
+  }
+
   void _computeAnalytics() {
     final activeHabits = parameterController.parameters
         .where((p) => p.isActive)

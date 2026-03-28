@@ -17,6 +17,7 @@ class ParameterList extends StatelessWidget {
       final selectedDate = entryController.selectedDate.value;
 
       final visibleParams = paramController.parameters.where((param) {
+        if (!param.isActive) return false;   // hide inactive habits
         final paramDate = DateTime(
           param.createdAt.year,
           param.createdAt.month,
