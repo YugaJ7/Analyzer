@@ -1,3 +1,4 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -5,7 +6,7 @@ import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/validator.dart';
 import '../../controllers/auth_controller.dart';
-import '../../../core/routes/app_background.dart';
+import '../../../core/theme/app_background.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 
@@ -37,7 +38,7 @@ class LoginScreen extends GetView<AuthController> {
                 children: [
                   const SizedBox(height: 40),
                   const Text(
-                    'Welcome\nBack',
+                    AppStrings.loginTitle,
                     style: TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
@@ -47,7 +48,7 @@ class LoginScreen extends GetView<AuthController> {
                   ).animate().fadeIn().slideX(begin: -0.2, end: 0),
                   const SizedBox(height: 8),
                   Text(
-                    'Continue your growth journey',
+                    AppStrings.loginSubtitle,
                     style: TextStyle(
                       fontSize: 16,
                       color: AppColors.textSecondary,
@@ -57,7 +58,7 @@ class LoginScreen extends GetView<AuthController> {
                   CustomTextField(
                     validator: emailValidator,
                     controller: emailController,
-                    label: 'Email',
+                    label: AppStrings.email,
                     icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                     focusBorderColor: AppColors.primary,
@@ -68,7 +69,7 @@ class LoginScreen extends GetView<AuthController> {
                     () => CustomTextField(
                       validator: passwordValidator,
                       controller: passwordController,
-                      label: 'Password',
+                      label: AppStrings.password,
                       icon: Icons.lock_outline,
                       obscureText: obscurePassword.value,
                       focusBorderColor: AppColors.primary,
@@ -87,7 +88,7 @@ class LoginScreen extends GetView<AuthController> {
                   const SizedBox(height: 32),
                   Obx(
                     () => CustomButton(
-                      text: "Sign In",
+                      text: AppStrings.loginButton,
                       loading: controller.isLoading.value,
                       background: AppColors.primary,
                       onPressed: () {
@@ -105,7 +106,7 @@ class LoginScreen extends GetView<AuthController> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Don't have an account? ",
+                        AppStrings.noAccountPrompt,
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 15,
@@ -113,8 +114,8 @@ class LoginScreen extends GetView<AuthController> {
                       ),
                       GestureDetector(
                         onTap: () => Get.toNamed(AppRoutes.register),
-                        child: const Text(
-                          "Sign Up",
+                        child: Text(
+                          AppStrings.signUpLink,
                           style: TextStyle(
                             color: AppColors.primary,
                             fontSize: 15,

@@ -18,12 +18,12 @@ class PreferencesService {
     return _instance!;
   }
 
-  // Biometric
-  bool get biometricEnabled =>
-      _prefs.getBool(AppConstants.kBiometricKey) ?? false;
+  // App Lock (Biometric + Device Lock)
+bool get appLockEnabled =>
+    _prefs.getBool(AppConstants.kAppLockKey) ?? true;
 
-  Future<void> setBiometricEnabled(bool value) =>
-      _prefs.setBool(AppConstants.kBiometricKey, value);
+Future<void> setAppLockEnabled(bool value) =>
+    _prefs.setBool(AppConstants.kAppLockKey, value);
 
   // Avatar
   String get avatarEmoji =>

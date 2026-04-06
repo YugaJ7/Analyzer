@@ -243,7 +243,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                           hintText: 'Item ${entry.key + 1}',
                           hintStyle: const TextStyle(color: Colors.white54),
                           filled: true,
-                          fillColor: const Color(0xFF0A0E27),
+                          fillColor: AppColors.background,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide.none,
@@ -260,10 +260,10 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                         ),
                       ),
                     ),
-                    IconButton(
+                     IconButton(
                       icon: const Icon(
                         Icons.remove_circle_outline,
-                        color: AppColors.warning,
+                        color: AppColors.error,
                       ),
                       onPressed: () {
                         if (checklistItems.length > 1) {
@@ -312,7 +312,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                           hintText: 'Option ${entry.key + 1}',
                           hintStyle: const TextStyle(color: Colors.white54),
                           filled: true,
-                          fillColor: const Color(0xFF0A0E27),
+                          fillColor: AppColors.background,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide.none,
@@ -332,7 +332,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                     IconButton(
                       icon: const Icon(
                         Icons.remove_circle_outline,
-                        color: AppColors.warning,
+                        color: AppColors.error,
                       ),
                       onPressed: () {
                         if (options.length > 1) {

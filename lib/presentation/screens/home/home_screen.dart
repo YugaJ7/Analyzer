@@ -1,3 +1,4 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/presentation/controllers/analytics_controller.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:analyzer/presentation/controllers/parameter_controller.dart';
@@ -105,7 +106,7 @@ class _HomeTab extends StatelessWidget {
                   ProgressCard(),
                   SizedBox(height: 24),
                   Text(
-                    "Your Habits",
+                    AppStrings.yourHabits,
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,

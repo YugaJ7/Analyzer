@@ -1,7 +1,9 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../controllers/parameter_controller.dart';
 import '../../widgets/parameter_form_dialog.dart';
 
@@ -13,16 +15,16 @@ class ManageHabitsScreen extends StatelessWidget {
     final controller = Get.find<ParameterController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E27),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0A0E27),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
           onPressed: () => Get.back(),
         ),
         title: const Text(
-          'Manage Habits',
+          AppStrings.manageHabitsTitle,
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -40,7 +42,7 @@ class ManageHabitsScreen extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6C63FF),
+                  color: AppColors.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Row(
@@ -48,7 +50,7 @@ class ManageHabitsScreen extends StatelessWidget {
                     Icon(Icons.add_rounded, color: Colors.white, size: 18),
                     SizedBox(width: 4),
                     Text(
-                      'Add',
+                      AppStrings.manageAddButton,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -74,18 +76,18 @@ class ManageHabitsScreen extends StatelessWidget {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.track_changes_rounded,
-                    color: Color(0xFF6C63FF),
+                    color: AppColors.primary,
                     size: 36,
                   ),
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'No habits yet',
+                  AppStrings.manageNoHabitsTitle,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -94,7 +96,7 @@ class ManageHabitsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Tap "Add" to create your first habit',
+                  AppStrings.manageNoHabitsSubtitle,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.5),
                     fontSize: 14,
@@ -113,7 +115,7 @@ class ManageHabitsScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
           children: [
             if (active.isNotEmpty) ...[
-              _sectionHeader('Active Habits', active.length, const Color(0xFF4ECDC4)),
+              _sectionHeader(AppStrings.activeHabitsSection, active.length, AppColors.secondary),
               const SizedBox(height: 8),
               ...active.asMap().entries.map(
                 (e) => _HabitTile(
@@ -126,7 +128,7 @@ class ManageHabitsScreen extends StatelessWidget {
               const SizedBox(height: 20),
             ],
             if (inactive.isNotEmpty) ...[
-              _sectionHeader('Inactive Habits', inactive.length, Colors.white38),
+              _sectionHeader(AppStrings.inactiveHabitsSection, inactive.length, Colors.white38),
               const SizedBox(height: 8),
               ...inactive.asMap().entries.map(
                 (e) => _HabitTile(
@@ -188,7 +190,7 @@ class ManageHabitsScreen extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1E2749),
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -201,9 +203,9 @@ class ManageHabitsScreen extends StatelessWidget {
             Navigator.pop(context); // close sheet after save
             await controller.addNewParameter(param);
             Get.snackbar(
-              'Habit Added',
-              '"${param.name}" has been added',
-              backgroundColor: const Color(0xFF4ECDC4).withValues(alpha: 0.9),
+              AppStrings.habitAddedTitle,
+              '"${param.name}" ${AppStrings.paramAddedMessage}',
+              backgroundColor: AppColors.secondary.withValues(alpha: 0.9),
               colorText: Colors.white,
               snackPosition: SnackPosition.BOTTOM,
             );
@@ -242,21 +244,14 @@ class _HabitTile extends StatelessWidget {
       },
       onDismissed: (_) {
         controller.deleteExistingParameter(param.id);
-        // Get.snackbar(
-        //   'Habit Deleted',
-        //   '"${param.name}" has been permanently deleted',
-        //   backgroundColor: const Color(0xFFFF6B6B).withValues(alpha: 0.9),
-        //   colorText: Colors.white,
-        //   snackPosition: SnackPosition.BOTTOM,
-        // );
       },
       background: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFFFF6B6B).withValues(alpha: 0.15),
+          color: AppColors.error.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFFFF6B6B).withValues(alpha: 0.3),
+            color: AppColors.error.withValues(alpha: 0.3),
           ),
         ),
         alignment: Alignment.centerRight,
@@ -264,13 +259,13 @@ class _HabitTile extends StatelessWidget {
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.delete_outline_rounded, color: Color(0xFFFF6B6B), size: 24),
+            Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 24),
             SizedBox(height: 4),
             Text(
-              'Delete',
+              AppStrings.deleteButton,
               style: TextStyle(
                 fontSize: 11,
-                color: Color(0xFFFF6B6B),
+                color: AppColors.error,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -280,7 +275,7 @@ class _HabitTile extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E2749),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: Colors.white.withValues(alpha: isActive ? 0.08 : 0.04),
@@ -353,7 +348,7 @@ class _HabitTile extends StatelessWidget {
                       height: 26,
                       decoration: BoxDecoration(
                         color: isActive
-                            ? const Color(0xFF4ECDC4)
+                            ? AppColors.secondary
                             : Colors.white.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(13),
                       ),
@@ -388,7 +383,7 @@ class _HabitTile extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1E2749),
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -406,9 +401,9 @@ class _HabitTile extends StatelessWidget {
               'color': updated.color,
             });
             Get.snackbar(
-              'Habit Updated',
-              '"${updated.name}" has been updated',
-              backgroundColor: const Color(0xFF6C63FF).withValues(alpha: 0.9),
+              AppStrings.habitUpdatedTitle,
+              '"${updated.name}" ${AppStrings.paramUpdatedMessage}',
+              backgroundColor: AppColors.primary.withValues(alpha: 0.9),
               colorText: Colors.white,
               snackPosition: SnackPosition.BOTTOM,
             );
@@ -422,40 +417,40 @@ class _HabitTile extends StatelessWidget {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            backgroundColor: const Color(0xFF1E2749),
+            backgroundColor: AppColors.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
               side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
             ),
             title: const Text(
-              'Delete Habit?',
+              AppStrings.deleteHabitDialogTitle,
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
               ),
             ),
             content: Text(
-              '"$name" will be permanently deleted. This cannot be undone.',
+              '"$name" ${AppStrings.deleteHabitDialogBody}',
               style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: Text(
-                  'Cancel',
+                  AppStrings.cancelButton,
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
                 ),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6B6B),
+                  backgroundColor: AppColors.error,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Delete'),
+                child: const Text(AppStrings.deleteButton),
               ),
             ],
           ),

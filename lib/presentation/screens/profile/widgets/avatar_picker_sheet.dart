@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class AvatarPickerSheet extends StatelessWidget {
   final List<String> avatarEmojis;
@@ -45,12 +46,12 @@ class AvatarPickerSheet extends StatelessWidget {
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFF6C63FF).withValues(alpha: 0.3)
+                        ? AppColors.primary.withValues(alpha: 0.3)
                         : Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isSelected
-                          ? const Color(0xFF6C63FF)
+                          ? AppColors.primary
                           : Colors.transparent,
                       width: 2,
                     ),

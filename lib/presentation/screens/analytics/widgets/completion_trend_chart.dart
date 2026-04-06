@@ -1,6 +1,8 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/analytics_controller.dart';
 
 class CompletionTrendChart extends StatefulWidget {
@@ -28,9 +30,9 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E2749),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+          border: Border.all(color: AppColors.borderColorSecondary),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,7 +45,7 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Completion Trend',
+                      AppStrings.completionTrend,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -52,10 +54,10 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Avg: ${avg.toStringAsFixed(1)}%',
+                      '${AppStrings.avg}: ${avg.toStringAsFixed(1)}%',
                       style: TextStyle(
                         fontSize: 13,
-                        color: const Color(0xFF4ECDC4).withValues(alpha: 0.8),
+                        color: AppColors.secondary.withValues(alpha: 0.8),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -82,9 +84,9 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
             SizedBox(
               height: 220,
               child: data.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text(
-                        'No data yet',
+                        AppStrings.noDataYet,
                         style: TextStyle(color: Colors.white38),
                       ),
                     )
@@ -155,9 +157,7 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
                           horizontalLines: [
                             HorizontalLine(
                               y: avg,
-                              color: const Color(
-                                0xFF4ECDC4,
-                              ).withValues(alpha: 0.4),
+                              color: AppColors.secondary.withValues(alpha: 0.4),
                               strokeWidth: 1,
                               dashArray: [6, 4],
                             ),
@@ -183,7 +183,7 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
                                   radius: 3,
                                   color: Colors.white,
                                   strokeWidth: 2,
-                                  strokeColor: const Color(0xFF6C63FF),
+                                  strokeColor: AppColors.primary,
                                 );
                               },
                             ),
@@ -191,16 +191,16 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
                               show: true,
                               gradient: LinearGradient(
                                 colors: [
-                                  const Color(0xFF6C63FF).withValues(alpha: 0.3),
-                                  const Color(0xFF6C63FF).withValues(alpha: 0.05),
+                                  AppColors.primary.withValues(alpha: 0.3),
+                                  AppColors.primary.withValues(alpha: 0.05),
                                   Colors.transparent,
                                 ],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                               ),
                             ),
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF6C63FF), Color(0xFF4ECDC4)],
+                            gradient: LinearGradient(
+                              colors: [AppColors.primary, AppColors.secondary],
                             ),
                           ),
                         ],
@@ -227,7 +227,7 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF6C63FF)
+              ? AppColors.primary
               : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
         ),

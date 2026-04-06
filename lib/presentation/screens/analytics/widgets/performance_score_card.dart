@@ -1,6 +1,8 @@
 import 'dart:math';
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/analytics_controller.dart';
 
 class PerformanceScoreCard extends StatelessWidget {
@@ -20,14 +22,14 @@ class PerformanceScoreCard extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF6C63FF), Color(0xFF4834DF)],
+            colors: [AppColors.primary, AppColors.primaryDark],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6C63FF).withValues(alpha: 0.4),
+              color: AppColors.primary.withValues(alpha: 0.4),
               blurRadius: 24,
               offset: const Offset(0, 12),
             ),
@@ -81,7 +83,7 @@ class PerformanceScoreCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'SCORE',
+                            AppStrings.score,
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -103,19 +105,19 @@ class PerformanceScoreCard extends StatelessWidget {
               children: [
                 _StatChip(
                   icon: Icons.track_changes_rounded,
-                  label: 'Active',
+                  label: AppStrings.active,
                   value: '$activeHabits',
                 ),
                 const SizedBox(width: 10),
                 _StatChip(
                   icon: Icons.local_fire_department_rounded,
-                  label: 'Streak',
+                  label: AppStrings.streak,
                   value: '$currentStreak',
                 ),
                 const SizedBox(width: 10),
                 _StatChip(
                   icon: Icons.emoji_events_rounded,
-                  label: 'Best',
+                  label: AppStrings.best,
                   value: '$bestStreak',
                 ),
               ],
@@ -203,7 +205,7 @@ class _RingPainter extends CustomPainter {
         startAngle: -pi / 2,
         endAngle: 3 * pi / 2,
         colors: const [
-          Color(0xFF4ECDC4),
+          AppColors.secondary,
           Colors.white,
         ],
       ).createShader(Rect.fromCircle(center: center, radius: radius));

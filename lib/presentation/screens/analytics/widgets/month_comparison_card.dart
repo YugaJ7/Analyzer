@@ -1,5 +1,7 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/analytics_controller.dart';
 
 class MonthComparisonCard extends StatelessWidget {
@@ -18,9 +20,9 @@ class MonthComparisonCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E2749),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+          border: Border.all(color: AppColors.borderColorSecondary),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,7 +31,7 @@ class MonthComparisonCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Monthly Comparison',
+                  AppStrings.monthlyComparison,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -43,8 +45,8 @@ class MonthComparisonCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: (isPositive
-                            ? const Color(0xFF4ECDC4)
-                            : const Color(0xFFFF6B6B))
+                            ? AppColors.secondary
+                            : AppColors.error)
                         .withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -57,8 +59,8 @@ class MonthComparisonCard extends StatelessWidget {
                             : Icons.arrow_downward_rounded,
                         size: 16,
                         color: isPositive
-                            ? const Color(0xFF4ECDC4)
-                            : const Color(0xFFFF6B6B),
+                            ? AppColors.secondary
+                            : AppColors.error,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -67,8 +69,8 @@ class MonthComparisonCard extends StatelessWidget {
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: isPositive
-                              ? const Color(0xFF4ECDC4)
-                              : const Color(0xFFFF6B6B),
+                              ? AppColors.secondary
+                              : AppColors.error,
                         ),
                       ),
                     ],
@@ -80,17 +82,17 @@ class MonthComparisonCard extends StatelessWidget {
 
             // This Month bar
             _ComparisonBar(
-              label: 'This Month',
+              label: AppStrings.thisMonth,
               value: thisMonthRate.clamp(0, 100),
-              color: const Color(0xFF6C63FF),
+              color: AppColors.primary,
             ),
             const SizedBox(height: 14),
 
             // Overall Average bar
             _ComparisonBar(
-              label: 'Overall Avg',
+              label: AppStrings.overallAvg,
               value: overallRate.clamp(0, 100),
-              color: const Color(0xFF4ECDC4),
+              color: AppColors.secondary,
             ),
           ],
         ),

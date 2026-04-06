@@ -1,6 +1,8 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/analytics_controller.dart';
 
 class WeekdayBarChart extends StatefulWidget {
@@ -36,9 +38,9 @@ class _WeekdayBarChartState extends State<WeekdayBarChart> {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E2749),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+          border: Border.all(color: AppColors.borderColorSecondary),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,7 +53,7 @@ class _WeekdayBarChartState extends State<WeekdayBarChart> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Weekday Breakdown',
+                        AppStrings.weekdayBreakdown,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -61,10 +63,10 @@ class _WeekdayBarChartState extends State<WeekdayBarChart> {
                       if (bestValue > 0) ...[
                         const SizedBox(height: 4),
                         Text(
-                          'Best: ${_dayLabels[bestDay - 1]} (${bestValue.toStringAsFixed(0)}%)',
+                          '${AppStrings.best}: ${_dayLabels[bestDay - 1]} (${bestValue.toStringAsFixed(0)}%)',
                           style: TextStyle(
                             fontSize: 12,
-                            color: const Color(0xFF4ECDC4).withValues(alpha: 0.8),
+                            color: AppColors.secondary.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -80,8 +82,8 @@ class _WeekdayBarChartState extends State<WeekdayBarChart> {
                   ),
                   child: Row(
                     children: [
-                      _rangeButton('Week', true),
-                      _rangeButton('Avg', false),
+                      _rangeButton(AppStrings.week, true),
+                      _rangeButton(AppStrings.avg, false),
                     ],
                   ),
                 ),
@@ -147,7 +149,7 @@ class _WeekdayBarChartState extends State<WeekdayBarChart> {
                               _dayLabels[idx],
                               style: TextStyle(
                                 color: isBest
-                                    ? const Color(0xFF4ECDC4)
+                                    ? AppColors.secondary
                                     : Colors.white.withValues(alpha: 0.5),
                                 fontSize: 12,
                                 fontWeight:
@@ -175,19 +177,19 @@ class _WeekdayBarChartState extends State<WeekdayBarChart> {
                             topRight: Radius.circular(8),
                           ),
                           gradient: isBest
-                              ? const LinearGradient(
+                              ? LinearGradient(
                                   colors: [
-                                    Color(0xFF4ECDC4),
-                                    Color(0xFF6C63FF),
+                                    AppColors.secondary,
+                                    AppColors.primary,
                                   ],
                                   begin: Alignment.bottomCenter,
                                   end: Alignment.topCenter,
                                 )
                               : LinearGradient(
                                   colors: [
-                                    const Color(0xFF6C63FF)
+                                    AppColors.primary
                                         .withValues(alpha: 0.6),
-                                    const Color(0xFF6C63FF),
+                                    AppColors.primary,
                                   ],
                                   begin: Alignment.bottomCenter,
                                   end: Alignment.topCenter,
@@ -223,7 +225,7 @@ class _WeekdayBarChartState extends State<WeekdayBarChart> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF6C63FF) : Colors.transparent,
+          color: isSelected ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(

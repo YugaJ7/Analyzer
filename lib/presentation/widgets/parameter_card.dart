@@ -20,7 +20,7 @@ class ParameterCard extends StatelessWidget {
       direction: DismissDirection.endToStart,
       background: Container(
         decoration: ShapeDecoration(
-          color: AppColors.warning.withValues(alpha: 0.5),
+          color: AppColors.error.withValues(alpha: 0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15.0),
           ),

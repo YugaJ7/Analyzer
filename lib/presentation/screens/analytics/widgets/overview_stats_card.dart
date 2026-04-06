@@ -1,5 +1,7 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/analytics_controller.dart';
 
 class OverviewStatsCard extends StatelessWidget {
@@ -18,7 +20,7 @@ class OverviewStatsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Overview',
+            AppStrings.overview,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -30,15 +32,15 @@ class OverviewStatsCard extends StatelessWidget {
             children: [
               _OverviewTile(
                 icon: Icons.track_changes_rounded,
-                iconColor: const Color(0xFF6C63FF),
-                title: 'Active Habits',
+                iconColor: AppColors.primary,
+                title: AppStrings.activeHabits,
                 value: controller.totalActiveHabits.value.toString(),
               ),
               const SizedBox(width: 12),
               _OverviewTile(
                 icon: Icons.percent_rounded,
-                iconColor: const Color(0xFF4ECDC4),
-                title: 'Completion',
+                iconColor: AppColors.secondary,
+                title: AppStrings.completion,
                 value: '${controller.overallCompletionRate.value.toStringAsFixed(0)}%',
               ),
             ],
@@ -48,15 +50,15 @@ class OverviewStatsCard extends StatelessWidget {
             children: [
               _OverviewTile(
                 icon: Icons.emoji_events_rounded,
-                iconColor: const Color(0xFFFFA726),
-                title: 'Best Streak',
+                iconColor: AppColors.orange,
+                title: AppStrings.bestStreak,
                 value: controller.overallBestStreak.value.toString(),
               ),
               const SizedBox(width: 12),
               _OverviewTile(
                 icon: Icons.calendar_today_rounded,
-                iconColor: const Color(0xFFFF6B6B),
-                title: 'Tracked Days',
+                iconColor: AppColors.error,
+                title: AppStrings.trackedDays,
                 value: trackedDays.toString(),
               ),
             ],
@@ -86,7 +88,7 @@ class _OverviewTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E2749),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: iconColor.withValues(alpha: 0.15),

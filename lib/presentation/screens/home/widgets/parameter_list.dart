@@ -1,3 +1,4 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -37,7 +38,7 @@ class ParameterList extends StatelessWidget {
         return const SliverFillRemaining(
           child: Center(
             child: Text(
-              'No Parameters For This Day',
+              AppStrings.noParametersForDay,
               style: TextStyle(fontSize: 18),
             ),
           ),

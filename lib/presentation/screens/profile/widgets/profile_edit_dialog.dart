@@ -1,4 +1,6 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class ProfileEditDialog extends StatelessWidget {
   final String title;
@@ -21,7 +23,7 @@ class ProfileEditDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF1E2749),
+      backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
@@ -59,7 +61,7 @@ class ProfileEditDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: Text(
-            'Cancel',
+            AppStrings.cancelButton,
             style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
           ),
         ),
@@ -69,14 +71,14 @@ class ProfileEditDialog extends StatelessWidget {
             onSave();
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF6C63FF),
+            backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
           ),
           child: const Text(
-            'Save',
+            AppStrings.saveButton,
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),

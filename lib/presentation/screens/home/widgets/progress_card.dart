@@ -1,7 +1,9 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/core/utils/helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/entry_controller.dart';
 import '../../../controllers/parameter_controller.dart';
 
@@ -45,15 +47,15 @@ class ProgressCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF6C63FF), Color(0xFF4ECDC4)],
+          gradient: LinearGradient(
+            colors: [AppColors.primary, AppColors.secondary],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6C63FF).withValues(alpha: 0.3),
+              color: AppColors.primary.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -66,7 +68,7 @@ class ProgressCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  isToday ? 'Today\'s Progress' : 'Progress',
+                  isToday ? AppStrings.todayProgress : AppStrings.progress,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,

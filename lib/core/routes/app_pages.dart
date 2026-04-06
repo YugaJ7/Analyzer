@@ -39,6 +39,6 @@ class AppPages {
       name: AppRoutes.manageHabits,
       page: () => const ManageHabitsScreen(),
       binding: HomeBinding(),
-    ),
+    )
   ];
 }

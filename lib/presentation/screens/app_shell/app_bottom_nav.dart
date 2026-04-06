@@ -1,6 +1,8 @@
 import 'dart:ui';
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../controllers/app_navigation_controller.dart';
 
 class AppBottomNav extends StatelessWidget {
@@ -10,17 +12,17 @@ class AppBottomNav extends StatelessWidget {
     _NavItem(
       icon: Icons.home_rounded,
       activeIcon: Icons.home_rounded,
-      label: 'Home',
+      label: AppStrings.home,
     ),
     _NavItem(
       icon: Icons.insights_outlined,
       activeIcon: Icons.insights_rounded,
-      label: 'Analytics',
+      label: AppStrings.analytics,
     ),
     _NavItem(
       icon: Icons.person_outline_rounded,
       activeIcon: Icons.person_rounded,
-      label: 'Profile',
+      label: AppStrings.profile,
     ),
   ];
 
@@ -82,7 +84,7 @@ class AppBottomNav extends StatelessWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color: isActive
-                                      ? const Color(0xFF6C63FF).withValues(alpha: 0.2)
+                                      ? AppColors.primary.withValues(alpha: 0.2)
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(16),
                                 ),
@@ -90,7 +92,7 @@ class AppBottomNav extends StatelessWidget {
                                   isActive ? item.activeIcon : item.icon,
                                   size: 24,
                                   color: isActive
-                                      ? const Color(0xFF6C63FF)
+                                      ? AppColors.primary
                                       : Colors.white.withValues(alpha: 0.4),
                                 ),
                               ),
@@ -103,7 +105,7 @@ class AppBottomNav extends StatelessWidget {
                                       ? FontWeight.w700
                                       : FontWeight.w400,
                                   color: isActive
-                                      ? const Color(0xFF6C63FF)
+                                      ? AppColors.primary
                                       : Colors.white.withValues(alpha: 0.4),
                                 ),
                                 child: Text(item.label),

@@ -1,6 +1,7 @@
 import 'package:analyzer/data/models/parameter_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/entry_controller.dart';
 
 class OptionSelector extends StatelessWidget {
@@ -29,12 +30,12 @@ class OptionSelector extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFF6C63FF)
+                    ? AppColors.primary
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFF6C63FF)
+                      ? AppColors.primary
                       : Colors.white.withValues(alpha: 0.3),
                   width: 2,
                 ),

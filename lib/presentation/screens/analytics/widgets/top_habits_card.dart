@@ -1,5 +1,7 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/analytics_controller.dart';
 
 class TopHabitsCard extends StatelessWidget {
@@ -26,9 +28,9 @@ class TopHabitsCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E2749),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+          border: Border.all(color: AppColors.borderColorSecondary),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,7 +44,7 @@ class TopHabitsCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 const Text(
-                  'Top Performers',
+                  AppStrings.topPerformers,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

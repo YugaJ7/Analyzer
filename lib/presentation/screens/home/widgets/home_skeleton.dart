@@ -1,32 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:analyzer/core/theme/app_colors.dart';
+import '../../../widgets/shimmer_box.dart';
 
 class HomeSkeleton extends StatelessWidget {
   const HomeSkeleton({super.key});
-
-  Widget _shimmerBox({
-    required double height,
-    double? width,
-    BorderRadius? radius,
-  }) {
-    return Container(
-          height: height,
-          width: width ?? double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
-            borderRadius: radius ?? BorderRadius.circular(12),
-          ),
-        )
-        .animate(onPlay: (c) => c.repeat())
-        .shimmer(duration: 1200.ms, color: Colors.white.withValues(alpha: 0.15));
-  }
 
   Widget _habitCardSkeleton() {
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E2749),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
@@ -44,7 +28,7 @@ class HomeSkeleton extends StatelessWidget {
           const SizedBox(width: 16),
 
           // Habit name
-          Expanded(child: _shimmerBox(height: 18, width: 120)),
+          Expanded(child: ShimmerBox(height: 18, width: 120)),
 
           const SizedBox(width: 16),
 
@@ -60,7 +44,7 @@ class HomeSkeleton extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              _shimmerBox(height: 18, width: 24),
+              ShimmerBox(height: 18, width: 24),
             ],
           ),
         ],
@@ -86,9 +70,9 @@ class HomeSkeleton extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _shimmerBox(height: 14, width: 80),
+                          ShimmerBox(height: 14, width: 80),
                           const SizedBox(height: 8),
-                          _shimmerBox(height: 28, width: 180),
+                          ShimmerBox(height: 28, width: 180),
                         ],
                       ),
                       Container(
@@ -108,18 +92,18 @@ class HomeSkeleton extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E2749),
+                      color: AppColors.surface,
                       borderRadius: BorderRadius.circular(22),
                     ),
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _shimmerBox(height: 14, width: 100),
+                        ShimmerBox(height: 14, width: 100),
                         const SizedBox(height: 12),
-                        _shimmerBox(height: 20, width: 160),
+                        ShimmerBox(height: 20, width: 160),
                         const SizedBox(height: 12),
-                        _shimmerBox(
+                        ShimmerBox(
                           height: 22,
                           width: 60,
                           radius: BorderRadius.circular(12),
@@ -135,19 +119,19 @@ class HomeSkeleton extends StatelessWidget {
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
-                      color: const Color(0xFF6C63FF).withValues(alpha: 0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _shimmerBox(height: 18, width: 150),
+                        ShimmerBox(height: 18, width: 150),
                         const SizedBox(height: 16),
-                        _shimmerBox(
+                        ShimmerBox(
                           height: 12,
                           radius: BorderRadius.circular(10),
                         ),
                         const SizedBox(height: 12),
-                        _shimmerBox(height: 16, width: 120),
+                        ShimmerBox(height: 16, width: 120),
                       ],
                     ),
                   ),
@@ -155,7 +139,7 @@ class HomeSkeleton extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   //SECTION TITLE
-                  _shimmerBox(height: 22, width: 140),
+                  ShimmerBox(height: 22, width: 140),
 
                   const SizedBox(height: 16),
                 ],

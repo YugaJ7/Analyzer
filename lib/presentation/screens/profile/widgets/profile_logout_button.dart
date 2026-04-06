@@ -1,7 +1,9 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/routes/app_routes.dart';
 
 class ProfileLogoutButton extends StatelessWidget {
@@ -19,23 +21,23 @@ class ProfileLogoutButton extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFFF6B6B).withValues(alpha: 0.08),
+              color: AppColors.error.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: const Color(0xFFFF6B6B).withValues(alpha: 0.2),
+                color: AppColors.error.withValues(alpha: 0.2),
               ),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.logout_rounded, color: Color(0xFFFF6B6B), size: 18),
-                SizedBox(width: 8),
+                Icon(Icons.logout_rounded, color: AppColors.error, size: 18),
+                const SizedBox(width: 8),
                 Text(
-                  'Sign Out',
+                  AppStrings.signOutButton,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFFFF6B6B),
+                    color: AppColors.error,
                   ),
                 ),
               ],
@@ -50,24 +52,24 @@ class ProfileLogoutButton extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E2749),
+        backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
         ),
         title: const Text(
-          'Sign Out',
+          AppStrings.signOutButton,
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
         ),
         content: Text(
-          'Are you sure you want to sign out?',
+          AppStrings.signOutMessage,
           style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Cancel',
+              AppStrings.cancelButton,
               style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
             ),
           ),
@@ -78,14 +80,14 @@ class ProfileLogoutButton extends StatelessWidget {
               Get.offAllNamed(AppRoutes.login);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF6B6B),
+              backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
             child: const Text(
-              'Sign Out',
+              AppStrings.signOutButton,
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ),

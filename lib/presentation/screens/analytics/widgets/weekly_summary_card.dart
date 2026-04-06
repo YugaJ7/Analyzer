@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_strings.dart';
 import '../../../controllers/analytics_controller.dart';
 
 class WeeklySummaryCard extends StatelessWidget {
@@ -16,23 +18,12 @@ class WeeklySummaryCard extends StatelessWidget {
       final percentage = total == 0 ? 0.0 : (completed / total);
       final percentText = (percentage * 100).toStringAsFixed(0);
 
-      String motivation;
-      if (percentage >= 0.9) {
-        motivation = 'Incredible week! 🔥';
-      } else if (percentage >= 0.7) {
-        motivation = 'Great consistency! 💪';
-      } else if (percentage >= 0.5) {
-        motivation = 'Good effort, keep going!';
-      } else if (percentage > 0) {
-        motivation = 'Room to improve 📈';
-      } else {
-        motivation = 'Start building habits!';
-      }
+      final motivation = AppStrings.weeklyMotivation(percentage);
 
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E2749),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: Colors.white.withValues(alpha: 0.06),
@@ -57,7 +48,7 @@ class WeeklySummaryCard extends StatelessWidget {
                         painter: _MiniRingPainter(
                           progress: value,
                           bgColor: Colors.white.withValues(alpha: 0.08),
-                          fgColor: const Color(0xFF4ECDC4),
+                          fgColor: AppColors.secondary,
                         ),
                       ),
                       Text(
@@ -81,7 +72,7 @@ class WeeklySummaryCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Weekly Summary',
+                    AppStrings.weeklySummary,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -94,11 +85,11 @@ class WeeklySummaryCard extends StatelessWidget {
                       Icon(
                         Icons.check_circle_outline_rounded,
                         size: 16,
-                        color: const Color(0xFF4ECDC4),
+                        color: AppColors.secondary,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '$completed / $total completed',
+                        '$completed / $total ${AppStrings.completed}',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.white.withValues(alpha: 0.7),
@@ -113,7 +104,7 @@ class WeeklySummaryCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4ECDC4).withValues(alpha: 0.15),
+                      color: AppColors.secondary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -121,7 +112,7 @@ class WeeklySummaryCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF4ECDC4),
+                        color: AppColors.secondary,
                       ),
                     ),
                   ),

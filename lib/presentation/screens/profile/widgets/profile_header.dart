@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class ProfileHeader extends StatelessWidget {
   final String selectedAvatar;
@@ -30,13 +31,13 @@ class ProfileHeader extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF6C63FF), Color(0xFF4834DF)],
+                      colors: [AppColors.primary, AppColors.primaryDark],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF6C63FF).withValues(alpha: 0.4),
+                        color: AppColors.primary.withValues(alpha: 0.4),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
@@ -56,10 +57,10 @@ class ProfileHeader extends StatelessWidget {
                     width: 26,
                     height: 26,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4ECDC4),
+                      color: AppColors.secondary,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFF0A0E27),
+                        color: AppColors.background,
                         width: 2,
                       ),
                     ),

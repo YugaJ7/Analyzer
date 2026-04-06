@@ -4,6 +4,7 @@ import 'package:analyzer/domain/entities/parameter_entity.dart';
 import 'package:analyzer/presentation/controllers/streak_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/entry_controller.dart';
 import 'numeric_input.dart';
 import 'option_selector.dart';
@@ -31,7 +32,7 @@ class ParameterEntryCard extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.only(bottom: 18),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E2749),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           ),
@@ -50,12 +51,12 @@ class ParameterEntryCard extends StatelessWidget {
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: isCompleted
-                              ? const Color(0xFF6C63FF)
+                              ? AppColors.primary
                               : Colors.white.withValues(alpha: 0.4),
                           width: 2,
                         ),
                         color: isCompleted
-                            ? const Color(0xFF6C63FF)
+                            ? AppColors.primary
                             : Colors.transparent,
                       ),
                       child: isCompleted

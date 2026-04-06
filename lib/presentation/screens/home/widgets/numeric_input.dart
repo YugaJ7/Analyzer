@@ -1,6 +1,8 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/data/models/parameter_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/entry_controller.dart';
 
 class NumericInput extends StatefulWidget {
@@ -57,7 +59,7 @@ class _NumericInputState extends State<NumericInput> {
               border: Border.all(
                 strokeAlign: BorderSide.strokeAlignCenter,
                 color: isFocused
-                    ? const Color(0xFF6C63FF)
+                    ? AppColors.primary
                     : Colors.white.withValues(alpha: 0.3),
                 width: isFocused ? 2 : 1,
               ),
@@ -84,7 +86,7 @@ class _NumericInputState extends State<NumericInput> {
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
-                      hintText: "Enter value",
+                      hintText: AppStrings.enterValue,
                       hintStyle: TextStyle(color: Colors.white38, fontSize: 16),
                     ),
                     onChanged: (value) {

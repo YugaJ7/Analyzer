@@ -1,10 +1,11 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/validator.dart';
 import '../../controllers/auth_controller.dart';
-import '../../../core/routes/app_background.dart';
+import '../../../core/theme/app_background.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 
@@ -35,7 +36,7 @@ class RegisterScreen extends GetView<AuthController> {
                 children: [
                   const SizedBox(height: 40),
                   const Text(
-                    'Create\nAccount',
+                    AppStrings.registerTitle,
                     style: TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
@@ -45,7 +46,7 @@ class RegisterScreen extends GetView<AuthController> {
                   ).animate().fadeIn().slideX(begin: -0.2, end: 0),
                   const SizedBox(height: 8),
                   Text(
-                    'Start tracking your progress today',
+                    AppStrings.registerSubtitle,
                     style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
                   ).animate().fadeIn(delay: 200.ms),
                   const SizedBox(height: 40),
@@ -53,7 +54,7 @@ class RegisterScreen extends GetView<AuthController> {
                   CustomTextField(
                     validator: nameValidator,
                     controller: nameController,
-                    label: 'Full Name',
+                    label: AppStrings.fullName,
                     hint: "",
                     icon: Icons.person_outline,
                     focusBorderColor: AppColors.secondary,
@@ -63,7 +64,7 @@ class RegisterScreen extends GetView<AuthController> {
                   CustomTextField(
                     validator: emailValidator,
                     controller: emailController,
-                    label: 'Email',
+                    label: AppStrings.email,
                     hint: "",
                     icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
@@ -74,7 +75,7 @@ class RegisterScreen extends GetView<AuthController> {
                   Obx(() => CustomTextField(
                         validator: passwordValidator,
                         controller: passwordController,
-                        label: 'Password',
+                        label: AppStrings.password,
                         hint: "",
                         icon: Icons.lock_outline,
                         obscureText: obscurePassword.value,
@@ -92,7 +93,7 @@ class RegisterScreen extends GetView<AuthController> {
                   Obx(() => CustomTextField(
                         validator: passwordValidator,
                         controller: confirmPasswordController,
-                        label: 'Confirm Password',
+                        label: AppStrings.confirmPassword,
                         hint: "",
                         icon: Icons.lock_outline,
                         obscureText: obscureConfirmPassword.value,
@@ -108,7 +109,7 @@ class RegisterScreen extends GetView<AuthController> {
 
                   const SizedBox(height: 32),
                   Obx(() => CustomButton(
-                        text: "Create Account",
+                        text: AppStrings.registerButton,
                         loading: controller.isLoading.value,
                         background: AppColors.secondary,
                         onPressed: () {
@@ -126,10 +127,10 @@ class RegisterScreen extends GetView<AuthController> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Already have an account? ", style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                      Text(AppStrings.noAccountPrompt, style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
                       GestureDetector(
                         onTap: () => Get.back(),
-                        child: const Text("Sign In", style: TextStyle(color: AppColors.secondary, fontSize: 15, fontWeight: FontWeight.w600)),
+                        child: Text(AppStrings.signInLink, style: TextStyle(color: AppColors.secondary, fontSize: 15, fontWeight: FontWeight.w600)),
                       ),
                     ],
                   ).animate().fadeIn(delay: 800.ms),

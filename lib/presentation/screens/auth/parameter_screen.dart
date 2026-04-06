@@ -1,4 +1,5 @@
 import 'package:analyzer/core/routes/app_routes.dart';
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/domain/entities/parameter_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../controllers/parameter_controller.dart';
-import '../../../core/routes/app_background.dart';
+import '../../../core/theme/app_background.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/parameter_card.dart';
 import '../../widgets/parameter_form_dialog.dart';
@@ -18,7 +19,7 @@ class ParameterSetupScreen extends GetView<ParameterController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Setup Parameters'),
+        title: const Text(AppStrings.paramSetupTitle),
         automaticallyImplyLeading: false,
         actions: [
           Obx(
@@ -26,7 +27,7 @@ class ParameterSetupScreen extends GetView<ParameterController> {
                 ? TextButton(
                     onPressed: () => Get.offAllNamed(AppRoutes.home),
                     child: const Text(
-                      'Done',
+                      AppStrings.paramSetupDoneButton,
                       style: TextStyle(
                         color: AppColors.secondary,
                         fontWeight: FontWeight.w600,
@@ -47,9 +48,8 @@ class ParameterSetupScreen extends GetView<ParameterController> {
           child: Obx(() {
             if (controller.parameters.isEmpty) {
               return const EmptyStateWidget(
-                title: "No parameters added yet.",
-                message:
-                    "Create your first parameter to start tracking your progress",
+                title: AppStrings.paramSetupEmptyTitle,
+                message: AppStrings.paramSetupEmptyMessage,
                 icon: Icons.tune_rounded,
               );
             }
@@ -80,9 +80,9 @@ class ParameterSetupScreen extends GetView<ParameterController> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddParameterDialog(context),
-        backgroundColor: const Color(0xFF6C63FF),
+        backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add),
-        label: const Text('Add Parameter'),
+        label: const Text(AppStrings.addParameterButton),
       ).animate().scale(delay: 500.ms),
     );
   }
@@ -113,8 +113,8 @@ class ParameterSetupScreen extends GetView<ParameterController> {
             await controller.addNewParameter(paramWithOrder);
             Get.back();
             Get.snackbar(
-              'Success',
-              'Parameter added successfully',
+              AppStrings.paramAddedTitle,
+              AppStrings.paramAddedMessage,
               snackPosition: SnackPosition.BOTTOM,
             );
           },
@@ -168,8 +168,8 @@ class ParameterSetupScreen extends GetView<ParameterController> {
             await controller.updateExistingParameter(param.id, updates);
             Get.back();
             Get.snackbar(
-              'Success',
-              'Parameter updated successfully',
+              AppStrings.paramUpdatedTitle,
+              AppStrings.paramUpdatedMessage,
               snackPosition: SnackPosition.BOTTOM,
             );
           },

@@ -1,7 +1,10 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../controllers/analytics_controller.dart';
+import '../../widgets/shimmer_box.dart';
 import 'widgets/completion_trend_chart.dart';
 import 'widgets/heatmap_widget.dart';
 import 'widgets/month_comparison_card.dart';
@@ -40,7 +43,7 @@ class AnalyticsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Analytics',
+                              AppStrings.analyticsTitle,
                               style: const TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w800,
@@ -49,7 +52,7 @@ class AnalyticsScreen extends StatelessWidget {
                             ).animate().fadeIn().slideX(begin: -0.15),
                             const SizedBox(height: 4),
                             Text(
-                              'Your habit insights',
+                              AppStrings.analyticsSubtitle,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.white.withValues(alpha: 0.5),
@@ -60,12 +63,12 @@ class AnalyticsScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF6C63FF).withValues(alpha: 0.15),
+                            color: AppColors.primary.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.insights_rounded,
-                            color: Color(0xFF6C63FF),
+                            color: AppColors.primary,
                             size: 26,
                           ),
                         ).animate().scale(delay: 200.ms),
@@ -136,26 +139,6 @@ class AnalyticsScreen extends StatelessWidget {
 class _AnalyticsSkeleton extends StatelessWidget {
   const _AnalyticsSkeleton();
 
-  Widget _shimmerBox({
-    required double height,
-    double? width,
-    BorderRadius? radius,
-  }) {
-    return Container(
-          height: height,
-          width: width ?? double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
-            borderRadius: radius ?? BorderRadius.circular(12),
-          ),
-        )
-        .animate(onPlay: (c) => c.repeat())
-        .shimmer(
-          duration: 1200.ms,
-          color: Colors.white.withValues(alpha: 0.12),
-        );
-  }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -171,9 +154,9 @@ class _AnalyticsSkeleton extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _shimmerBox(height: 28, width: 120),
+                    ShimmerBox(height: 28, width: 120),
                     const SizedBox(height: 6),
-                    _shimmerBox(height: 14, width: 160),
+                    ShimmerBox(height: 14, width: 160),
                   ],
                 ),
                 Container(
@@ -189,26 +172,26 @@ class _AnalyticsSkeleton extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Performance score skeleton
-            _shimmerBox(
+            ShimmerBox(
               height: 240,
               radius: BorderRadius.circular(24),
             ),
             const SizedBox(height: 20),
 
             // Overview stats skeleton
-            _shimmerBox(height: 22, width: 100),
+            ShimmerBox(height: 22, width: 100),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
-                  child: _shimmerBox(
+                  child: ShimmerBox(
                     height: 80,
                     radius: BorderRadius.circular(18),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _shimmerBox(
+                  child: ShimmerBox(
                     height: 80,
                     radius: BorderRadius.circular(18),
                   ),
@@ -219,14 +202,14 @@ class _AnalyticsSkeleton extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _shimmerBox(
+                  child: ShimmerBox(
                     height: 80,
                     radius: BorderRadius.circular(18),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _shimmerBox(
+                  child: ShimmerBox(
                     height: 80,
                     radius: BorderRadius.circular(18),
                   ),
@@ -236,17 +219,17 @@ class _AnalyticsSkeleton extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Chart skeletons
-            _shimmerBox(
+            ShimmerBox(
               height: 100,
               radius: BorderRadius.circular(20),
             ),
             const SizedBox(height: 20),
-            _shimmerBox(
+            ShimmerBox(
               height: 280,
               radius: BorderRadius.circular(20),
             ),
             const SizedBox(height: 20),
-            _shimmerBox(
+            ShimmerBox(
               height: 280,
               radius: BorderRadius.circular(20),
             ),

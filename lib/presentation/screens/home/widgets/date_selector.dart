@@ -1,8 +1,10 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/core/utils/helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/entry_controller.dart';
 
 class DateSelector extends StatelessWidget {
@@ -19,7 +21,7 @@ class DateSelector extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E2749),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
@@ -83,14 +85,14 @@ class DateSelector extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4ECDC4).withValues(alpha: 0.2),
+                        color: AppColors.secondary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text(
-                        'Today',
+                        AppStrings.todayBadge,
                         style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF4ECDC4),
+                          color: AppColors.secondary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

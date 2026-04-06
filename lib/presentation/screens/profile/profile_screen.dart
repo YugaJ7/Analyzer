@@ -1,8 +1,10 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/profile_controller.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/routes/app_routes.dart';
 
 import 'widgets/avatar_picker_sheet.dart';
@@ -33,7 +35,7 @@ class ProfileScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                     child: const Text(
-                      'Profile',
+                      AppStrings.profileTitle,
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
@@ -49,8 +51,7 @@ class ProfileScreen extends StatelessWidget {
                     selectedAvatar: controller.selectedAvatar.value,
                     displayName: controller.displayName.value,
                     email: user?.email ?? '',
-                    onAvatarTap: () =>
-                        _showAvatarPicker(context, controller),
+                    onAvatarTap: () => _showAvatarPicker(context, controller),
                   ),
 
                   const SizedBox(height: 32),
@@ -61,15 +62,14 @@ class ProfileScreen extends StatelessWidget {
                       children: [
                         /// HABITS
                         ProfileSectionCard(
-                          title: 'Habits',
+                          title: AppStrings.habitsTitle,
                           children: [
                             ProfileSettingRow(
                               icon: Icons.list_rounded,
-                              iconColor: const Color(0xFF6C63FF),
-                              label: 'Manage Habits',
-                              subtitle: 'Add, delete, enable/disable',
-                              onTap: () =>
-                                  Get.toNamed(AppRoutes.manageHabits),
+                              iconColor: AppColors.primary,
+                              label: AppStrings.manageHabitsRow,
+                              subtitle: AppStrings.manageHabitsSubtitle,
+                              onTap: () => Get.toNamed(AppRoutes.manageHabits),
                             ),
                           ],
                         ).animate().fadeIn(delay: 200.ms),
@@ -78,14 +78,13 @@ class ProfileScreen extends StatelessWidget {
 
                         /// DATA
                         ProfileSectionCard(
-                          title: 'Data',
+                          title: AppStrings.dataTitle,
                           children: [
                             ProfileSettingRow(
                               icon: Icons.upload_file_rounded,
-                              iconColor: const Color(0xFF4ECDC4),
-                              label: 'Export as CSV',
-                              subtitle:
-                                  'Share habit history spreadsheet',
+                              iconColor: AppColors.secondary,
+                              label: AppStrings.exportCsvRow,
+                              subtitle: AppStrings.exportCsvSubtitle,
                               trailing: controller.isExporting.value
                                   ? const SizedBox(
                                       width: 18,
@@ -102,10 +101,9 @@ class ProfileScreen extends StatelessWidget {
                             _divider(),
                             ProfileSettingRow(
                               icon: Icons.picture_as_pdf_rounded,
-                              iconColor: const Color(0xFFFF6B6B),
-                              label: 'Share Full Report',
-                              subtitle:
-                                  'PDF with all data, habits & graphs',
+                              iconColor: AppColors.error,
+                              label: AppStrings.exportPdfRow,
+                              subtitle: AppStrings.exportPdfSubtitle,
                               trailing: controller.isExporting.value
                                   ? const SizedBox(
                                       width: 18,
@@ -126,17 +124,15 @@ class ProfileScreen extends StatelessWidget {
 
                         /// ACCOUNT
                         ProfileSectionCard(
-                          title: 'Account',
+                          title: AppStrings.accountTitle,
                           children: [
                             ProfileSettingRow(
                               icon: Icons.person_outline_rounded,
-                              iconColor: const Color(0xFF6C63FF),
-                              label: 'Change Name',
-                              subtitle:
-                                  controller.displayName.value,
+                              iconColor: AppColors.primary,
+                              label: AppStrings.changeNameRow,
+                              subtitle: controller.displayName.value,
                               onTap: () =>
-                                  _showChangeNameDialog(
-                                      context, controller),
+                                  _showChangeNameDialog(context, controller),
                             ),
                           ],
                         ),
@@ -145,19 +141,16 @@ class ProfileScreen extends StatelessWidget {
 
                         /// SECURITY
                         ProfileSectionCard(
-                          title: 'Security',
+                          title: AppStrings.securityTitle,
                           children: [
                             ProfileSettingRow(
                               icon: Icons.fingerprint_rounded,
-                              iconColor: const Color(0xFF4ECDC4),
-                              label: 'Biometric Lock',
-                              subtitle:
-                                  'Require fingerprint/face on open',
+                              iconColor: AppColors.secondary,
+                              label: AppStrings.appLockRow,
+                              subtitle: AppStrings.appLockSubtitle,
                               trailing: Switch(
-                                value:
-                                    controller.biometricEnabled.value,
-                                onChanged:
-                                    controller.toggleBiometric,
+                                value: controller.appLockEnabled.value,
+                                onChanged: controller.toggleAppLock,
                               ),
                               onTap: null,
                             ),
@@ -181,14 +174,12 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _divider() => Divider(
-        height: 1,
-        color: Colors.white.withValues(alpha: 0.06),
-        indent: 56,
-      );
+    height: 1,
+    color: Colors.white.withValues(alpha: 0.06),
+    indent: 56,
+  );
 
-  void _showAvatarPicker(
-      BuildContext context,
-      ProfileController controller) {
+  void _showAvatarPicker(BuildContext context, ProfileController controller) {
     showModalBottomSheet(
       context: context,
       builder: (_) => AvatarPickerSheet(
@@ -200,18 +191,17 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showChangeNameDialog(
-      BuildContext context,
-      ProfileController controller) {
-    final ctrl = TextEditingController(
-      text: controller.displayName.value,
-    );
+    BuildContext context,
+    ProfileController controller,
+  ) {
+    final ctrl = TextEditingController(text: controller.displayName.value);
 
     showDialog(
       context: context,
       builder: (_) => ProfileEditDialog(
-        title: 'Change Name',
+        title: AppStrings.changeNameRow,
         controller: ctrl,
-        hint: 'Enter your name', // ✅ kept
+        hint: AppStrings.changeNameRow,
         onSave: () {
           controller.updateName(ctrl.text.trim());
         },

@@ -1,6 +1,8 @@
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/analytics_controller.dart';
 
 class HeatmapWidget extends StatelessWidget {
@@ -73,9 +75,9 @@ class HeatmapWidget extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E2749),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+          border: Border.all(color: AppColors.borderColorSecondary),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,7 +87,7 @@ class HeatmapWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Activity Heatmap',
+                  AppStrings.activityHeatmap,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -93,7 +95,7 @@ class HeatmapWidget extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Last 90 days',
+                  AppStrings.last90Days,
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.white.withValues(alpha: 0.4),
@@ -143,7 +145,7 @@ class HeatmapWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Less',
+                  AppStrings.less,
                   style: TextStyle(
                     fontSize: 11,
                     color: Colors.white.withValues(alpha: 0.4),
@@ -163,7 +165,7 @@ class HeatmapWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'More',
+                  AppStrings.more,
                   style: TextStyle(
                     fontSize: 11,
                     color: Colors.white.withValues(alpha: 0.4),

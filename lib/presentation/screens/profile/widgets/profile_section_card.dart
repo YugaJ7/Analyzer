@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class ProfileSectionCard extends StatelessWidget {
   final String title;
@@ -29,9 +30,9 @@ class ProfileSectionCard extends StatelessWidget {
         ),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1E2749),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+            border: Border.all(color: AppColors.borderColorSecondary),
           ),
           child: Column(children: children),
         ),
