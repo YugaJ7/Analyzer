@@ -82,7 +82,7 @@ class AuthLockService {
       return false;
     }
 
-    // 🔥 UNKNOWN
+    // UNKNOWN
     catch (e) {
       _show('Error', "Something went wrong");
       return false;
