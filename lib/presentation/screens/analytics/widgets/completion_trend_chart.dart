@@ -27,187 +27,189 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
       final avg =
           data.isEmpty ? 0.0 : data.reduce((a, b) => a + b) / data.length;
 
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderColorSecondary),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      AppStrings.completionTrend,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${AppStrings.avg}: ${avg.toStringAsFixed(1)}%',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.secondary.withValues(alpha: 0.8),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.borderColorSecondary),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _rangeButton('7D', 7),
-                      _rangeButton('30D', 30),
+                      const Text(
+                        AppStrings.completionTrend,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${AppStrings.avg}: ${avg.toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.secondary.withValues(alpha: 0.8),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ],
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            /// Chart
-            SizedBox(
-              height: 220,
-              child: data.isEmpty
-                  ? Center(
-                      child: Text(
-                        AppStrings.noDataYet,
-                        style: TextStyle(color: Colors.white38),
-                      ),
-                    )
-                  : LineChart(
-                      LineChartData(
-                        minY: 0,
-                        maxY: 100,
-                        gridData: FlGridData(
-                          show: true,
-                          drawVerticalLine: false,
-                          horizontalInterval: 25,
-                          getDrawingHorizontalLine: (value) {
-                            return FlLine(
-                              color: Colors.white.withValues(alpha: 0.05),
-                              strokeWidth: 1,
-                            );
-                          },
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        _rangeButton('7D', 7),
+                        _rangeButton('30D', 30),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              // Chart
+              SizedBox(
+                height: 220,
+                child: data.isEmpty
+                    ? Center(
+                        child: Text(
+                          AppStrings.noDataYet,
+                          style: TextStyle(color: Colors.white38),
                         ),
-                        borderData: FlBorderData(show: false),
-                        titlesData: FlTitlesData(
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 32,
-                              interval: 25,
-                              getTitlesWidget: (value, meta) {
-                                return Text(
-                                  '${value.toInt()}',
-                                  style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.3),
-                                    fontSize: 10,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          rightTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          topTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          bottomTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                        ),
-                        lineTouchData: LineTouchData(
-                          enabled: true,
-                          touchTooltipData: LineTouchTooltipData(
-                            getTooltipColor: (_) => const Color(0xFF2D3561),
-                            getTooltipItems: (touchedSpots) {
-                              return touchedSpots.map((spot) {
-                                return LineTooltipItem(
-                                  '${spot.y.toStringAsFixed(0)}%',
-                                  const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13,
-                                  ),
-                                );
-                              }).toList();
+                      )
+                    : LineChart(
+                        LineChartData(
+                          minY: 0,
+                          maxY: 100,
+                          gridData: FlGridData(
+                            show: true,
+                            drawVerticalLine: false,
+                            horizontalInterval: 25,
+                            getDrawingHorizontalLine: (value) {
+                              return FlLine(
+                                color: Colors.white.withValues(alpha: 0.05),
+                                strokeWidth: 1,
+                              );
                             },
                           ),
-                          handleBuiltInTouches: true,
-                        ),
-                        // Average line
-                        extraLinesData: ExtraLinesData(
-                          horizontalLines: [
-                            HorizontalLine(
-                              y: avg,
-                              color: AppColors.secondary.withValues(alpha: 0.4),
-                              strokeWidth: 1,
-                              dashArray: [6, 4],
+                          borderData: FlBorderData(show: false),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 32,
+                                interval: 25,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    '${value.toInt()}',
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.3),
+                                      fontSize: 10,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            rightTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            topTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            bottomTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          lineTouchData: LineTouchData(
+                            enabled: true,
+                            touchTooltipData: LineTouchTooltipData(
+                              getTooltipColor: (_) => const Color(0xFF2D3561),
+                              getTooltipItems: (touchedSpots) {
+                                return touchedSpots.map((spot) {
+                                  return LineTooltipItem(
+                                    '${spot.y.toStringAsFixed(0)}%',
+                                    const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
+                                  );
+                                }).toList();
+                              },
+                            ),
+                            handleBuiltInTouches: true,
+                          ),
+                          // Average line
+                          extraLinesData: ExtraLinesData(
+                            horizontalLines: [
+                              HorizontalLine(
+                                y: avg,
+                                color: AppColors.secondary.withValues(alpha: 0.4),
+                                strokeWidth: 1,
+                                dashArray: [6, 4],
+                              ),
+                            ],
+                          ),
+                          lineBarsData: [
+                            LineChartBarData(
+                              isCurved: true,
+                              curveSmoothness: 0.3,
+                              spots: List.generate(
+                                data.length,
+                                (index) => FlSpot(
+                                  index.toDouble(),
+                                  data[index],
+                                ),
+                              ),
+                              barWidth: 3,
+                              isStrokeCapRound: true,
+                              dotData: FlDotData(
+                                show: true,
+                                getDotPainter: (spot, xPercentage, bar, index) {
+                                  return FlDotCirclePainter(
+                                    radius: 3,
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                    strokeColor: AppColors.primary,
+                                  );
+                                },
+                              ),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.primary.withValues(alpha: 0.3),
+                                    AppColors.primary.withValues(alpha: 0.05),
+                                    Colors.transparent,
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
+                              ),
+                              gradient: LinearGradient(
+                                colors: [AppColors.primary, AppColors.secondary],
+                              ),
                             ),
                           ],
                         ),
-                        lineBarsData: [
-                          LineChartBarData(
-                            isCurved: true,
-                            curveSmoothness: 0.3,
-                            spots: List.generate(
-                              data.length,
-                              (index) => FlSpot(
-                                index.toDouble(),
-                                data[index],
-                              ),
-                            ),
-                            barWidth: 3,
-                            isStrokeCapRound: true,
-                            dotData: FlDotData(
-                              show: true,
-                              getDotPainter: (spot, xPercentage, bar, index) {
-                                return FlDotCirclePainter(
-                                  radius: 3,
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                  strokeColor: AppColors.primary,
-                                );
-                              },
-                            ),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppColors.primary.withValues(alpha: 0.3),
-                                  AppColors.primary.withValues(alpha: 0.05),
-                                  Colors.transparent,
-                                ],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ),
-                            ),
-                            gradient: LinearGradient(
-                              colors: [AppColors.primary, AppColors.secondary],
-                            ),
-                          ),
-                        ],
                       ),
-                    ),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       );
     });

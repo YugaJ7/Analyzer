@@ -54,7 +54,7 @@ abstract final class AppStrings {
   static const String progress = 'Progress';
   static const String todayBadge = 'Today';
   static const String noParametersForDay = 'No Parameters For This Day';
-  static const String enterValue = 'Enter value';
+  static const String enterValue = '0';
   static const String home = 'Home';
   static const String analytics = 'Analytics';
   static const String profile = 'Profile';

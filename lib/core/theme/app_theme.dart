@@ -14,7 +14,7 @@ class AppTheme {
         surface: AppColors.surface,
         error: AppColors.error,
       ),
-      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+      textTheme: GoogleFonts.googleSansTextTheme(ThemeData.dark().textTheme),
       cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 0,

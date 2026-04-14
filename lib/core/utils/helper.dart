@@ -1,3 +1,5 @@
+import 'package:analyzer/core/theme/app_colors.dart';
+import 'package:analyzer/data/models/parameter_model.dart';
 import 'package:analyzer/domain/entities/parameter_entity.dart';
 import 'package:flutter/material.dart';
 
@@ -38,7 +40,14 @@ bool isSameDay(DateTime a, DateTime b) {
   return a.year == b.year && a.month == b.month && a.day == b.day;
 }
 
-// Maps Firebase Auth error codes to human-readable messages.
+String getGreeting() {
+  final hour = DateTime.now().hour;
+
+  if (hour < 12) return "Good Morning 👋";
+  if (hour < 17) return "Good Afternoon 👋";
+  return "Good Evening 👋";
+}
+
 String mapAuthError(String code) {
   switch (code) {
     case 'user-not-found':
@@ -66,4 +75,28 @@ String mapAuthError(String code) {
     default:
       return 'Authentication error. Please try again.';
   }
+}
+
+Color colorFromPercent(double percent) {
+  if (percent <= 0) return AppColors.emptyColor;
+  if (percent < 25) return AppColors.heatColors[1];
+  if (percent < 50) return AppColors.heatColors[2];
+  if (percent < 75) return AppColors.heatColors[3];
+  return AppColors.heatColors[4];
+}
+
+ParameterModel fakeParam(
+  String name, {
+  ParameterType type = ParameterType.checklist,
+}) {
+  return ParameterModel(
+    id: '-1',
+    name: name,
+    description: null,
+    type: type,
+    color: 1,
+    createdAt: DateTime.now(),
+    isActive: true, userId: '', 
+    order: 1,
+  );
 }

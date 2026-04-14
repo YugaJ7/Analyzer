@@ -1,8 +1,8 @@
 import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/data/models/parameter_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/entry_controller.dart';
 
 class NumericInput extends StatefulWidget {
@@ -48,67 +48,86 @@ class _NumericInputState extends State<NumericInput> {
       return AnimatedBuilder(
         animation: _focusNode,
         builder: (context, child) {
-          final bool isFocused = _focusNode.hasFocus;
-
-          return Container(
-            margin: const EdgeInsets.only(top: 20),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              color: Colors.transparent,
-              border: Border.all(
-                strokeAlign: BorderSide.strokeAlignCenter,
-                color: isFocused
-                    ? AppColors.primary
-                    : Colors.white.withValues(alpha: 0.3),
-                width: isFocused ? 2 : 1,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 10),
+              Divider(color: Color(0xFF2A2F3A), height: 1),
+              SizedBox(height: 10),
+              Text(
+                AppStrings.enterValue,
+                style: TextStyle(
+                  color: Color(0xFF8892A4),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                IntrinsicWidth(
-                  child: TextField(
-                    focusNode: _focusNode,
-                    controller: _controller,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Text(
+                    widget.param.unit ?? '',
+                    style: TextStyle(
+                      color: Color(0xFF8892A4),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
                     ),
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      hintText: AppStrings.enterValue,
-                      hintStyle: TextStyle(color: Colors.white38, fontSize: 16),
-                    ),
-                    onChanged: (value) {
-                      final entryController = Get.find<EntryController>();
-                      if (value.isEmpty) {
-                        entryController.toggleEntry(widget.param.id, null);
-                        return;
-                      }
-                      final parsed = num.tryParse(value);
-                      if (parsed != null) {
-                        entryController.toggleEntry(widget.param.id, parsed);
-                      }
-                    },
                   ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  widget.param.unit ?? '',
-                  style: const TextStyle(color: Colors.white38, fontSize: 16),
-                ),
-              ],
-            ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      focusNode: _focusNode,
+                      controller: _controller,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.left,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        fillColor: Color(0xFF30302E),
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xFF4E4E4A)),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xFF4E4E4A)),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xFF4E4E4A)),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xFF4E4E4A)),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                        hintText: AppStrings.enterValue,
+                        hintStyle: TextStyle(
+                          color: Color(0xFF757575),
+                          fontSize: 16,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        final entryController = Get.find<EntryController>();
+                        if (value.isEmpty) {
+                          entryController.toggleEntry(widget.param.id, null);
+                          return;
+                        }
+                        final parsed = num.tryParse(value);
+                        if (parsed != null) {
+                          entryController.toggleEntry(widget.param.id, parsed);
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
           );
         },
       );

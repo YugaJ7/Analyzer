@@ -1,10 +1,10 @@
-import 'package:analyzer/core/utils/app_strings.dart';
+import 'package:analyzer/presentation/screens/analytics/widgets/analytics_header.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:get/get.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../controllers/analytics_controller.dart';
-import '../../widgets/shimmer_box.dart';
 import 'widgets/completion_trend_chart.dart';
 import 'widgets/heatmap_widget.dart';
 import 'widgets/month_comparison_card.dart';
@@ -21,220 +21,79 @@ class AnalyticsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<AnalyticsController>();
 
-    return Obx(() {
-      if (controller.isLoading.value) {
-        return const _AnalyticsSkeleton();
-      }
+    return Material(
+      color: AppColors.background,
+      child: Obx(() {
+        final loading = controller.isLoading.value;
 
-      return SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppStrings.analyticsTitle,
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
-                            ).animate().fadeIn().slideX(begin: -0.15),
-                            const SizedBox(height: 4),
-                            Text(
-                              AppStrings.analyticsSubtitle,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white.withValues(alpha: 0.5),
-                              ),
-                            ).animate().fadeIn(delay: 100.ms),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.insights_rounded,
-                            color: AppColors.primary,
-                            size: 26,
-                          ),
-                        ).animate().scale(delay: 200.ms),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ),
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 500),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) {
+            final slide = Tween<Offset>(
+              begin: const Offset(0, 0.06),
+              end: Offset.zero,
+            ).animate(animation);
 
-            // Content
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const PerformanceScoreCard()
-                      .animate()
-                      .fadeIn(delay: 100.ms)
-                      .slideY(begin: 0.1),
-                  const SizedBox(height: 20),
-                  const OverviewStatsCard()
-                      .animate()
-                      .fadeIn(delay: 200.ms)
-                      .slideY(begin: 0.1),
-                  const SizedBox(height: 20),
-                  const WeeklySummaryCard()
-                      .animate()
-                      .fadeIn(delay: 300.ms)
-                      .slideY(begin: 0.1),
-                  const SizedBox(height: 20),
-                  const CompletionTrendChart()
-                      .animate()
-                      .fadeIn(delay: 400.ms)
-                      .slideY(begin: 0.1),
-                  const SizedBox(height: 20),
-                  const WeekdayBarChart()
-                      .animate()
-                      .fadeIn(delay: 500.ms)
-                      .slideY(begin: 0.1),
-                  const SizedBox(height: 20),
-                  const MonthComparisonCard()
-                      .animate()
-                      .fadeIn(delay: 600.ms)
-                      .slideY(begin: 0.1),
-                  const SizedBox(height: 20),
-                  const TopHabitsCard()
-                      .animate()
-                      .fadeIn(delay: 700.ms)
-                      .slideY(begin: 0.1),
-                  const SizedBox(height: 20),
-                  const HeatmapWidget()
-                      .animate()
-                      .fadeIn(delay: 800.ms)
-                      .slideY(begin: 0.1),
-                  const SizedBox(height: 32),
-                ]),
-              ),
+            return SlideTransition(
+              position: slide,
+              child: FadeTransition(opacity: animation, child: child),
+            );
+          },
+
+          child: Skeletonizer(
+            key: ValueKey(loading),
+            enabled: loading,
+            effect: ShimmerEffect(
+              duration: Duration(milliseconds: 1200),
+              baseColor: Colors.white.withOpacity(0.07),
+              highlightColor: Colors.white.withOpacity(0.16),
             ),
-          ],
-        ),
-      );
-    });
+            child: const _AnalyticsTab(),
+          ),
+        );
+      }),
+    );
   }
 }
 
-/// Skeleton loading for the analytics screen
-class _AnalyticsSkeleton extends StatelessWidget {
-  const _AnalyticsSkeleton();
+class _AnalyticsTab extends StatelessWidget {
+  const _AnalyticsTab();
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header skeleton
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ShimmerBox(height: 28, width: 120),
-                    const SizedBox(height: 6),
-                    ShimmerBox(height: 14, width: 160),
-                  ],
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: const AnalyticsHeader(),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                const PerformanceScoreCard().animate().fadeIn().slideY(
+                  begin: 0.1,
                 ),
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.06),
-                  ),
+                const OverviewStatsCard().animate().fadeIn().slideY(begin: 0.1),
+                const WeeklySummaryCard().animate().fadeIn().slideY(begin: 0.1),
+                const CompletionTrendChart().animate().fadeIn().slideY(
+                  begin: 0.1,
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Performance score skeleton
-            ShimmerBox(
-              height: 240,
-              radius: BorderRadius.circular(24),
-            ),
-            const SizedBox(height: 20),
-
-            // Overview stats skeleton
-            ShimmerBox(height: 22, width: 100),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: ShimmerBox(
-                    height: 80,
-                    radius: BorderRadius.circular(18),
-                  ),
+                const WeekdayBarChart().animate().fadeIn().slideY(begin: 0.1),
+                const MonthComparisonCard().animate().fadeIn().slideY(
+                  begin: 0.1,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ShimmerBox(
-                    height: 80,
-                    radius: BorderRadius.circular(18),
-                  ),
-                ),
-              ],
+                const TopHabitsCard().animate().fadeIn().slideY(begin: 0.1),
+                const HeatmapWidget().animate().fadeIn().slideY(begin: 0.1),
+              ]),
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: ShimmerBox(
-                    height: 80,
-                    radius: BorderRadius.circular(18),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ShimmerBox(
-                    height: 80,
-                    radius: BorderRadius.circular(18),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Chart skeletons
-            ShimmerBox(
-              height: 100,
-              radius: BorderRadius.circular(20),
-            ),
-            const SizedBox(height: 20),
-            ShimmerBox(
-              height: 280,
-              radius: BorderRadius.circular(20),
-            ),
-            const SizedBox(height: 20),
-            ShimmerBox(
-              height: 280,
-              radius: BorderRadius.circular(20),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

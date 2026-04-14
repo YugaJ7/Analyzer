@@ -17,84 +17,87 @@ class MonthComparisonCard extends StatelessWidget {
       final overallRate = controller.overallCompletionRate.value;
       final thisMonthRate = overallRate + diff;
 
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderColorSecondary),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  AppStrings.monthlyComparison,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.borderColorSecondary),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    AppStrings.monthlyComparison,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: (isPositive
-                            ? AppColors.secondary
-                            : AppColors.error)
-                        .withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        isPositive
-                            ? Icons.arrow_upward_rounded
-                            : Icons.arrow_downward_rounded,
-                        size: 16,
-                        color: isPositive
-                            ? AppColors.secondary
-                            : AppColors.error,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${diff.abs().toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: (isPositive
+                              ? AppColors.secondary
+                              : AppColors.error)
+                          .withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isPositive
+                              ? Icons.arrow_upward_rounded
+                              : Icons.arrow_downward_rounded,
+                          size: 16,
                           color: isPositive
                               ? AppColors.secondary
                               : AppColors.error,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Text(
+                          '${diff.abs().toStringAsFixed(1)}%',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: isPositive
+                                ? AppColors.secondary
+                                : AppColors.error,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // This Month bar
-            _ComparisonBar(
-              label: AppStrings.thisMonth,
-              value: thisMonthRate.clamp(0, 100),
-              color: AppColors.primary,
-            ),
-            const SizedBox(height: 14),
-
-            // Overall Average bar
-            _ComparisonBar(
-              label: AppStrings.overallAvg,
-              value: overallRate.clamp(0, 100),
-              color: AppColors.secondary,
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 20),
+        
+              // This Month bar
+              _ComparisonBar(
+                label: AppStrings.thisMonth,
+                value: thisMonthRate.clamp(0, 100),
+                color: AppColors.primary,
+              ),
+              const SizedBox(height: 14),
+        
+              // Overall Average bar
+              _ComparisonBar(
+                label: AppStrings.overallAvg,
+                value: overallRate.clamp(0, 100),
+                color: AppColors.secondary,
+              ),
+            ],
+          ),
         ),
       );
     });

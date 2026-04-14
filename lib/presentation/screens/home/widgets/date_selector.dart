@@ -19,14 +19,13 @@ class DateSelector extends StatelessWidget {
       final isToday = isSameDay(selectedDate, DateTime.now());
 
       return Container(
-        padding: const EdgeInsets.all(16),
+        margin: EdgeInsets.only(top: 12, bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
               onPressed: () {
@@ -34,90 +33,85 @@ class DateSelector extends StatelessWidget {
                   selectedDate.subtract(const Duration(days: 1)),
                 );
               },
-              icon: const Icon(Icons.chevron_left, color: Colors.white),
+              icon: const Icon(Icons.chevron_left),
+              color: AppColors.secondaryText,
             ),
-            GestureDetector(
-              onTap: () async {
-                final picked = await showDatePicker(
-                  context: Get.context!,
-                  initialDate: selectedDate,
-                  firstDate: DateTime(2020),
-                  lastDate: DateTime.now(),
-                  builder: (context, child) {
-                    return Theme(
-                      data: ThemeData.dark().copyWith(
-                        colorScheme: const ColorScheme.dark(
-                          primary: Color(0xFF6C63FF),
-                          surface: Color(0xFF1E2749),
+            Expanded(
+              child: GestureDetector(
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: Get.context!,
+                    initialDate: selectedDate,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now(),
+                    builder: (context, child) {
+                      return Theme(
+                        data: ThemeData.dark(),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (picked != null) {
+                    entryController.changeSelectedDate(picked);
+                  }
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      DateFormat('EEEE').format(selectedDate),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.secondaryText,
+                      ),
+                    ),
+                    Text(
+                      DateFormat('MMM dd').format(selectedDate),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    if (isToday)
+                      Container(
+                        margin: const EdgeInsets.only(top: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF1E4D3A),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          AppStrings.todayBadge,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Color(0xFF4ADE80),
+                          ),
                         ),
                       ),
-                      child: child!,
-                    );
-                  },
-                );
-                if (picked != null) {
-                  entryController.changeSelectedDate(picked);
-                }
-              },
-              child: Column(
-                children: [
-                  Text(
-                    DateFormat('EEEE').format(selectedDate),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.6),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    DateFormat('MMM dd, yyyy').format(selectedDate),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  if (isToday)
-                    Container(
-                      margin: const EdgeInsets.only(top: 4),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        AppStrings.todayBadge,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.secondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
             IconButton(
-              onPressed: isSameDay(selectedDate, DateTime.now())
+              onPressed: isToday
                   ? null
                   : () {
                       entryController.changeSelectedDate(
                         selectedDate.add(const Duration(days: 1)),
                       );
                     },
-              icon: Icon(
-                Icons.chevron_right,
-                color: isSameDay(selectedDate, DateTime.now())
-                    ? Colors.white.withValues(alpha: 0.3)
-                    : Colors.white,
-              ),
+              icon: const Icon(Icons.chevron_right),
+              color: isToday
+                  ? Color(0xFF8892A4)
+                  : Color(0xFF8892A4).withOpacity(0.8),
             ),
           ],
         ),
-      ).animate().fadeIn(delay: 100.ms);
+      ).animate().fadeIn(duration: 400.ms);
     });
   }
 }

@@ -1,14 +1,15 @@
+import 'package:analyzer/core/theme/app_colors.dart';
 import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/presentation/controllers/analytics_controller.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:analyzer/presentation/controllers/parameter_controller.dart';
 import 'package:analyzer/presentation/screens/home/widgets/date_selector.dart';
 import 'package:analyzer/presentation/screens/home/widgets/home_header.dart';
-import 'package:analyzer/presentation/screens/home/widgets/home_skeleton.dart';
 import 'package:analyzer/presentation/screens/home/widgets/parameter_list.dart';
 import 'package:analyzer/presentation/screens/home/widgets/progress_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _showSkeleton = true;
   late DateTime _startTime;
+  Worker? _worker;
 
   @override
   void initState() {
@@ -34,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Future.microtask(() => _entryController.loadEntries());
 
-    everAll([
+    _worker = everAll([
       _paramController.isLoading,
       _analyticsController.isLoading,
     ], (_) => _checkLoadingComplete());
@@ -48,8 +50,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!stillLoading && _showSkeleton) {
       final elapsed = DateTime.now().difference(_startTime).inMilliseconds;
 
-      if (elapsed < 300) {
-        await Future.delayed(Duration(milliseconds: 300 - elapsed));
+      if (elapsed < 700) {
+        await Future.delayed(Duration(milliseconds: 700 - elapsed));
       }
 
       if (mounted) {
@@ -61,16 +63,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void dispose() {
+    _worker?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
+      color: AppColors.background,
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),
         switchInCurve: Curves.easeOutCubic,
         switchOutCurve: Curves.easeInCubic,
         transitionBuilder: (child, animation) {
           final slide = Tween<Offset>(
-            begin: const Offset(0, 0.06),
+            begin: const Offset(0, 0.05),
             end: Offset.zero,
           ).animate(animation);
 
@@ -79,46 +87,56 @@ class _HomeScreenState extends State<HomeScreen> {
             child: FadeTransition(opacity: animation, child: child),
           );
         },
-        child: _showSkeleton ? const HomeSkeleton() : const _HomeTab(),
+
+        child: _showSkeleton
+            ? Skeletonizer(
+                enabled: true,
+                effect: ShimmerEffect(
+                  baseColor: Colors.white.withOpacity(0.05),
+                  highlightColor: Colors.white.withOpacity(0.1),
+                  duration: const Duration(milliseconds: 1400),
+                ),
+                child: _HomeTab(),
+              )
+            : _HomeTab(),
       ),
     );
   }
 }
 
 class _HomeTab extends StatelessWidget {
-  const _HomeTab();
-
   @override
   Widget build(BuildContext context) {
     return const SafeArea(
       child: CustomScrollView(
+        physics: BouncingScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(20),
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   HomeHeader(),
-                  SizedBox(height: 24),
                   DateSelector(),
-                  SizedBox(height: 20),
                   ProgressCard(),
-                  SizedBox(height: 24),
                   Text(
                     AppStrings.yourHabits,
                     style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 16),
                 ],
               ),
             ),
           ),
-          ParameterList(),
+
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(20, 12, 20, 20),
+            sliver: ParameterList(),
+          ),
         ],
       ),
     );

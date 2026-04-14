@@ -1,7 +1,8 @@
 import 'package:analyzer/core/utils/app_strings.dart';
+import 'package:analyzer/core/utils/helper.dart';
+import 'package:analyzer/domain/entities/parameter_entity.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import '../../../controllers/parameter_controller.dart';
 import 'parameter_card.dart';
@@ -15,10 +16,34 @@ class ParameterList extends StatelessWidget {
     final paramController = Get.find<ParameterController>();
 
     return Obx(() {
+      /// LOADING STATE
+      if (paramController.isLoading.value) {
+        final fakeParams = [
+          fakeParam("water"),
+          fakeParam("money", type: ParameterType.value),
+          fakeParam("reading"),
+        ];
+
+        return SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: ParameterEntryCard(
+                  param: fakeParams[index],
+                ),
+              );
+            },
+            childCount: fakeParams.length,
+          ),
+        );
+      }
+
       final selectedDate = entryController.selectedDate.value;
 
       final visibleParams = paramController.parameters.where((param) {
-        if (!param.isActive) return false;   // hide inactive habits
+        if (!param.isActive) return false;
+
         final paramDate = DateTime(
           param.createdAt.year,
           param.createdAt.month,
@@ -35,26 +60,32 @@ class ParameterList extends StatelessWidget {
       }).toList();
 
       if (visibleParams.isEmpty) {
-        return const SliverFillRemaining(
+        return SliverFillRemaining(
+          hasScrollBody: false,
           child: Center(
             child: Text(
               AppStrings.noParametersForDay,
-              style: TextStyle(fontSize: 18),
+              style: TextStyle(
+                color: Colors.white54,
+              ),
             ),
           ),
         );
       }
 
-      return SliverPadding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-        sliver: SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) => ParameterEntryCard(param: visibleParams[index])
-                .animate()
-                .fadeIn(delay: Duration(milliseconds: 100 * index))
-                .slideY(begin: 0.2, end: 0),
-            childCount: visibleParams.length,
-          ),
+      return SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: index == visibleParams.length - 1 ? 0 : 12,
+              ),
+              child: ParameterEntryCard(
+                param: visibleParams[index],
+              ),
+            );
+          },
+          childCount: visibleParams.length,
         ),
       );
     });

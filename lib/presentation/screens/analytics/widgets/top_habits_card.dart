@@ -8,11 +8,6 @@ class TopHabitsCard extends StatelessWidget {
   const TopHabitsCard({super.key});
 
   static const _medals = ['🥇', '🥈', '🥉'];
-  static const _medalColors = [
-    Color(0xFFFFD700),
-    Color(0xFFC0C0C0),
-    Color(0xFFCD7F32),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -25,85 +20,88 @@ class TopHabitsCard extends StatelessWidget {
         return const SizedBox.shrink();
       }
 
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderColorSecondary),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.workspace_premium_rounded,
-                  color: Color(0xFFFFD700),
-                  size: 22,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  AppStrings.topPerformers,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.borderColorSecondary),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.workspace_premium_rounded,
+                    color: Color(0xFFFFD700),
+                    size: 22,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            ...List.generate(habits.length, (index) {
-              final habit = habits[index];
-              final medal = index < _medals.length ? _medals[index] : '•';
-              final accentColor = index < _medalColors.length 
-                  ? _medalColors[index] 
-                  : Colors.white38;
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: Row(
-                  children: [
-                    // Rank
-                    SizedBox(
-                      width: 36,
-                      child: Text(
-                        medal,
-                        style: const TextStyle(fontSize: 22),
-                      ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    AppStrings.topPerformers,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                    const SizedBox(width: 8),
-                    // Habit name
-                    Expanded(
-                      child: Text(
-                        habit,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              ...List.generate(habits.length, (index) {
+                final habit = habits[index];
+                final medal = index < _medals.length ? _medals[index] : '•';
+                final accentColor = index < AppColors.medalColors.length 
+                    ? AppColors.medalColors[index] 
+                    : Colors.white38;
+        
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: Row(
+                    children: [
+                      // Rank
+                      SizedBox(
+                        width: 36,
+                        child: Text(
+                          medal,
+                          style: const TextStyle(fontSize: 22),
                         ),
                       ),
-                    ),
-                    // Rank indicator bar
-                    Container(
-                      height: 6,
-                      width: 60 - (index * 15.0),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            accentColor.withValues(alpha: 0.4),
-                            accentColor,
-                          ],
+                      const SizedBox(width: 8),
+                      // Habit name
+                      Expanded(
+                        child: Text(
+                          habit,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(3),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
+                      // Rank indicator bar
+                      Container(
+                        height: 6,
+                        width: 60 - (index * 15.0),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              accentColor.withValues(alpha: 0.4),
+                              accentColor,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
         ),
       );
     });

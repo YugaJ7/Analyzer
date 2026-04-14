@@ -16,54 +16,49 @@ class OverviewStatsCard extends StatelessWidget {
           .where((e) => e.value > 0)
           .length;
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            AppStrings.overview,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                _OverviewTile(
+                  icon: Icons.track_changes_rounded,
+                  iconColor: AppColors.primary,
+                  title: AppStrings.activeHabits,
+                  value: controller.totalActiveHabits.value.toString(),
+                ),
+                const SizedBox(width: 12),
+                _OverviewTile(
+                  icon: Icons.percent_rounded,
+                  iconColor: AppColors.secondary,
+                  title: AppStrings.completion,
+                  value:
+                      '${controller.overallCompletionRate.value.toStringAsFixed(0)}%',
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _OverviewTile(
-                icon: Icons.track_changes_rounded,
-                iconColor: AppColors.primary,
-                title: AppStrings.activeHabits,
-                value: controller.totalActiveHabits.value.toString(),
-              ),
-              const SizedBox(width: 12),
-              _OverviewTile(
-                icon: Icons.percent_rounded,
-                iconColor: AppColors.secondary,
-                title: AppStrings.completion,
-                value: '${controller.overallCompletionRate.value.toStringAsFixed(0)}%',
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              _OverviewTile(
-                icon: Icons.emoji_events_rounded,
-                iconColor: AppColors.orange,
-                title: AppStrings.bestStreak,
-                value: controller.overallBestStreak.value.toString(),
-              ),
-              const SizedBox(width: 12),
-              _OverviewTile(
-                icon: Icons.calendar_today_rounded,
-                iconColor: AppColors.error,
-                title: AppStrings.trackedDays,
-                value: trackedDays.toString(),
-              ),
-            ],
-          ),
-        ],
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _OverviewTile(
+                  icon: Icons.emoji_events_rounded,
+                  iconColor: AppColors.orange,
+                  title: AppStrings.bestStreak,
+                  value: controller.overallBestStreak.value.toString(),
+                ),
+                const SizedBox(width: 12),
+                _OverviewTile(
+                  icon: Icons.calendar_today_rounded,
+                  iconColor: AppColors.error,
+                  title: AppStrings.trackedDays,
+                  value: trackedDays.toString(),
+                ),
+              ],
+            ),
+          ],
+        ),
       );
     });
   }
@@ -90,9 +85,7 @@ class _OverviewTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: iconColor.withValues(alpha: 0.15),
-          ),
+          border: Border.all(color: iconColor.withValues(alpha: 0.15)),
         ),
         child: Row(
           children: [

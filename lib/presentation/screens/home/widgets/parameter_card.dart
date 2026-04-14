@@ -30,83 +30,96 @@ class ParameterEntryCard extends StatelessWidget {
           }
         },
         child: Container(
-          margin: const EdgeInsets.only(bottom: 18),
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            color: isCompleted ? Color(0xFF0D2A1E) : AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isCompleted
+                  ? Color(0xFF1D9E75)
+                  : Colors.white.withValues(alpha: 0.06),
+              width: isCompleted ? 1.5 : 1,
+            ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 26,
-                      height: 26,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isCompleted
-                              ? AppColors.primary
-                              : Colors.white.withValues(alpha: 0.4),
-                          width: 2,
-                        ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
                         color: isCompleted
-                            ? AppColors.primary
-                            : Colors.transparent,
+                            ? Color(0xFF1D9E75)
+                            : Color(0xFF3A4356),
+                        width: 2,
                       ),
-                      child: isCompleted
-                          ? const Icon(
-                              Icons.check,
-                              size: 16,
-                              color: Colors.white,
-                            )
-                          : null,
+                      color: isCompleted ? Color(0xFF1D9E75) : null,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        param.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    Row(
+                    child: isCompleted
+                        ? const Icon(Icons.check, size: 14, color: Colors.white)
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.local_fire_department_rounded,
-                          color: color,
-                          size: 22,
+                        Text(
+                          param.name,
+                          style: TextStyle(
+                            color: isCompleted
+                                ? Color(0xFF4ADE80)
+                                : Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        const SizedBox(width: 6),
-                        Obx(() {
-                          final value = Get.find<StreakController>().getCurrent(param.id);
-                          return Text(
-                            value.toString(),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                        if (param.description != null)
+                          Text(
+                            "${param.description}",
+                            style: TextStyle(
+                              color: Color(0xFF8892A4),
+                              fontSize: 12,
                             ),
-                          );
-                        }),
+                          ),
                       ],
                     ),
-                  ],
-                ),
-                if (param.type == ParameterType.value)
-                  NumericInput(param: param),
-                if (param.type == ParameterType.optionSelector)
-                  OptionSelector(param: param),
-              ],
-            ),
+                  ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.local_fire_department_rounded,
+                        color: color,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 6),
+                      Obx(() {
+                        final value = Get.find<StreakController>().getCurrent(
+                          param.id,
+                        );
+                        return Text(
+                          value.toString(),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ],
+              ),
+              if (param.type == ParameterType.value) NumericInput(param: param),
+              if (param.type == ParameterType.optionSelector)
+                OptionSelector(param: param),
+            ],
           ),
         ),
       );
