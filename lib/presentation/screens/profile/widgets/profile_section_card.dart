@@ -36,6 +36,7 @@ class ProfileSectionCard extends StatelessWidget {
           ),
           child: Column(children: children),
         ),
+        const SizedBox(height: 14),
       ],
     );
   }

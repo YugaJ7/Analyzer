@@ -4,7 +4,7 @@ import 'package:analyzer/core/routes/app_routes.dart';
 import 'package:analyzer/presentation/screens/app_shell/app_shell.dart';
 import 'package:analyzer/presentation/screens/auth/login_screen.dart';
 import 'package:analyzer/presentation/screens/auth/parameter_screen.dart';
-import 'package:analyzer/presentation/screens/profile/manage_habits_screen.dart';
+import 'package:analyzer/presentation/screens/manage_habits/manage_habits_screen.dart';
 import 'package:analyzer/presentation/screens/auth/register_screen.dart';
 import 'package:analyzer/presentation/screens/auth/splash_screen.dart';
 import 'package:get/get.dart';

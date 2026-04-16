@@ -21,155 +21,127 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<ProfileController>();
 
-    return SafeArea(
-      child: Obx(() {
-        final user = controller.user;
+    return Material(
+      color: AppColors.background,
+      child: SafeArea(
+        child: Obx(() {
+          final user = controller.user;
 
-        return CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // HEADER
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    child: const Text(
-                      AppStrings.profileTitle,
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ProfileHeader(
+                        selectedAvatar: controller.selectedAvatar.value,
+                        displayName: controller.displayName.value,
+                        email: user?.email ?? '',
+                        onAvatarTap: () =>
+                            _showAvatarPicker(context, controller),
                       ),
-                    ).animate().fadeIn().slideX(begin: -0.1),
+                      ProfileSectionCard(
+                        title: AppStrings.habitsTitle,
+                        children: [
+                          ProfileSettingRow(
+                            icon: Icons.list_rounded,
+                            iconColor: AppColors.primary,
+                            label: AppStrings.manageHabitsRow,
+                            subtitle: AppStrings.manageHabitsSubtitle,
+                            onTap: () => Get.toNamed(AppRoutes.manageHabits),
+                          ),
+                        ],
+                      ).animate().fadeIn(delay: 200.ms),
+
+                      // DATA
+                      ProfileSectionCard(
+                        title: AppStrings.dataTitle,
+                        children: [
+                          ProfileSettingRow(
+                            icon: Icons.upload_file_rounded,
+                            iconColor: AppColors.secondary,
+                            label: AppStrings.exportCsvRow,
+                            subtitle: AppStrings.exportCsvSubtitle,
+                            trailing: controller.isExporting.value
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : null,
+                            onTap: controller.isExporting.value
+                                ? null
+                                : controller.exportCsv,
+                          ),
+                          _divider(),
+                          ProfileSettingRow(
+                            icon: Icons.picture_as_pdf_rounded,
+                            iconColor: AppColors.error,
+                            label: AppStrings.exportPdfRow,
+                            subtitle: AppStrings.exportPdfSubtitle,
+                            trailing: controller.isExporting.value
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : null,
+                            onTap: controller.isExporting.value
+                                ? null
+                                : controller.exportPdf,
+                          ),
+                        ],
+                      ).animate().fadeIn(delay: 250.ms),
+
+                      // ACCOUNT
+                      ProfileSectionCard(
+                        title: AppStrings.accountTitle,
+                        children: [
+                          ProfileSettingRow(
+                            icon: Icons.person_outline_rounded,
+                            iconColor: AppColors.primary,
+                            label: AppStrings.changeNameRow,
+                            subtitle: controller.displayName.value,
+                            onTap: () =>
+                                _showChangeNameDialog(context, controller),
+                          ),
+                        ],
+                      ).animate().fadeIn(delay: 300.ms),
+                      // SECURITY
+                      ProfileSectionCard(
+                        title: AppStrings.securityTitle,
+                        children: [
+                          ProfileSettingRow(
+                            icon: Icons.fingerprint_rounded,
+                            iconColor: AppColors.secondary,
+                            label: AppStrings.appLockRow,
+                            subtitle: AppStrings.appLockSubtitle,
+                            trailing: Switch(
+                              value: controller.appLockEnabled.value,
+                              onChanged: controller.toggleAppLock,
+                            ),
+                            onTap: null,
+                          ),
+                        ],
+                      ).animate().fadeIn(delay: 350.ms),
+                      const SizedBox(height: 10),
+                      const ProfileLogoutButton().animate().fadeIn(
+                        delay: 400.ms,
+                      ),
+                    ],
                   ),
-
-                  const SizedBox(height: 24),
-
-                  // AVATAR
-                  ProfileHeader(
-                    selectedAvatar: controller.selectedAvatar.value,
-                    displayName: controller.displayName.value,
-                    email: user?.email ?? '',
-                    onAvatarTap: () => _showAvatarPicker(context, controller),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      children: [
-                        /// HABITS
-                        ProfileSectionCard(
-                          title: AppStrings.habitsTitle,
-                          children: [
-                            ProfileSettingRow(
-                              icon: Icons.list_rounded,
-                              iconColor: AppColors.primary,
-                              label: AppStrings.manageHabitsRow,
-                              subtitle: AppStrings.manageHabitsSubtitle,
-                              onTap: () => Get.toNamed(AppRoutes.manageHabits),
-                            ),
-                          ],
-                        ).animate().fadeIn(delay: 200.ms),
-
-                        const SizedBox(height: 14),
-
-                        /// DATA
-                        ProfileSectionCard(
-                          title: AppStrings.dataTitle,
-                          children: [
-                            ProfileSettingRow(
-                              icon: Icons.upload_file_rounded,
-                              iconColor: AppColors.secondary,
-                              label: AppStrings.exportCsvRow,
-                              subtitle: AppStrings.exportCsvSubtitle,
-                              trailing: controller.isExporting.value
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : null,
-                              onTap: controller.isExporting.value
-                                  ? null
-                                  : controller.exportCsv,
-                            ),
-                            _divider(),
-                            ProfileSettingRow(
-                              icon: Icons.picture_as_pdf_rounded,
-                              iconColor: AppColors.error,
-                              label: AppStrings.exportPdfRow,
-                              subtitle: AppStrings.exportPdfSubtitle,
-                              trailing: controller.isExporting.value
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : null,
-                              onTap: controller.isExporting.value
-                                  ? null
-                                  : controller.exportPdf,
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 14),
-
-                        /// ACCOUNT
-                        ProfileSectionCard(
-                          title: AppStrings.accountTitle,
-                          children: [
-                            ProfileSettingRow(
-                              icon: Icons.person_outline_rounded,
-                              iconColor: AppColors.primary,
-                              label: AppStrings.changeNameRow,
-                              subtitle: controller.displayName.value,
-                              onTap: () =>
-                                  _showChangeNameDialog(context, controller),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 14),
-
-                        /// SECURITY
-                        ProfileSectionCard(
-                          title: AppStrings.securityTitle,
-                          children: [
-                            ProfileSettingRow(
-                              icon: Icons.fingerprint_rounded,
-                              iconColor: AppColors.secondary,
-                              label: AppStrings.appLockRow,
-                              subtitle: AppStrings.appLockSubtitle,
-                              trailing: Switch(
-                                value: controller.appLockEnabled.value,
-                                onChanged: controller.toggleAppLock,
-                              ),
-                              onTap: null,
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        const ProfileLogoutButton(),
-                        const SizedBox(height: 40),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
-        );
-      }),
+            ],
+          );
+        }),
+      ),
     );
   }
 
