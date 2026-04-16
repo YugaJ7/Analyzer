@@ -1,5 +1,3 @@
-/// Named constants for spacing, border radii, font sizes, icon sizes,
-/// and animation durations — keeping magic numbers out of widget files.
 abstract final class AppDimensions {
   // ── Spacing ───────────────────────────────────────────────────────────────
   static const double spaceXS = 4;
