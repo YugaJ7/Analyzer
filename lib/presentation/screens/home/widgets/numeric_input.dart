@@ -55,7 +55,7 @@ class _NumericInputState extends State<NumericInput> {
               Divider(color: Color(0xFF2A2F3A), height: 1),
               SizedBox(height: 10),
               Text(
-                AppStrings.enterValue,
+                AppStrings.hint,
                 style: TextStyle(
                   color: Color(0xFF8892A4),
                   fontSize: 13,

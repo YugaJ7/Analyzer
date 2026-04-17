@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/routes/app_routes.dart';
-import '../../../data/services/hive_service.dart';
 import '../../../data/services/preferences_service.dart';
 import '../../../domain/entities/user_entity.dart';
 import '../../../domain/usecases/login_user.dart';
@@ -50,8 +49,8 @@ class AuthController extends GetxController {
       final uid = FirebaseAuth.instance.currentUser!.uid;
       await _loadUserData(uid);
 
-      Get.snackbar('Welcome back!', '',
-          snackPosition: SnackPosition.BOTTOM);
+      // Get.snackbar('Welcome back!', '',
+      //     snackPosition: SnackPosition.BOTTOM);
       Get.offAllNamed(AppRoutes.home);
     } on AppException catch (e) {
       errorMessage.value = e.message;
@@ -81,8 +80,8 @@ class AuthController extends GetxController {
       // Cache display name locally via PreferencesService
       await PreferencesService.instance.setUserName(name);
 
-      Get.snackbar('Account created!', 'Welcome to Analyzer',
-          snackPosition: SnackPosition.BOTTOM);
+      // Get.snackbar('Account created!', 'Welcome to Analyzer',
+      //     snackPosition: SnackPosition.BOTTOM);
       Get.offNamed(AppRoutes.parameterSetup);
     } on AppException catch (e) {
       errorMessage.value = e.message;
@@ -94,22 +93,6 @@ class AuthController extends GetxController {
       Get.snackbar('Error', msg, snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
-    }
-  }
-
-  Future<void> logout() async {
-    try {
-      await logoutUser();
-      await HiveService.clearAll();
-      await PreferencesService.instance.clearAll();
-      currentUser.value = null;
-      errorMessage.value = '';
-      Get.offAllNamed(AppRoutes.login);
-    } on AppException catch (e) {
-      Get.snackbar('Error', e.message, snackPosition: SnackPosition.BOTTOM);
-    } catch (_) {
-      Get.snackbar('Error', 'Logout failed. Please try again.',
-          snackPosition: SnackPosition.BOTTOM);
     }
   }
 }

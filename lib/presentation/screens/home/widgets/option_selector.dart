@@ -1,7 +1,7 @@
+import 'package:analyzer/core/theme/app_colors.dart';
 import 'package:analyzer/data/models/parameter_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/entry_controller.dart';
 
 class OptionSelector extends StatelessWidget {
@@ -11,8 +11,7 @@ class OptionSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entryController =
-        Get.find<EntryController>();
+    final entryController = Get.find<EntryController>();
     final selectedValue = entryController.selectedDateEntries[param.id]?.value;
 
     return SingleChildScrollView(
@@ -30,13 +29,11 @@ class OptionSelector extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.primary
+                    ? AppColors.completedborder.withAlpha(100)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isSelected
-                      ? AppColors.primary
-                      : Colors.white.withValues(alpha: 0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),

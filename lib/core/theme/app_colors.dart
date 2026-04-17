@@ -6,12 +6,15 @@ class AppColors {
   static const Color primary = Color(0xFF6C63FF);
   static const Color primaryDark = Color(0xFF4834DF);
   static const Color secondary = Color(0xFF4ECDC4);
+  static const Color completedText = Color(0xFF4ADE80);
   static const Color secondaryText = Color(0xFF8892A4);
   static const Color error = Color(0xFFFF6B6B);
   static const Color red = Color(0xFFFF6B6B);
   static const Color success = Color(0xFF4CAF50);
   static const Color orange = Color(0xFFFFA726);
   static const Color blue = Color(0xFF42A5F5);
+  static const Color completedborder = Color(0xFF1D9E75);
+  static const Color completedsurface = Color(0xFF0D2A1E);
 
   static const Color textPrimary = Colors.white;
   static final Color textSecondary = Colors.white.withValues(alpha: 0.5);

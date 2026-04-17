@@ -33,11 +33,11 @@ class ParameterEntryCard extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 10),
           padding: EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: isCompleted ? Color(0xFF0D2A1E) : AppColors.surface,
+            color: isCompleted ? AppColors.completedsurface : AppColors.surface,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isCompleted
-                  ? Color(0xFF1D9E75)
+                  ? AppColors.completedborder
                   : Colors.white.withValues(alpha: 0.06),
               width: isCompleted ? 1.5 : 1,
             ),
@@ -55,11 +55,11 @@ class ParameterEntryCard extends StatelessWidget {
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: isCompleted
-                            ? Color(0xFF1D9E75)
+                            ? AppColors.completedborder
                             : Color(0xFF3A4356),
                         width: 2,
                       ),
-                      color: isCompleted ? Color(0xFF1D9E75) : null,
+                      color: isCompleted ? AppColors.completedborder : null,
                     ),
                     child: isCompleted
                         ? const Icon(Icons.check, size: 14, color: Colors.white)
@@ -74,7 +74,7 @@ class ParameterEntryCard extends StatelessWidget {
                           param.name,
                           style: TextStyle(
                             color: isCompleted
-                                ? Color(0xFF4ADE80)
+                                ? AppColors.completedText
                                 : Colors.white,
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
