@@ -38,39 +38,65 @@ class EntryController extends GetxController {
   String _dateKey(DateTime date) {
     return DateFormat('yyyy-MM-dd').format(date);
   }
+  Future<void> _syncWidgetNow() async {
+  final parameterController =
+      Get.find<ParameterController>();
+
+  final totalHabits =
+      parameterController.parameters
+          .where((p) => p.isActive)
+          .length;
+
+  final completedCount =
+      selectedDateEntries.length;
+
+  final percent = totalHabits == 0
+      ? 0
+      : ((completedCount / totalHabits) * 100).round();
+
+  await WidgetRefreshService.refresh(
+    percent: percent,
+    completed: completedCount,
+    total: totalHabits,
+    loggedIn: true,
+  );
+}
 
   Future<void> loadEntries() async {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
+  final userId = FirebaseAuth.instance.currentUser!.uid;
 
-    final normalizedDate = DateTime(
-      selectedDate.value.year,
-      selectedDate.value.month,
-      selectedDate.value.day,
-    );
+  final normalizedDate = DateTime(
+    selectedDate.value.year,
+    selectedDate.value.month,
+    selectedDate.value.day,
+  );
 
-    final key = _dateKey(normalizedDate);
+  final key = _dateKey(normalizedDate);
 
-    if (_dailyCache.containsKey(key)) {
-      selectedDateEntries.assignAll(_dailyCache[key]!);
-      return;
-    }
-
-    isLoading.value = true;
-
-    final entries =
-        await getEntriesForDate(userId, normalizedDate);
-
-    final map = <String, EntryEntity>{};
-
-    for (var entry in entries) {
-      map[entry.parameterId] = entry;
-    }
-
-    _dailyCache[key] = map;
-    selectedDateEntries.assignAll(map);
-
-    isLoading.value = false;
+  if (_dailyCache.containsKey(key)) {
+    selectedDateEntries.assignAll(_dailyCache[key]!);
+    await _syncWidgetNow();
+    return;
   }
+
+  isLoading.value = true;
+
+  final entries =
+      await getEntriesForDate(userId, normalizedDate);
+
+  final map = <String, EntryEntity>{};
+
+  for (var entry in entries) {
+    map[entry.parameterId] = entry;
+  }
+
+  _dailyCache[key] = map;
+  selectedDateEntries.assignAll(map);
+
+  isLoading.value = false;
+
+  await _syncWidgetNow();
+}
 
   Future<void> toggleEntry(
     String parameterId,

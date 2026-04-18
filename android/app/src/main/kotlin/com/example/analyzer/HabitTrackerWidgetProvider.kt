@@ -101,10 +101,10 @@ class HabitTrackerWidgetProvider : AppWidgetProvider() {
                     layout
                 )
 
-            // -----------------------------
-            // EMPTY STATE
-            // -----------------------------
-            if (total == 0) {
+            // ---------------------------------
+            // 1. LOGGED OUT STATE
+            // ---------------------------------
+            if (!loggedIn) {
 
                 views.setTextViewText(
                     R.id.tvTitle,
@@ -124,10 +124,12 @@ class HabitTrackerWidgetProvider : AppWidgetProvider() {
 
                     views.setTextViewText(
                         R.id.tvSubtitle,
-                        if (loggedIn)
-                            "Create your first habit"
-                        else
-                            "Login to start tracking"
+                        "Login to start tracking"
+                    )
+                } else {
+                    views.setTextViewText(
+                        R.id.tvSubtitle,
+                        "Login to start tracking"
                     )
                 }
 
@@ -139,9 +141,49 @@ class HabitTrackerWidgetProvider : AppWidgetProvider() {
                 )
             }
 
-            // -----------------------------
-            // COMPACT 2x2
-            // -----------------------------
+            // ---------------------------------
+            // 2. LOGGED IN BUT NO HABITS
+            // ---------------------------------
+            else if (total == 0) {
+
+                views.setTextViewText(
+                    R.id.tvTitle,
+                    "No habits found"
+                )
+
+                views.setTextViewText(
+                    R.id.tvPercent,
+                    "—"
+                )
+
+                if (!isCompact) {
+                    views.setTextViewText(
+                        R.id.tvCount,
+                        ""
+                    )
+
+                    views.setTextViewText(
+                        R.id.tvSubtitle,
+                        "Create your first habit"
+                    )
+                } else {
+                    views.setTextViewText(
+                        R.id.tvSubtitle,
+                        "Create your first habit"
+                    )
+                }
+
+                views.setProgressBar(
+                    R.id.progressBar,
+                    100,
+                    0,
+                    false
+                )
+            }
+
+            // ---------------------------------
+            // 3. COMPACT 2x2
+            // ---------------------------------
             else if (isCompact) {
 
                 views.setTextViewText(
@@ -157,21 +199,22 @@ class HabitTrackerWidgetProvider : AppWidgetProvider() {
                     "$percent%"
                 )
 
+                views.setTextViewText(
+                    R.id.tvSubtitle,
+                    "$completed of $total habits completed"
+                )
+
                 views.setProgressBar(
                     R.id.progressBar,
                     100,
                     percent,
                     false
                 )
-                views.setTextViewText(
-    R.id.tvSubtitle,
-    "$completed of $total habits completed"
-)
             }
 
-            // -----------------------------
-            // NORMAL 4x2
-            // -----------------------------
+            // ---------------------------------
+            // 4. NORMAL 4x2
+            // ---------------------------------
             else {
 
                 views.setTextViewText(
@@ -217,9 +260,9 @@ class HabitTrackerWidgetProvider : AppWidgetProvider() {
                 )
             }
 
-            // -----------------------------
-            // OPEN APP
-            // -----------------------------
+            // ---------------------------------
+            // OPEN APP ON TAP
+            // ---------------------------------
             val launchIntent =
                 context.packageManager
                     .getLaunchIntentForPackage(

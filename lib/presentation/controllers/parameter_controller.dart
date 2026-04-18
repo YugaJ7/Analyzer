@@ -1,3 +1,4 @@
+import 'package:analyzer/data/services/widget_sync_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import '../../domain/entities/parameter_entity.dart';
@@ -45,40 +46,74 @@ class ParameterController extends GetxController {
   void _listen() {
     isLoading.value = true;
 
-    watchParameters(userId).listen((list) {
-      final models = list.map((e) => ParameterModel.fromEntity(e)).toList();
-      parameters.value = models;
-      _cache
-        ..clear()
-        ..addEntries(models.map((p) => MapEntry(p.id, p)));
-      isLoading.value = false;
-    });
+    watchParameters(userId).listen((list) async {
+  final models =
+      list.map((e) =>
+          ParameterModel.fromEntity(e))
+      .toList();
+
+  parameters.value = models;
+
+  _cache
+    ..clear()
+    ..addEntries(
+      models.map(
+        (p) => MapEntry(p.id, p),
+      ),
+    );
+
+  isLoading.value = false;
+
+  await WidgetSyncService.syncNow();
+});
   }
 
   // Instant read from in-memory cache.
   ParameterModel? getFromCache(String id) => _cache[id];
 
-  Future<void> addNewParameter(ParameterEntity parameter) async {
-    await addParameter(parameter);
-  }
+  Future<void> addNewParameter(
+  ParameterEntity parameter,
+) async {
+  await addParameter(parameter);
+  await WidgetSyncService.syncNow();
+}
 
   Future<void> updateExistingParameter(
-    String id,
-    Map<String, dynamic> updates,
-  ) async {
-    await updateParameter(userId, id, updates);
-  }
+  String id,
+  Map<String, dynamic> updates,
+) async {
+  await updateParameter(
+    userId,
+    id,
+    updates,
+  );
 
-  Future<void> deleteExistingParameter(String id) async {
-    await deleteParameter(userId, id);
-    await deleteAllEntriesForParameter(userId, id);
-    Get.find<AnalyticsController>().removeHabitEntries(id);
+  await WidgetSyncService.syncNow();
+}
 
-    streakCache.save(id, 0, 0);
+  Future<void> deleteExistingParameter(
+  String id,
+) async {
+  await deleteParameter(userId, id);
 
-    parameters.removeWhere((p) => p.id == id);
-    _cache.remove(id);
-  }
+  await deleteAllEntriesForParameter(
+    userId,
+    id,
+  );
+
+  Get.find<AnalyticsController>()
+      .removeHabitEntries(id);
+
+  streakCache.save(id, 0, 0);
+
+  parameters.removeWhere(
+    (p) => p.id == id,
+  );
+
+  _cache.remove(id);
+
+  await WidgetSyncService.syncNow();
+}
 
   Future<void> reorderParameterList(int oldIndex, int newIndex) async {
     if (newIndex > oldIndex) newIndex--;

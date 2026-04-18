@@ -1,25 +1,56 @@
-import 'dart:developer';
-
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:analyzer/data/services/widget_refresh_service.dart';
+import 'package:analyzer/presentation/controllers/entry_controller.dart';
+import 'package:analyzer/presentation/controllers/parameter_controller.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get/get.dart';
 
 class WidgetSyncService {
-  static Future<void> sync({
-    required int completed,
-    required int total,
-  }) async {
-    final prefs = await SharedPreferences.getInstance();
+  static Future<void> syncNow() async {
+    final user = FirebaseAuth.instance.currentUser;
 
-    final percent =
-        total == 0 ? 0 : ((completed / total) * 100).round();
+    // Logged out
+    if (user == null) {
+      await WidgetRefreshService.refresh(
+        percent: 0,
+        completed: 0,
+        total: 0,
+        loggedIn: false,
+      );
+      return;
+    }
 
-    await prefs.reload();
+    if (!Get.isRegistered<ParameterController>()) {
+      return;
+    }
 
-    await prefs.setInt('widget_completed', completed);
-    await prefs.setInt('widget_total', total);
-    await prefs.setInt('widget_percent', percent);
+    final parameterController =
+        Get.find<ParameterController>();
 
-    log(
-      'WIDGET SAVE => percent=$percent completed=$completed total=$total',
+    final totalHabits = parameterController
+        .parameters
+        .where((p) => p.isActive)
+        .length;
+
+    int completed = 0;
+
+    if (Get.isRegistered<EntryController>()) {
+      final entryController =
+          Get.find<EntryController>();
+
+      completed = entryController
+          .selectedDateEntries.length;
+    }
+
+    final percent = totalHabits == 0
+        ? 0
+        : ((completed / totalHabits) * 100)
+            .round();
+
+    await WidgetRefreshService.refresh(
+      percent: percent,
+      completed: completed,
+      total: totalHabits,
+      loggedIn: true,
     );
   }
 }

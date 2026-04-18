@@ -22,8 +22,6 @@ class MainActivity : FlutterActivity() {
             CHANNEL
         ).setMethodCallHandler { call, result ->
 
-            Log.d("CHANNEL", "Method called")
-
             if (call.method == "refreshWidget") {
 
                 val percent =
@@ -43,17 +41,18 @@ class MainActivity : FlutterActivity() {
                     "percent=$percent completed=$completed total=$total loggedIn=$loggedIn"
                 )
 
-                val prefs = getSharedPreferences(
-                    "widget_native",
-                    Context.MODE_PRIVATE
-                )
+                val prefs =
+                    getSharedPreferences(
+                        "widget_native",
+                        Context.MODE_PRIVATE
+                    )
 
                 prefs.edit()
                     .putInt("percent", percent)
                     .putInt("completed", completed)
                     .putInt("total", total)
                     .putBoolean("logged_in", loggedIn)
-                    .commit()
+                    .apply()
 
                 HabitTrackerWidgetProvider.refreshAll(this)
 
