@@ -10,7 +10,7 @@ class MidnightResetReceiver : BroadcastReceiver() {
         context: Context,
         intent: Intent
     ) {
-        HabitTrackerWidgetProvider.refreshAll(context)
+        WidgetRenderer.refreshAll(context)
         MidnightScheduler.schedule(context)
     }
 }

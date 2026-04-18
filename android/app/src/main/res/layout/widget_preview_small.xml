@@ -1,33 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/widgetRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
-    android:background="@drawable/widget_bg_premium">
+    android:background="@drawable/widget_bg_premium"
+    android:padding="14dp">
 
-    <!-- Top Left Title -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No Habits"
+        android:text="Today's Progress"
         android:textColor="#E6FFFFFF"
         android:textSize="15sp"
         android:fontFamily="sans-serif-medium" />
 
-    <!-- Big Percent -->
     <TextView
         android:id="@+id/tvPercent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/tvTitle"
         android:layout_marginTop="8dp"
-        android:fontFamily="sans-serif-medium"
-        android:text="-%"
+        android:text="67%"
         android:textColor="#FFFFFF"
         android:textSize="32sp"
-        android:textStyle="normal" />
+        android:fontFamily="sans-serif-medium" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -35,21 +31,19 @@
         android:layout_width="match_parent"
         android:layout_height="8dp"
         android:layout_below="@id/tvPercent"
-        android:layout_marginTop="11dp"
+        android:layout_marginTop="10dp"
         android:max="100"
-        android:progress="0"
+        android:progress="67"
         android:progressDrawable="@drawable/widget_progress_premium" />
 
     <TextView
-        android:id="@+id/tvSubtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/progressBar"
         android:layout_marginTop="8dp"
-        android:text="Loading"
+        android:text="2 of 3 habits completed"
         android:textColor="#99FFFFFF"
         android:textSize="12sp"
-        android:textStyle="normal"
         android:fontFamily="sans-serif" />
 
 </RelativeLayout>

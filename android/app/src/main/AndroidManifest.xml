@@ -8,20 +8,34 @@
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <receiver
-            android:name=".HabitTrackerWidgetProvider"
-            android:exported="false">
+    android:name=".SmallWidgetProvider"
+    android:exported="false">
 
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-            </intent-filter>
+    <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+    </intent-filter>
 
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_info_small"/>
-        </receiver>
-        <receiver
+    <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/widget_info_small"/>
+</receiver>
+
+<receiver
+    android:name=".MediumWidgetProvider"
+    android:exported="false">
+
+    <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+    </intent-filter>
+
+    <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/widget_info_medium"/>
+</receiver>
+
+<receiver
     android:name=".MidnightResetReceiver"
-    android:exported="false" />
+    android:exported="false"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

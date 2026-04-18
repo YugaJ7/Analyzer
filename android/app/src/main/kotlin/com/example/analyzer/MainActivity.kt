@@ -54,7 +54,7 @@ class MainActivity : FlutterActivity() {
                     .putBoolean("logged_in", loggedIn)
                     .apply()
 
-                HabitTrackerWidgetProvider.refreshAll(this)
+                WidgetRenderer.refreshAll(this)
 
                 result.success(true)
 

@@ -11,9 +11,22 @@
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Today's Progress"
+        android:text="No Habits"
         android:textColor="#E6FFFFFF"
         android:textSize="15sp"
+        android:textStyle="normal"
+        android:fontFamily="sans-serif-medium" />
+
+    <!-- Top Right Count -->
+    <TextView
+        android:id="@+id/tvCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text=""
+        android:textColor="#99FFFFFF"
+        android:textSize="14sp"
+        android:textStyle="normal"
         android:fontFamily="sans-serif-medium" />
 
     <!-- Big Percent -->
@@ -22,31 +35,33 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/tvTitle"
-        android:layout_marginTop="8dp"
-        android:fontFamily="sans-serif-medium"
-        android:text="67%"
+        android:layout_marginTop="10dp"
+        android:text="-"
         android:textColor="#FFFFFF"
         android:textSize="32sp"
-        android:textStyle="normal" />
+        android:textStyle="normal"
+        android:fontFamily="sans-serif-medium" />
 
+    <!-- Progress Bar -->
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="8dp"
+        android:layout_height="10dp"
         android:layout_below="@id/tvPercent"
-        android:layout_marginTop="11dp"
+        android:layout_marginTop="12dp"
         android:max="100"
-        android:progress="67"
+        android:progress="0"
         android:progressDrawable="@drawable/widget_progress_premium" />
 
+    <!-- Bottom Subtitle -->
     <TextView
         android:id="@+id/tvSubtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/progressBar"
         android:layout_marginTop="8dp"
-        android:text="2 of 3 habits completed"
+        android:text="Loading"
         android:textColor="#99FFFFFF"
         android:textSize="12sp"
         android:textStyle="normal"
