@@ -14,7 +14,7 @@ class MainActivity : FlutterActivity() {
         flutterEngine: FlutterEngine
     ) {
         super.configureFlutterEngine(flutterEngine)
-
+        MidnightScheduler.schedule(this)
         Log.d("CHANNEL", "MainActivity loaded")
 
         MethodChannel(
