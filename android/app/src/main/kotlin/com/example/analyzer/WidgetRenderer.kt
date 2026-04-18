@@ -5,34 +5,62 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.widget.RemoteViews
+import android.util.Log
 
 object WidgetRenderer {
 
     fun refreshAll(context: Context) {
-        val manager = AppWidgetManager.getInstance(context)
+        Log.d("WIDGET_DEBUG", "refreshAll called")
 
-        val smallIds = manager.getAppWidgetIds(
-            ComponentName(
-                context,
-                SmallWidgetProvider::class.java
-            )
+    val manager =
+        AppWidgetManager.getInstance(context)
+
+    val smallIds = manager.getAppWidgetIds(
+        ComponentName(
+            context,
+            SmallWidgetProvider::class.java
         )
+    )
 
-        val mediumIds = manager.getAppWidgetIds(
-            ComponentName(
-                context,
-                MediumWidgetProvider::class.java
-            )
+    val mediumIds = manager.getAppWidgetIds(
+        ComponentName(
+            context,
+            MediumWidgetProvider::class.java
         )
+    )
 
-        for (id in smallIds) {
-            render(context, manager, id, false)
-        }
+    val largeIds = manager.getAppWidgetIds(
+        ComponentName(
+            context,
+            LargeWidgetProvider::class.java
+        )
+    )
 
-        for (id in mediumIds) {
-            render(context, manager, id, true)
-        }
+    for (id in smallIds) {
+        render(context, manager, id, false)
     }
+
+    for (id in mediumIds) {
+        render(context, manager, id, true)
+    }
+
+    for (id in largeIds) {
+        LargeWidgetRenderer.render(
+            context,
+            manager,
+            id
+        )
+        Log.d("WIDGET_DEBUG", "Large widget render id=$id")
+    }
+
+    // REQUIRED FOR LISTVIEW DATA
+    if (largeIds.isNotEmpty()) {
+        manager.notifyAppWidgetViewDataChanged(
+            largeIds,
+            R.id.listHabits
+        )
+    }
+}
 
     fun render(
         context: Context,

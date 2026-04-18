@@ -9,6 +9,7 @@ class WidgetRefreshService {
     required int completed,
     required int total,
     required bool loggedIn,
+    String itemsJson = '[]',
   }) async {
     await _channel.invokeMethod(
       'refreshWidget',
@@ -17,6 +18,7 @@ class WidgetRefreshService {
         'completed': completed,
         'total': total,
         'loggedIn': loggedIn,
+        'itemsJson': itemsJson,
       },
     );
   }

@@ -8,37 +8,63 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
 
-    private val CHANNEL = "habit_widget_channel"
+    private val CHANNEL =
+        "habit_widget_channel"
 
     override fun configureFlutterEngine(
         flutterEngine: FlutterEngine
     ) {
-        super.configureFlutterEngine(flutterEngine)
+        super.configureFlutterEngine(
+            flutterEngine
+        )
+
         MidnightScheduler.schedule(this)
-        Log.d("CHANNEL", "MainActivity loaded")
 
         MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
+            flutterEngine
+                .dartExecutor
+                .binaryMessenger,
             CHANNEL
-        ).setMethodCallHandler { call, result ->
+        ).setMethodCallHandler {
+            call, result ->
 
-            if (call.method == "refreshWidget") {
+            if (call.method ==
+                "refreshWidget"
+            ) {
 
                 val percent =
-                    call.argument<Int>("percent") ?: 0
+                    call.argument<Int>(
+                        "percent"
+                    ) ?: 0
 
                 val completed =
-                    call.argument<Int>("completed") ?: 0
+                    call.argument<Int>(
+                        "completed"
+                    ) ?: 0
 
                 val total =
-                    call.argument<Int>("total") ?: 0
+                    call.argument<Int>(
+                        "total"
+                    ) ?: 0
 
                 val loggedIn =
-                    call.argument<Boolean>("loggedIn") ?: false
+                    call.argument<Boolean>(
+                        "loggedIn"
+                    ) ?: false
+
+                val itemsJson =
+                    call.argument<String>(
+                        "itemsJson"
+                    ) ?: "[]"
 
                 Log.d(
                     "CHANNEL",
                     "percent=$percent completed=$completed total=$total loggedIn=$loggedIn"
+                )
+
+                Log.d(
+                    "WIDGET_DEBUG",
+                    itemsJson
                 )
 
                 val prefs =
@@ -48,13 +74,30 @@ class MainActivity : FlutterActivity() {
                     )
 
                 prefs.edit()
-                    .putInt("percent", percent)
-                    .putInt("completed", completed)
-                    .putInt("total", total)
-                    .putBoolean("logged_in", loggedIn)
+                    .putInt(
+                        "percent",
+                        percent
+                    )
+                    .putInt(
+                        "completed",
+                        completed
+                    )
+                    .putInt(
+                        "total",
+                        total
+                    )
+                    .putBoolean(
+                        "logged_in",
+                        loggedIn
+                    )
+                    .putString(
+                        "items_json",
+                        itemsJson
+                    )
                     .apply()
 
-                WidgetRenderer.refreshAll(this)
+                WidgetRenderer
+                    .refreshAll(this)
 
                 result.success(true)
 

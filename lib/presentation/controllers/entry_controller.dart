@@ -1,4 +1,5 @@
 import 'package:analyzer/data/services/widget_refresh_service.dart';
+import 'package:analyzer/data/services/widget_sync_service.dart';
 import 'package:analyzer/presentation/controllers/analytics_controller.dart';
 import 'package:analyzer/presentation/controllers/parameter_controller.dart';
 import 'package:analyzer/presentation/controllers/streak_controller.dart';
@@ -39,27 +40,7 @@ class EntryController extends GetxController {
     return DateFormat('yyyy-MM-dd').format(date);
   }
   Future<void> _syncWidgetNow() async {
-  final parameterController =
-      Get.find<ParameterController>();
-
-  final totalHabits =
-      parameterController.parameters
-          .where((p) => p.isActive)
-          .length;
-
-  final completedCount =
-      selectedDateEntries.length;
-
-  final percent = totalHabits == 0
-      ? 0
-      : ((completedCount / totalHabits) * 100).round();
-
-  await WidgetRefreshService.refresh(
-    percent: percent,
-    completed: completedCount,
-    total: totalHabits,
-    loggedIn: true,
-  );
+  await WidgetSyncService.syncNow();
 }
 
   Future<void> loadEntries() async {
@@ -144,28 +125,10 @@ class EntryController extends GetxController {
     // WIDGET SYNC
     // -----------------------------------
     Future<void> syncWidgetIfToday() async {
-      if (!isToday) return;
+  if (!isToday) return;
 
-      final totalHabits =
-          parameterController.parameters
-              .where((p) => p.isActive)
-              .length;
-
-      final completedCount =
-          selectedDateEntries.length;
-
-      final percent = totalHabits == 0
-          ? 0
-          : ((completedCount / totalHabits) * 100)
-              .round();
-
-      await WidgetRefreshService.refresh(
-        percent: percent,
-        completed: completedCount,
-        total: totalHabits,
-        loggedIn: true,
-      );
-    }
+  await WidgetSyncService.syncNow();
+}
 
     // -----------------------------------
     // BOOLEAN / CHECKLIST
