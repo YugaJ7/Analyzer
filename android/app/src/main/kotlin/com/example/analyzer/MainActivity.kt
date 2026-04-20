@@ -5,6 +5,8 @@ import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import org.json.JSONArray
+import org.json.JSONObject
 
 class MainActivity : FlutterActivity() {
 
@@ -98,6 +100,96 @@ class MainActivity : FlutterActivity() {
 
                 WidgetRenderer
                     .refreshAll(this)
+
+                result.success(true)
+
+            } else if (
+                call.method ==
+                "getPendingWidgetActions"
+            ) {
+
+                val prefs =
+                    getSharedPreferences(
+                        "widget_native",
+                        Context.MODE_PRIVATE
+                    )
+
+                val json =
+                    prefs.getString(
+                        "pending_actions_json",
+                        "{}"
+                    ) ?: "{}"
+
+                val resultList =
+                    mutableListOf<Map<String, Any?>>()
+
+                val objects =
+                    try {
+                        val actionObject = JSONObject(json)
+                        val list =
+                            mutableListOf<JSONObject>()
+
+                        val keys = actionObject.keys()
+                        while (keys.hasNext()) {
+                            val key = keys.next()
+                            actionObject.optJSONObject(key)
+                                ?.let(list::add)
+                        }
+
+                        list
+                    } catch (_: Exception) {
+                        val legacyArray =
+                            try {
+                                JSONArray(json)
+                            } catch (_: Exception) {
+                                JSONArray()
+                            }
+
+                        val list =
+                            mutableListOf<JSONObject>()
+
+                        for (i in 0 until legacyArray.length()) {
+                            legacyArray.optJSONObject(i)
+                                ?.let(list::add)
+                        }
+
+                        list
+                    }
+
+                for (item in objects) {
+                    resultList.add(
+                        mapOf(
+                            "parameterId" to item.optString("parameterId"),
+                            "type" to item.optString("type"),
+                            "done" to item.optBoolean("done"),
+                            "value" to if (
+                                item.has("value") &&
+                                !item.isNull("value")
+                            ) {
+                                item.optString("value")
+                            } else {
+                                null
+                            }
+                        )
+                    )
+                }
+
+                result.success(resultList)
+
+            } else if (
+                call.method ==
+                "clearPendingWidgetActions"
+            ) {
+
+                val prefs =
+                    getSharedPreferences(
+                        "widget_native",
+                        Context.MODE_PRIVATE
+                    )
+
+                prefs.edit()
+                    .remove("pending_actions_json")
+                    .apply()
 
                 result.success(true)
 

@@ -44,6 +44,9 @@
         android:resource="@xml/widget_info_large" />
 </receiver>
 <receiver
+    android:name=".WidgetActionReceiver"
+    android:exported="false"/>
+<receiver
     android:name=".MidnightResetReceiver"
     android:exported="false"/>
     <service

@@ -107,7 +107,7 @@ class DateSelector extends StatelessWidget {
               icon: const Icon(Icons.chevron_right),
               color: isToday
                   ? Color(0xFF8892A4)
-                  : Color(0xFF8892A4).withOpacity(0.8),
+                  : Color(0xFF8892A4).withValues(alpha: 0.8),
             ),
           ],
         ),

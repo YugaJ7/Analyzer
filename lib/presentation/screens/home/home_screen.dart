@@ -1,5 +1,6 @@
 import 'package:analyzer/core/theme/app_colors.dart';
 import 'package:analyzer/core/utils/app_strings.dart';
+import 'package:analyzer/data/services/widget_action_sync_service.dart';
 import 'package:analyzer/presentation/controllers/analytics_controller.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:analyzer/presentation/controllers/parameter_controller.dart';
@@ -18,7 +19,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final EntryController _entryController = Get.find<EntryController>();
   final ParameterController _paramController = Get.find<ParameterController>();
   final AnalyticsController _analyticsController =
@@ -27,14 +28,16 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showSkeleton = true;
   late DateTime _startTime;
   Worker? _worker;
+  bool _widgetSyncReady = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _startTime = DateTime.now();
 
-    Future.microtask(() => _entryController.loadEntries());
+    Future.microtask(_loadAndProcessWidgetActions);
 
     _worker = everAll([
       _paramController.isLoading,
@@ -42,10 +45,40 @@ class _HomeScreenState extends State<HomeScreen> {
     ], (_) => _checkLoadingComplete());
   }
 
+  Future<void> _loadAndProcessWidgetActions() async {
+    if (mounted) {
+      setState(() {
+        _showSkeleton = true;
+        _widgetSyncReady = false;
+        _startTime = DateTime.now();
+      });
+    }
+
+    await _entryController.loadEntries();
+    await WidgetActionSyncService.processPendingActions();
+
+    if (mounted) {
+      setState(() {
+        _widgetSyncReady = true;
+      });
+    }
+
+    await _checkLoadingComplete();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      Future.microtask(_loadAndProcessWidgetActions);
+    }
+  }
+
   Future<void> _checkLoadingComplete() async {
     final stillLoading =
         _paramController.isLoading.value ||
-        _analyticsController.isLoading.value;
+        _analyticsController.isLoading.value ||
+        WidgetActionSyncService.isStartupSyncing.value ||
+        !_widgetSyncReady;
 
     if (!stillLoading && _showSkeleton) {
       final elapsed = DateTime.now().difference(_startTime).inMilliseconds;
@@ -64,6 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _worker?.dispose();
     super.dispose();
   }
@@ -92,8 +126,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ? Skeletonizer(
                 enabled: true,
                 effect: ShimmerEffect(
-                  baseColor: Colors.white.withOpacity(0.05),
-                  highlightColor: Colors.white.withOpacity(0.1),
+                  baseColor: Colors.white.withValues(alpha: 0.05),
+                  highlightColor: Colors.white.withValues(alpha: 0.1),
                   duration: const Duration(milliseconds: 1400),
                 ),
                 child: _HomeTab(),

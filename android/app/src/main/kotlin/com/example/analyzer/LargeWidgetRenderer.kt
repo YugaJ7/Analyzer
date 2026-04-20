@@ -6,7 +6,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import android.net.Uri
 
 object LargeWidgetRenderer {
 
@@ -120,7 +119,10 @@ object LargeWidgetRenderer {
 
             views.setTextViewText(
                 R.id.tvTitle,
-                "Today's Progress"
+                if (percent == 100)
+                    "Perfect Day"
+                else
+                    "Today's Progress"
             )
 
             views.setTextViewText(
@@ -135,7 +137,19 @@ object LargeWidgetRenderer {
 
             views.setTextViewText(
                 R.id.tvSubtitle,
-                "$completed of $total habits completed"
+                when {
+                    percent == 100 ->
+                        "All habits completed"
+
+                    percent >= 70 ->
+                        "Great consistency today"
+
+                    percent >= 40 ->
+                        "Keep the momentum going"
+
+                    else ->
+                        "$completed of $total habits completed"
+                }
             )
 
             views.setProgressBar(
@@ -165,10 +179,33 @@ object LargeWidgetRenderer {
         )
     }
 
-views.setRemoteAdapter(
+        views.setRemoteAdapter(
     R.id.listHabits,
     serviceIntent
 )
+
+        val rowIntent =
+            Intent(
+                context,
+                WidgetActionReceiver::class.java
+            ).apply {
+                action =
+                    WidgetActionReceiver.ACTION_HANDLE_WIDGET_CLICK
+            }
+
+        val rowPendingIntent =
+            PendingIntent.getBroadcast(
+                context,
+                widgetId,
+                rowIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or
+                    PendingIntent.FLAG_MUTABLE
+            )
+
+        views.setPendingIntentTemplate(
+            R.id.listHabits,
+            rowPendingIntent
+        )
 
         views.setEmptyView(
             R.id.listHabits,

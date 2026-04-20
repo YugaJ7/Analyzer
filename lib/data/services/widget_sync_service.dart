@@ -26,8 +26,7 @@ class WidgetSyncService {
       return;
     }
 
-    final parameterController =
-        Get.find<ParameterController>();
+    final parameterController = Get.find<ParameterController>();
 
     final params = parameterController.parameters
         .where((p) => p.isActive)
@@ -44,11 +43,9 @@ class WidgetSyncService {
     int completed = 0;
 
     if (Get.isRegistered<EntryController>()) {
-      final entryController =
-          Get.find<EntryController>();
+      final entryController = Get.find<EntryController>();
 
-      entries =
-          entryController.selectedDateEntries;
+      entries = entryController.selectedDateEntries;
 
       completed = entries.length;
     }
@@ -57,21 +54,23 @@ class WidgetSyncService {
 
     final percent = totalHabits == 0
         ? 0
-        : ((completed / totalHabits) * 100)
-            .round();
+        : ((completed / totalHabits) * 100).round();
 
-    final items = params.map((p) {
-      final entry = entries[p.id];
+    final items = params
+        .map((p) {
+          final entry = entries[p.id];
 
-      return {
-        "id": p.id,
-        "name": p.name,
-        "type": p.type.name,
-        "done": entry != null,
-        "value":
-            entry?.value?.toString() ?? "",
-      };
-    }).toList();
+          return {
+            "id": p.id,
+            "name": p.name,
+            "type": p.type.name,
+            "done": entry != null,
+            "value": entry?.value?.toString() ?? "",
+            "options": p.options ?? const [],
+          };
+        })
+        .take(9)
+        .toList();
 
     final json = jsonEncode(items);
 

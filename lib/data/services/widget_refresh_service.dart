@@ -22,4 +22,23 @@ class WidgetRefreshService {
       },
     );
   }
+
+  static Future<List<Map<String, dynamic>>> getPendingWidgetActions() async {
+    final raw = await _channel.invokeMethod<List<dynamic>>(
+      'getPendingWidgetActions',
+    );
+
+    if (raw == null) {
+      return const [];
+    }
+
+    return raw
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  }
+
+  static Future<void> clearPendingWidgetActions() async {
+    await _channel.invokeMethod('clearPendingWidgetActions');
+  }
 }

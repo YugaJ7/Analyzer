@@ -1,7 +1,5 @@
-import 'package:analyzer/data/services/widget_refresh_service.dart';
 import 'package:analyzer/data/services/widget_sync_service.dart';
 import 'package:analyzer/presentation/controllers/analytics_controller.dart';
-import 'package:analyzer/presentation/controllers/parameter_controller.dart';
 import 'package:analyzer/presentation/controllers/streak_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -39,53 +37,62 @@ class EntryController extends GetxController {
   String _dateKey(DateTime date) {
     return DateFormat('yyyy-MM-dd').format(date);
   }
+
+  DateTime _normalizedSelectedDate() {
+    return DateTime(
+      selectedDate.value.year,
+      selectedDate.value.month,
+      selectedDate.value.day,
+    );
+  }
+
   Future<void> _syncWidgetNow() async {
-  await WidgetSyncService.syncNow();
-}
+    await WidgetSyncService.syncNow();
+  }
 
-  Future<void> loadEntries() async {
-  final userId = FirebaseAuth.instance.currentUser!.uid;
+  void _updateDailyCacheForSelectedDate() {
+    final key = _dateKey(_normalizedSelectedDate());
+    _dailyCache[key] = Map<String, EntryEntity>.from(selectedDateEntries);
+  }
 
-  final normalizedDate = DateTime(
-    selectedDate.value.year,
-    selectedDate.value.month,
-    selectedDate.value.day,
-  );
+  Future<void> loadEntries({bool forceRefresh = false}) async {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final normalizedDate = _normalizedSelectedDate();
+    final key = _dateKey(normalizedDate);
 
-  final key = _dateKey(normalizedDate);
+    if (!forceRefresh && _dailyCache.containsKey(key)) {
+      selectedDateEntries.assignAll(_dailyCache[key]!);
+      await _syncWidgetNow();
+      return;
+    }
 
-  if (_dailyCache.containsKey(key)) {
-    selectedDateEntries.assignAll(_dailyCache[key]!);
+    isLoading.value = true;
+
+    try {
+      final entries = await getEntriesForDate(userId, normalizedDate);
+
+      final map = <String, EntryEntity>{};
+
+      for (var entry in entries) {
+        map[entry.parameterId] = entry;
+      }
+
+      _dailyCache[key] = map;
+      selectedDateEntries.assignAll(map);
+    } finally {
+      isLoading.value = false;
+    }
+
     await _syncWidgetNow();
-    return;
   }
-
-  isLoading.value = true;
-
-  final entries =
-      await getEntriesForDate(userId, normalizedDate);
-
-  final map = <String, EntryEntity>{};
-
-  for (var entry in entries) {
-    map[entry.parameterId] = entry;
-  }
-
-  _dailyCache[key] = map;
-  selectedDateEntries.assignAll(map);
-
-  isLoading.value = false;
-
-  await _syncWidgetNow();
-}
 
   Future<void> toggleEntry(
     String parameterId,
     dynamic value, {
     String? notes,
+    bool syncWidget = true,
   }) async {
-    final userId =
-        FirebaseAuth.instance.currentUser!.uid;
+    final userId = FirebaseAuth.instance.currentUser!.uid;
 
     final normalizedDate = DateTime(
       selectedDate.value.year,
@@ -95,29 +102,17 @@ class EntryController extends GetxController {
 
     final today = DateTime.now();
 
-    final normalizedToday = DateTime(
-      today.year,
-      today.month,
-      today.day,
-    );
+    final normalizedToday = DateTime(today.year, today.month, today.day);
 
-    final existingEntry =
-        selectedDateEntries[parameterId];
+    final existingEntry = selectedDateEntries[parameterId];
 
-    final entryId =
-        "$parameterId-${normalizedDate.toIso8601String()}";
+    final entryId = "$parameterId-${normalizedDate.toIso8601String()}";
 
-    final analyticsController =
-        Get.find<AnalyticsController>();
+    final analyticsController = Get.find<AnalyticsController>();
 
-    final streakController =
-        Get.find<StreakController>();
+    final streakController = Get.find<StreakController>();
 
-    final parameterController =
-        Get.find<ParameterController>();
-
-    final isToday =
-        normalizedDate == normalizedToday;
+    final isToday = normalizedDate == normalizedToday;
 
     final bool isBoolean = value is bool;
 
@@ -125,10 +120,10 @@ class EntryController extends GetxController {
     // WIDGET SYNC
     // -----------------------------------
     Future<void> syncWidgetIfToday() async {
-  if (!isToday) return;
+      if (!syncWidget || !isToday) return;
 
-  await WidgetSyncService.syncNow();
-}
+      await WidgetSyncService.syncNow();
+    }
 
     // -----------------------------------
     // BOOLEAN / CHECKLIST
@@ -136,6 +131,7 @@ class EntryController extends GetxController {
     if (isBoolean) {
       if (existingEntry != null) {
         selectedDateEntries.remove(parameterId);
+        _updateDailyCacheForSelectedDate();
 
         analyticsController.updateFromEntryChange(
           parameterId,
@@ -144,35 +140,23 @@ class EntryController extends GetxController {
         );
 
         if (isToday) {
-          final yesterday =
-              normalizedToday.subtract(
-            const Duration(days: 1),
-          );
+          final yesterday = normalizedToday.subtract(const Duration(days: 1));
 
           final yesterdayCompleted =
-              analyticsController.history[yesterday]
-                      ?.any((e) =>
-                          e.parameterId ==
-                          parameterId) ??
-                  false;
+              analyticsController.history[yesterday]?.any(
+                (e) => e.parameterId == parameterId,
+              ) ??
+              false;
 
-          streakController.unmarkToday(
-            parameterId,
-            yesterdayCompleted,
-          );
+          streakController.unmarkToday(parameterId, yesterdayCompleted);
         } else {
-          await streakController
-              .recomputeFromHistory(
+          await streakController.recomputeFromHistory(
             parameterId,
             analyticsController.history,
           );
         }
 
-        await deleteEntry(
-          userId,
-          normalizedDate,
-          parameterId,
-        );
+        await deleteEntry(userId, normalizedDate, parameterId);
 
         await syncWidgetIfToday();
         return;
@@ -188,8 +172,8 @@ class EntryController extends GetxController {
         createdAt: DateTime.now(),
       );
 
-      selectedDateEntries[parameterId] =
-          entry;
+      selectedDateEntries[parameterId] = entry;
+      _updateDailyCacheForSelectedDate();
 
       analyticsController.updateFromEntryChange(
         parameterId,
@@ -198,25 +182,17 @@ class EntryController extends GetxController {
       );
 
       if (isToday) {
-        final yesterday =
-            normalizedToday.subtract(
-          const Duration(days: 1),
-        );
+        final yesterday = normalizedToday.subtract(const Duration(days: 1));
 
         final yesterdayCompleted =
-            analyticsController.history[yesterday]
-                    ?.any((e) =>
-                        e.parameterId ==
-                        parameterId) ??
-                false;
+            analyticsController.history[yesterday]?.any(
+              (e) => e.parameterId == parameterId,
+            ) ??
+            false;
 
-        streakController.markToday(
-          parameterId,
-          yesterdayCompleted,
-        );
+        streakController.markToday(parameterId, yesterdayCompleted);
       } else {
-        await streakController
-            .recomputeFromHistory(
+        await streakController.recomputeFromHistory(
           parameterId,
           analyticsController.history,
         );
@@ -235,6 +211,7 @@ class EntryController extends GetxController {
       if (existingEntry == null) return;
 
       selectedDateEntries.remove(parameterId);
+      _updateDailyCacheForSelectedDate();
 
       analyticsController.updateFromEntryChange(
         parameterId,
@@ -243,35 +220,23 @@ class EntryController extends GetxController {
       );
 
       if (isToday) {
-        final yesterday =
-            normalizedToday.subtract(
-          const Duration(days: 1),
-        );
+        final yesterday = normalizedToday.subtract(const Duration(days: 1));
 
         final yesterdayCompleted =
-            analyticsController.history[yesterday]
-                    ?.any((e) =>
-                        e.parameterId ==
-                        parameterId) ??
-                false;
+            analyticsController.history[yesterday]?.any(
+              (e) => e.parameterId == parameterId,
+            ) ??
+            false;
 
-        streakController.unmarkToday(
-          parameterId,
-          yesterdayCompleted,
-        );
+        streakController.unmarkToday(parameterId, yesterdayCompleted);
       } else {
-        await streakController
-            .recomputeFromHistory(
+        await streakController.recomputeFromHistory(
           parameterId,
           analyticsController.history,
         );
       }
 
-      await deleteEntry(
-        userId,
-        normalizedDate,
-        parameterId,
-      );
+      await deleteEntry(userId, normalizedDate, parameterId);
 
       await syncWidgetIfToday();
       return;
@@ -281,20 +246,12 @@ class EntryController extends GetxController {
     // UPDATE NUMERIC / OPTION
     // -----------------------------------
     if (existingEntry != null) {
-      final updated =
-          existingEntry.copyWith(
-        value: value,
-      );
+      final updated = existingEntry.copyWith(value: value);
 
-      selectedDateEntries[parameterId] =
-          updated;
+      selectedDateEntries[parameterId] = updated;
+      _updateDailyCacheForSelectedDate();
 
-      await updateEntry(
-        userId,
-        normalizedDate,
-        parameterId,
-        {'value': value},
-      );
+      await updateEntry(userId, normalizedDate, parameterId, {'value': value});
 
       await syncWidgetIfToday();
       return;
@@ -313,8 +270,8 @@ class EntryController extends GetxController {
       createdAt: DateTime.now(),
     );
 
-    selectedDateEntries[parameterId] =
-        entry;
+    selectedDateEntries[parameterId] = entry;
+    _updateDailyCacheForSelectedDate();
 
     analyticsController.updateFromEntryChange(
       parameterId,
@@ -323,25 +280,17 @@ class EntryController extends GetxController {
     );
 
     if (isToday) {
-      final yesterday =
-          normalizedToday.subtract(
-        const Duration(days: 1),
-      );
+      final yesterday = normalizedToday.subtract(const Duration(days: 1));
 
       final yesterdayCompleted =
-          analyticsController.history[yesterday]
-                  ?.any((e) =>
-                      e.parameterId ==
-                      parameterId) ??
-              false;
+          analyticsController.history[yesterday]?.any(
+            (e) => e.parameterId == parameterId,
+          ) ??
+          false;
 
-      streakController.markToday(
-        parameterId,
-        yesterdayCompleted,
-      );
+      streakController.markToday(parameterId, yesterdayCompleted);
     } else {
-      await streakController
-          .recomputeFromHistory(
+      await streakController.recomputeFromHistory(
         parameterId,
         analyticsController.history,
       );

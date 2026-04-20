@@ -1,18 +1,27 @@
 package com.example.analyzer
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
-import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import org.json.JSONArray
+
+data class WidgetRow(
+    val id: String,
+    val name: String,
+    val type: String,
+    val done: Boolean,
+    val value: String,
+    val options: List<String>
+)
 
 class LargeWidgetFactory(
     private val context: Context
 ) : RemoteViewsService.RemoteViewsFactory {
 
     private val items =
-        mutableListOf<String>()
+        mutableListOf<WidgetRow>()
 
     override fun onCreate() {}
 
@@ -57,6 +66,9 @@ class LargeWidgetFactory(
             val array = JSONArray(json)
 
             for (i in 0 until array.length()) {
+                if (items.size >= 9) {
+                    break
+                }
 
                 val obj =
                     array.getJSONObject(i)
@@ -74,20 +86,16 @@ class LargeWidgetFactory(
                     obj.optString("value")
 
                 val row =
-                    when (type) {
-
-                        "checklist" ->
-                            if (done)
-                                "☑ $name"
-                            else
-                                "☐ $name"
-
-                        "optionSelector" ->
-                            "$name • $value"
-
-                        else ->
-                            "$name • $value"
-                    }
+                    WidgetRow(
+                        id = obj.optString("id"),
+                        name = name,
+                        type = type,
+                        done = done,
+                        value = value,
+                        options = obj.optJSONArray("options")
+                            ?.let(::parseOptions)
+                            ?: emptyList()
+                    )
 
                 items.add(row)
             }
@@ -120,19 +128,73 @@ class LargeWidgetFactory(
 
         views.setTextViewText(
             R.id.tvRow,
-            items[position]
+            buildRowText(items[position])
         )
 
-        views.setViewVisibility(
-            R.id.tvRow,
-            View.VISIBLE
+        val fillInIntent =
+            Intent().apply {
+                putExtra(
+                    WidgetActionReceiver.EXTRA_PARAMETER_ID,
+                    items[position].id
+                )
+                putExtra(
+                    WidgetActionReceiver.EXTRA_TYPE,
+                    items[position].type
+                )
+            }
+
+        views.setOnClickFillInIntent(
+            R.id.rowRoot,
+            fillInIntent
         )
 
         Log.d(
             "WIDGET_DEBUG",
-            "row=$position text=${items[position]}"
+            "row=$position text=${buildRowText(items[position])}"
         )
 
         return views
+    }
+
+    private fun buildRowText(item: WidgetRow): String {
+        return when (item.type) {
+            "checklist" ->
+                if (item.done) {
+                    "☑ ${item.name}"
+                } else {
+                    "☐ ${item.name}"
+                }
+
+            "optionSelector" ->
+                if (item.value.isBlank()) {
+                    if (item.options.isNotEmpty()) {
+                        "${item.name} • ${item.options.first()}"
+                    } else {
+                        "${item.name} • Tap to choose"
+                    }
+                } else {
+                    "${item.name} • ${item.value}"
+                }
+
+            else ->
+                if (item.value.isBlank()) {
+                    "${item.name} • Open app"
+                } else {
+                    "${item.name} • ${item.value}"
+                }
+        }
+    }
+
+    private fun parseOptions(array: JSONArray): List<String> {
+        val options = mutableListOf<String>()
+
+        for (index in 0 until array.length()) {
+            val option = array.optString(index)
+            if (option.isNotBlank()) {
+                options.add(option)
+            }
+        }
+
+        return options
     }
 }
