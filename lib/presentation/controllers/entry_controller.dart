@@ -25,6 +25,7 @@ class EntryController extends GetxController {
 
   final Rx<DateTime> selectedDate = DateTime.now().obs;
   final RxBool isLoading = false.obs;
+  final RxBool hasLoadedEntries = false.obs;
 
   final Map<String, Map<String, EntryEntity>> _dailyCache = {};
   Future<void>? _activeLoadFuture;
@@ -75,6 +76,7 @@ class EntryController extends GetxController {
 
     if (!forceRefresh && _dailyCache.containsKey(key)) {
       selectedDateEntries.assignAll(_dailyCache[key]!);
+      hasLoadedEntries.value = true;
       if (shouldSyncWidget) {
         await _syncWidgetNow();
       }
@@ -95,6 +97,7 @@ class EntryController extends GetxController {
 
         _dailyCache[key] = map;
         selectedDateEntries.assignAll(map);
+        hasLoadedEntries.value = true;
       } finally {
         isLoading.value = false;
       }
@@ -493,6 +496,142 @@ class EntryController extends GetxController {
         );
       }
 
+      pendingWrites.add(saveEntry(entry));
+    }
+
+    _updateDailyCacheForSelectedDate();
+
+    if (pendingWrites.isNotEmpty) {
+      await Future.wait(pendingWrites);
+    }
+  }
+
+  Future<void> applyTodayWidgetActionsOptimistically(
+    List<Map<String, dynamic>> actions,
+  ) async {
+    if (actions.isEmpty) {
+      return;
+    }
+
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final normalizedDate = DateTime(
+      selectedDate.value.year,
+      selectedDate.value.month,
+      selectedDate.value.day,
+    );
+
+    final today = DateTime.now();
+    final normalizedToday = DateTime(today.year, today.month, today.day);
+
+    if (normalizedDate != normalizedToday) {
+      await applyWidgetActionsBatch(actions);
+      return;
+    }
+
+    final analyticsController = Get.find<AnalyticsController>();
+    final streakController = Get.find<StreakController>();
+    final pendingWrites = <Future<void>>[];
+
+    for (final action in actions) {
+      final parameterId = action['parameterId'] as String?;
+      final type = action['type'] as String?;
+      final done = action['done'] == true;
+      final value = action['value'];
+
+      if (parameterId == null || type == null) {
+        continue;
+      }
+
+      final existingEntry = selectedDateEntries[parameterId];
+      final entryId = "$parameterId-${normalizedDate.toIso8601String()}";
+      final yesterday = normalizedToday.subtract(const Duration(days: 1));
+      final yesterdayCompleted =
+          analyticsController.history[yesterday]?.any(
+            (e) => e.parameterId == parameterId,
+          ) ??
+          false;
+
+      if (type == 'checklist') {
+        final isCompleted = existingEntry != null;
+
+        if (isCompleted == done) {
+          continue;
+        }
+
+        if (done) {
+          final entry = EntryEntity(
+            id: entryId,
+            userId: userId,
+            parameterId: parameterId,
+            date: normalizedDate,
+            value: true,
+            createdAt: DateTime.now(),
+          );
+
+          selectedDateEntries[parameterId] = entry;
+          analyticsController.updateFromEntryChange(
+            parameterId,
+            normalizedDate,
+            true,
+          );
+          streakController.markToday(parameterId, yesterdayCompleted);
+          pendingWrites.add(saveEntry(entry));
+          continue;
+        }
+
+        selectedDateEntries.remove(parameterId);
+        analyticsController.updateFromEntryChange(
+          parameterId,
+          normalizedDate,
+          false,
+        );
+        streakController.unmarkToday(parameterId, yesterdayCompleted);
+        pendingWrites.add(deleteEntry(userId, normalizedDate, parameterId));
+        continue;
+      }
+
+      if (type != 'optionSelector') {
+        continue;
+      }
+
+      final nextValue = value?.toString();
+      if (nextValue == null || nextValue.isEmpty) {
+        continue;
+      }
+
+      if (existingEntry != null) {
+        final currentValue = existingEntry.value?.toString();
+        if (currentValue == nextValue) {
+          continue;
+        }
+
+        selectedDateEntries[parameterId] = existingEntry.copyWith(
+          value: nextValue,
+        );
+        pendingWrites.add(
+          updateEntry(userId, normalizedDate, parameterId, {
+            'value': nextValue,
+          }),
+        );
+        continue;
+      }
+
+      final entry = EntryEntity(
+        id: entryId,
+        userId: userId,
+        parameterId: parameterId,
+        date: normalizedDate,
+        value: nextValue,
+        createdAt: DateTime.now(),
+      );
+
+      selectedDateEntries[parameterId] = entry;
+      analyticsController.updateFromEntryChange(
+        parameterId,
+        normalizedDate,
+        true,
+      );
+      streakController.markToday(parameterId, yesterdayCompleted);
       pendingWrites.add(saveEntry(entry));
     }
 

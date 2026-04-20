@@ -8,7 +8,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../data/services/auth_lock_service.dart';
 import '../../../data/services/preferences_service.dart';
-import '../../../data/repositories/user_repository_impl.dart';
 
 import '../../../core/routes/app_routes.dart';
 
@@ -20,8 +19,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  final UserRepositoryImpl _userRepo = UserRepositoryImpl();
-
   final RxBool showUnlock = false.obs;
   final RxBool isAuthenticating = false.obs;
 
@@ -49,23 +46,6 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     try {
-      final userFetchStopwatch = Stopwatch()..start();
-      final userData = await _userRepo.getUser(user.uid);
-      log(
-        'startup: user profile fetched in ${userFetchStopwatch.elapsedMilliseconds}ms',
-        name: 'PERF',
-      );
-
-      if (userData == null) {
-        await _ensureMinimumSplashTime(startedAt);
-        log(
-          'startup: splash -> parameter setup in ${totalStopwatch.elapsedMilliseconds}ms',
-          name: 'PERF',
-        );
-        Get.offAllNamed(AppRoutes.parameterSetup);
-        return;
-      }
-
       final isLockEnabled = PreferencesService.instance.appLockEnabled;
 
       log('App Lock Enabled: $isLockEnabled');

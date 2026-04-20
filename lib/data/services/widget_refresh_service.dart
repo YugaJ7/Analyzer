@@ -38,6 +38,11 @@ class WidgetRefreshService {
         .toList();
   }
 
+  static Future<bool> hasPendingWidgetActions() async {
+    return await _channel.invokeMethod<bool>('hasPendingWidgetActions') ??
+        false;
+  }
+
   static Future<void> clearPendingWidgetActions() async {
     await _channel.invokeMethod('clearPendingWidgetActions');
   }

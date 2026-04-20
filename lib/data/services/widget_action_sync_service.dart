@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:analyzer/data/services/widget_refresh_service.dart';
-import 'package:analyzer/data/services/widget_sync_service.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:analyzer/presentation/controllers/parameter_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,6 +9,12 @@ import 'package:get/get.dart';
 class WidgetActionSyncService {
   static bool _isProcessing = false;
   static final RxBool isStartupSyncing = false.obs;
+  static Future<void>? _pendingFinalization;
+  static String? _lastAppliedSignature;
+
+  static Future<bool> hasPendingActions() {
+    return WidgetRefreshService.hasPendingWidgetActions();
+  }
 
   static Future<void> processPendingActions() async {
     if (_isProcessing) {
@@ -40,10 +45,6 @@ class WidgetActionSyncService {
       log('widget-sync: no pending actions', name: 'PERF');
       return;
     }
-
-    _isProcessing = true;
-    isStartupSyncing.value = true;
-    final totalStopwatch = Stopwatch()..start();
 
     try {
       final today = DateTime.now();
@@ -93,26 +94,74 @@ class WidgetActionSyncService {
         return parameter == null || parameter.isActive;
       }).toList();
 
+      if (applicableActions.isEmpty) {
+        await WidgetRefreshService.clearPendingWidgetActions();
+        log('widget-sync: no applicable actions after filtering', name: 'PERF');
+        return;
+      }
+
+      final signature = applicableActions
+          .map(
+            (action) =>
+                '${action['parameterId']}|${action['type']}|${action['done']}|${action['value']}',
+          )
+          .join('||');
+
+      if (_pendingFinalization != null && _lastAppliedSignature == signature) {
+        log(
+          'widget-sync: skipped duplicate pending actions already being finalized',
+          name: 'PERF',
+        );
+        return;
+      }
+
+      _isProcessing = true;
+      isStartupSyncing.value = true;
+      final totalStopwatch = Stopwatch()..start();
+
       final applyStopwatch = Stopwatch()..start();
-      await entryController.applyWidgetActionsBatch(applicableActions);
+      final persistFuture = entryController.applyTodayWidgetActionsOptimistically(
+        applicableActions,
+      );
 
       log(
-        'widget-sync: final actions applied in ${applyStopwatch.elapsedMilliseconds}ms',
+        'widget-sync: final actions applied locally in ${applyStopwatch.elapsedMilliseconds}ms',
         name: 'PERF',
       );
 
-      final refreshStopwatch = Stopwatch()..start();
-      await WidgetRefreshService.clearPendingWidgetActions();
-      await WidgetSyncService.syncNow();
-      log(
-        'widget-sync: clear + widget refresh in ${refreshStopwatch.elapsedMilliseconds}ms',
-        name: 'PERF',
-      );
-    } finally {
       log(
         'widget-sync: total ${totalStopwatch.elapsedMilliseconds}ms',
         name: 'PERF',
       );
+
+      _lastAppliedSignature = signature;
+      Future<void>? finalizationFuture;
+      finalizationFuture = () async {
+        final finalizeStopwatch = Stopwatch()..start();
+        try {
+          await persistFuture;
+          await WidgetRefreshService.clearPendingWidgetActions();
+          log(
+            'widget-sync: background persistence + clear finished in ${finalizeStopwatch.elapsedMilliseconds}ms',
+            name: 'PERF',
+          );
+        } catch (error, stackTrace) {
+          _lastAppliedSignature = null;
+          log(
+            'widget-sync: background finalization failed',
+            name: 'PERF',
+            error: error,
+            stackTrace: stackTrace,
+          );
+        } finally {
+          if (identical(_pendingFinalization, finalizationFuture)) {
+            _pendingFinalization = null;
+          }
+        }
+      }();
+
+      _pendingFinalization = finalizationFuture;
+    } finally {
       _isProcessing = false;
       isStartupSyncing.value = false;
     }

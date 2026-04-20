@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/errors/app_exception.dart';
@@ -48,7 +50,7 @@ class AuthController extends GetxController {
 
       final uid = FirebaseAuth.instance.currentUser!.uid;
 
-      await _loadUserData(uid);
+      unawaited(_loadUserData(uid));
 
       await Future.delayed(const Duration(milliseconds: 700));
 

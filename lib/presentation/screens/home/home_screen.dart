@@ -4,7 +4,6 @@ import 'package:analyzer/core/theme/app_colors.dart';
 import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/data/services/widget_action_sync_service.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
-import 'package:analyzer/presentation/controllers/parameter_controller.dart';
 import 'package:analyzer/presentation/screens/home/widgets/date_selector.dart';
 import 'package:analyzer/presentation/screens/home/widgets/home_header.dart';
 import 'package:analyzer/presentation/screens/home/widgets/parameter_list.dart';
@@ -22,7 +21,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final EntryController _entryController = Get.find<EntryController>();
-  final ParameterController _paramController = Get.find<ParameterController>();
 
   bool _showSkeleton = true;
   late DateTime _startTime;
@@ -40,13 +38,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     Future.microtask(_loadAndProcessWidgetActions);
 
     _worker = everAll([
-      _paramController.isLoading,
-      _entryController.isLoading,
+      WidgetActionSyncService.isStartupSyncing,
     ], (_) => _checkLoadingComplete());
   }
 
-  Future<void> _loadAndProcessWidgetActions() async {
-    if (mounted) {
+  Future<void> _loadAndProcessWidgetActions({
+    bool showSkeleton = true,
+    bool skipEntryReload = false,
+  }) async {
+    if (mounted && showSkeleton) {
       setState(() {
         _showSkeleton = true;
         _widgetSyncReady = false;
@@ -58,7 +58,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     log('home: startup sync begin', name: 'PERF');
 
     final entriesStopwatch = Stopwatch()..start();
-    await _entryController.loadEntries(syncWidget: false);
+    if (!skipEntryReload) {
+      await _entryController.loadEntries(syncWidget: false);
+    }
     log(
       'home: entries ready in ${entriesStopwatch.elapsedMilliseconds}ms',
       name: 'PERF',
@@ -83,16 +85,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      Future.microtask(_loadAndProcessWidgetActions);
+      Future.microtask(_handleResumeSync);
     }
+  }
+
+  Future<void> _handleResumeSync() async {
+    final hasPendingActions = await WidgetActionSyncService.hasPendingActions();
+
+    if (!hasPendingActions) {
+      return;
+    }
+
+    final selectedDate = _entryController.selectedDate.value;
+    final today = DateTime.now();
+    final isShowingToday =
+        selectedDate.year == today.year &&
+        selectedDate.month == today.month &&
+        selectedDate.day == today.day;
+
+    await _loadAndProcessWidgetActions(
+      showSkeleton: true,
+      skipEntryReload: isShowingToday && _entryController.hasLoadedEntries.value,
+    );
   }
 
   Future<void> _checkLoadingComplete() async {
     final stillLoading =
-        _paramController.isLoading.value ||
-        _entryController.isLoading.value ||
-        WidgetActionSyncService.isStartupSyncing.value ||
-        !_widgetSyncReady;
+        WidgetActionSyncService.isStartupSyncing.value || !_widgetSyncReady;
 
     if (!stillLoading && _showSkeleton) {
       final elapsed = DateTime.now().difference(_startTime).inMilliseconds;

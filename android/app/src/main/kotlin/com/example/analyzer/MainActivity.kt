@@ -105,6 +105,36 @@ class MainActivity : FlutterActivity() {
 
             } else if (
                 call.method ==
+                "hasPendingWidgetActions"
+            ) {
+
+                val prefs =
+                    getSharedPreferences(
+                        "widget_native",
+                        Context.MODE_PRIVATE
+                    )
+
+                val json =
+                    prefs.getString(
+                        "pending_actions_json",
+                        "{}"
+                    ) ?: "{}"
+
+                val hasPending =
+                    try {
+                        JSONObject(json).length() > 0
+                    } catch (_: Exception) {
+                        try {
+                            JSONArray(json).length() > 0
+                        } catch (_: Exception) {
+                            false
+                        }
+                    }
+
+                result.success(hasPending)
+
+            } else if (
+                call.method ==
                 "getPendingWidgetActions"
             ) {
 
