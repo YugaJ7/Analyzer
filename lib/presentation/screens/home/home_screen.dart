@@ -104,8 +104,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         selectedDate.day == today.day;
 
     await _loadAndProcessWidgetActions(
-      showSkeleton: true,
-      skipEntryReload: isShowingToday && _entryController.hasLoadedEntries.value,
+      showSkeleton: false,
+      skipEntryReload:
+          isShowingToday && _entryController.hasLoadedEntries.value,
     );
   }
 
