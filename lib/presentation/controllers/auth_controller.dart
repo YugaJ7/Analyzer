@@ -1,4 +1,3 @@
-import 'package:analyzer/data/services/widget_sync_service.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/errors/app_exception.dart';
@@ -40,46 +39,33 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> login(
-  String email,
-  String password,
-) async {
-  try {
-    isLoading.value = true;
-    errorMessage.value = '';
+  Future<void> login(String email, String password) async {
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
 
-    await loginUser(email, password);
+      await loginUser(email, password);
 
-    final uid =
-        FirebaseAuth.instance.currentUser!.uid;
+      final uid = FirebaseAuth.instance.currentUser!.uid;
 
-    await _loadUserData(uid);
+      await _loadUserData(uid);
 
-    await Future.delayed(
-      const Duration(milliseconds: 700),
-    );
+      await Future.delayed(const Duration(milliseconds: 700));
 
-    await WidgetSyncService.syncNow();
-
-    Get.offAllNamed(AppRoutes.home);
-  } on AppException catch (e) {
-    errorMessage.value = e.message;
-    Get.snackbar(
-      'Login Failed',
-      e.message,
-      snackPosition:
-          SnackPosition.BOTTOM,
-    );
-  } finally {
-    isLoading.value = false;
+      Get.offAllNamed(AppRoutes.home);
+    } on AppException catch (e) {
+      errorMessage.value = e.message;
+      Get.snackbar(
+        'Login Failed',
+        e.message,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoading.value = false;
+    }
   }
-}
 
-  Future<void> register(
-    String email,
-    String password,
-    String name,
-  ) async {
+  Future<void> register(String email, String password, String name) async {
     try {
       isLoading.value = true;
       errorMessage.value = '';
@@ -95,8 +81,11 @@ class AuthController extends GetxController {
       Get.offNamed(AppRoutes.parameterSetup);
     } on AppException catch (e) {
       errorMessage.value = e.message;
-      Get.snackbar('Registration Failed', e.message,
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Registration Failed',
+        e.message,
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } catch (_) {
       const msg = 'Registration failed. Please try again.';
       errorMessage.value = msg;

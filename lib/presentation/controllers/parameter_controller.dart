@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:analyzer/data/services/widget_sync_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -35,6 +37,7 @@ class ParameterController extends GetxController {
   final RxBool isLoading = true.obs;
 
   final Map<String, ParameterModel> _cache = {};
+  bool _hasLoggedFirstEmission = false;
 
   @override
   void onInit() {
@@ -45,75 +48,63 @@ class ParameterController extends GetxController {
 
   void _listen() {
     isLoading.value = true;
+    final listenStopwatch = Stopwatch()..start();
 
     watchParameters(userId).listen((list) async {
-  final models =
-      list.map((e) =>
-          ParameterModel.fromEntity(e))
-      .toList();
+      final models = list.map((e) => ParameterModel.fromEntity(e)).toList();
 
-  parameters.value = models;
+      parameters.value = models;
 
-  _cache
-    ..clear()
-    ..addEntries(
-      models.map(
-        (p) => MapEntry(p.id, p),
-      ),
-    );
+      _cache
+        ..clear()
+        ..addEntries(models.map((p) => MapEntry(p.id, p)));
 
-  isLoading.value = false;
+      isLoading.value = false;
 
-  await WidgetSyncService.syncNow();
-});
+      if (!_hasLoggedFirstEmission) {
+        _hasLoggedFirstEmission = true;
+        log(
+          'startup: first parameter emission in ${listenStopwatch.elapsedMilliseconds}ms with ${models.length} params',
+          name: 'PERF',
+        );
+      }
+
+      await WidgetSyncService.syncNow();
+    });
   }
 
   // Instant read from in-memory cache.
   ParameterModel? getFromCache(String id) => _cache[id];
 
-  Future<void> addNewParameter(
-  ParameterEntity parameter,
-) async {
-  await addParameter(parameter);
-  await WidgetSyncService.syncNow();
-}
+  Future<void> addNewParameter(ParameterEntity parameter) async {
+    await addParameter(parameter);
+    await WidgetSyncService.syncNow();
+  }
 
   Future<void> updateExistingParameter(
-  String id,
-  Map<String, dynamic> updates,
-) async {
-  await updateParameter(
-    userId,
-    id,
-    updates,
-  );
+    String id,
+    Map<String, dynamic> updates,
+  ) async {
+    await updateParameter(userId, id, updates);
 
-  await WidgetSyncService.syncNow();
-}
+    await WidgetSyncService.syncNow();
+  }
 
-  Future<void> deleteExistingParameter(
-  String id,
-) async {
-  await deleteParameter(userId, id);
+  Future<void> deleteExistingParameter(String id) async {
+    await deleteParameter(userId, id);
 
-  await deleteAllEntriesForParameter(
-    userId,
-    id,
-  );
+    await deleteAllEntriesForParameter(userId, id);
 
-  Get.find<AnalyticsController>()
-      .removeHabitEntries(id);
+    Get.find<AnalyticsController>().removeHabitEntries(id);
 
-  streakCache.save(id, 0, 0);
+    streakCache.save(id, 0, 0);
 
-  parameters.removeWhere(
-    (p) => p.id == id,
-  );
+    parameters.removeWhere((p) => p.id == id);
 
-  _cache.remove(id);
+    _cache.remove(id);
 
-  await WidgetSyncService.syncNow();
-}
+    await WidgetSyncService.syncNow();
+  }
 
   Future<void> reorderParameterList(int oldIndex, int newIndex) async {
     if (newIndex > oldIndex) newIndex--;

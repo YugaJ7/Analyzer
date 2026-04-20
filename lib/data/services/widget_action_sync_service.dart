@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:analyzer/data/services/widget_refresh_service.dart';
 import 'package:analyzer/data/services/widget_sync_service.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
@@ -11,6 +13,10 @@ class WidgetActionSyncService {
 
   static Future<void> processPendingActions() async {
     if (_isProcessing) {
+      log(
+        'widget-sync: skipped because sync already in progress',
+        name: 'PERF',
+      );
       return;
     }
 
@@ -25,21 +31,19 @@ class WidgetActionSyncService {
       return;
     }
 
-    final parameterController = Get.find<ParameterController>();
     final entryController = Get.find<EntryController>();
-
-    for (var i = 0; i < 20 && parameterController.isLoading.value; i++) {
-      await Future.delayed(const Duration(milliseconds: 150));
-    }
+    final parameterController = Get.find<ParameterController>();
 
     final actions = await WidgetRefreshService.getPendingWidgetActions();
 
     if (actions.isEmpty) {
+      log('widget-sync: no pending actions', name: 'PERF');
       return;
     }
 
     _isProcessing = true;
     isStartupSyncing.value = true;
+    final totalStopwatch = Stopwatch()..start();
 
     try {
       final today = DateTime.now();
@@ -53,10 +57,14 @@ class WidgetActionSyncService {
       );
 
       if (normalizedSelectedDate != normalizedToday) {
+        final loadTodayStopwatch = Stopwatch()..start();
         entryController.selectedDate.value = normalizedToday;
+        await entryController.loadEntries(syncWidget: false);
+        log(
+          'widget-sync: switched to today and loaded entries in ${loadTodayStopwatch.elapsedMilliseconds}ms',
+          name: 'PERF',
+        );
       }
-
-      await entryController.loadEntries(forceRefresh: true);
 
       final finalActions = <String, Map<String, dynamic>>{};
 
@@ -70,62 +78,41 @@ class WidgetActionSyncService {
         finalActions[parameterId] = action;
       }
 
-      for (final action in finalActions.values) {
-        final parameterId = action['parameterId'] as String?;
-        final type = action['type'] as String?;
-        final done = action['done'] == true;
-        final value = action['value'];
+      log(
+        'widget-sync: collapsed ${actions.length} raw actions into ${finalActions.length} final actions',
+        name: 'PERF',
+      );
 
-        if (parameterId == null || type == null) {
-          continue;
+      final applicableActions = finalActions.values.where((action) {
+        final parameterId = action['parameterId'] as String?;
+        if (parameterId == null || parameterId.isEmpty) {
+          return false;
         }
 
         final parameter = parameterController.getFromCache(parameterId);
-        if (parameter == null || !parameter.isActive) {
-          continue;
-        }
+        return parameter == null || parameter.isActive;
+      }).toList();
 
-        if (type == 'checklist') {
-          final isCompleted =
-              entryController.selectedDateEntries[parameterId] != null;
+      final applyStopwatch = Stopwatch()..start();
+      await entryController.applyWidgetActionsBatch(applicableActions);
 
-          if (isCompleted != done) {
-            await entryController.toggleEntry(
-              parameterId,
-              true,
-              syncWidget: false,
-            );
-          }
-          continue;
-        }
+      log(
+        'widget-sync: final actions applied in ${applyStopwatch.elapsedMilliseconds}ms',
+        name: 'PERF',
+      );
 
-        if (type != 'optionSelector') {
-          continue;
-        }
-
-        final nextValue = value?.toString();
-
-        if (nextValue == null || nextValue.isEmpty) {
-          continue;
-        }
-
-        final currentValue = entryController
-            .selectedDateEntries[parameterId]
-            ?.value
-            ?.toString();
-
-        if (currentValue != nextValue) {
-          await entryController.toggleEntry(
-            parameterId,
-            nextValue,
-            syncWidget: false,
-          );
-        }
-      }
-
+      final refreshStopwatch = Stopwatch()..start();
       await WidgetRefreshService.clearPendingWidgetActions();
       await WidgetSyncService.syncNow();
+      log(
+        'widget-sync: clear + widget refresh in ${refreshStopwatch.elapsedMilliseconds}ms',
+        name: 'PERF',
+      );
     } finally {
+      log(
+        'widget-sync: total ${totalStopwatch.elapsedMilliseconds}ms',
+        name: 'PERF',
+      );
       _isProcessing = false;
       isStartupSyncing.value = false;
     }

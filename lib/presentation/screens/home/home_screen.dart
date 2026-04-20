@@ -1,7 +1,8 @@
+import 'dart:developer';
+
 import 'package:analyzer/core/theme/app_colors.dart';
 import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/data/services/widget_action_sync_service.dart';
-import 'package:analyzer/presentation/controllers/analytics_controller.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:analyzer/presentation/controllers/parameter_controller.dart';
 import 'package:analyzer/presentation/screens/home/widgets/date_selector.dart';
@@ -22,13 +23,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final EntryController _entryController = Get.find<EntryController>();
   final ParameterController _paramController = Get.find<ParameterController>();
-  final AnalyticsController _analyticsController =
-      Get.find<AnalyticsController>();
 
   bool _showSkeleton = true;
   late DateTime _startTime;
   Worker? _worker;
   bool _widgetSyncReady = false;
+  Stopwatch? _loadStopwatch;
 
   @override
   void initState() {
@@ -41,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     _worker = everAll([
       _paramController.isLoading,
-      _analyticsController.isLoading,
+      _entryController.isLoading,
     ], (_) => _checkLoadingComplete());
   }
 
@@ -54,8 +54,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       });
     }
 
-    await _entryController.loadEntries();
+    _loadStopwatch = Stopwatch()..start();
+    log('home: startup sync begin', name: 'PERF');
+
+    final entriesStopwatch = Stopwatch()..start();
+    await _entryController.loadEntries(syncWidget: false);
+    log(
+      'home: entries ready in ${entriesStopwatch.elapsedMilliseconds}ms',
+      name: 'PERF',
+    );
+
+    final widgetActionStopwatch = Stopwatch()..start();
     await WidgetActionSyncService.processPendingActions();
+    log(
+      'home: widget actions processed in ${widgetActionStopwatch.elapsedMilliseconds}ms',
+      name: 'PERF',
+    );
 
     if (mounted) {
       setState(() {
@@ -76,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _checkLoadingComplete() async {
     final stillLoading =
         _paramController.isLoading.value ||
-        _analyticsController.isLoading.value ||
+        _entryController.isLoading.value ||
         WidgetActionSyncService.isStartupSyncing.value ||
         !_widgetSyncReady;
 
@@ -91,6 +105,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         setState(() {
           _showSkeleton = false;
         });
+      }
+
+      if (_loadStopwatch != null) {
+        log(
+          'home: content visible in ${_loadStopwatch!.elapsedMilliseconds}ms',
+          name: 'PERF',
+        );
       }
     }
   }
