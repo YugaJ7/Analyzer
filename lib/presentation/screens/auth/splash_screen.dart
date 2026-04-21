@@ -25,7 +25,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeApp();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeApp();
+    });
   }
 
   Future<void> _initializeApp() async {
@@ -52,13 +54,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
       if (isLockEnabled) {
         final authStopwatch = Stopwatch()..start();
-        final isAuthenticated = await _authenticate();
+        final authResult = await _authenticate();
         log(
           'startup: app lock auth finished in ${authStopwatch.elapsedMilliseconds}ms',
           name: 'PERF',
         );
 
-        if (!isAuthenticated) {
+        if (!authResult.isAuthenticated) {
           showUnlock.value = true;
           return;
         }
@@ -89,12 +91,19 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  Future<bool> _authenticate() async {
-    if (isAuthenticating.value) return false;
+  Future<AuthLockResult> _authenticate() async {
+    if (isAuthenticating.value) {
+      return const AuthLockResult.failure(AuthLockFailure.systemCanceled);
+    }
 
     isAuthenticating.value = true;
 
-    final result = await AuthLockService.instance.authenticate();
+    var result = await AuthLockService.instance.authenticate(showErrors: false);
+
+    if (result.failure == AuthLockFailure.uiUnavailable) {
+      await Future.delayed(const Duration(milliseconds: 400));
+      result = await AuthLockService.instance.authenticate(showErrors: false);
+    }
 
     isAuthenticating.value = false;
 
@@ -102,9 +111,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _unlock() async {
-    final success = await _authenticate();
+    final result = await _authenticate();
 
-    if (success) {
+    if (result.isAuthenticated) {
       Get.offAllNamed(AppRoutes.home);
     } else {
       Get.snackbar(

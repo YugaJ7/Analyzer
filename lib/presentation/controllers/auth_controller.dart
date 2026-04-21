@@ -75,6 +75,10 @@ class AuthController extends GetxController {
       final user = await registerUser(email, password, name);
       currentUser.value = user;
 
+      await PreferencesService.instance.clearLegacyAppLock();
+      await PreferencesService.instance.clearGuestAppLock();
+      await PreferencesService.instance.setAppLockEnabled(false);
+
       // Cache display name locally via PreferencesService
       await PreferencesService.instance.setUserName(name);
 
