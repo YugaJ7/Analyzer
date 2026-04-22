@@ -395,12 +395,11 @@ class EntryController extends GetxController {
           );
 
           if (isToday) {
-            final yesterday = normalizedToday.subtract(const Duration(days: 1));
             final yesterdayCompleted =
-                analyticsController.history[yesterday]?.any(
-                  (e) => e.parameterId == parameterId,
-                ) ??
-                false;
+                streakController.yesterdayCompletedFromCache(
+                  parameterId,
+                  todayAlreadyRecorded: false,
+                );
             streakController.markToday(parameterId, yesterdayCompleted);
           } else {
             await streakController.recomputeFromHistory(
@@ -421,12 +420,11 @@ class EntryController extends GetxController {
         );
 
         if (isToday) {
-          final yesterday = normalizedToday.subtract(const Duration(days: 1));
           final yesterdayCompleted =
-              analyticsController.history[yesterday]?.any(
-                (e) => e.parameterId == parameterId,
-              ) ??
-              false;
+              streakController.yesterdayCompletedFromCache(
+                parameterId,
+                todayAlreadyRecorded: true,
+              );
           streakController.unmarkToday(parameterId, yesterdayCompleted);
         } else {
           await streakController.recomputeFromHistory(
@@ -460,12 +458,11 @@ class EntryController extends GetxController {
         );
 
         if (isToday) {
-          final yesterday = normalizedToday.subtract(const Duration(days: 1));
           final yesterdayCompleted =
-              analyticsController.history[yesterday]?.any(
-                (e) => e.parameterId == parameterId,
-              ) ??
-              false;
+              streakController.yesterdayCompletedFromCache(
+                parameterId,
+                todayAlreadyRecorded: true,
+              );
           streakController.unmarkToday(parameterId, yesterdayCompleted);
         } else {
           await streakController.recomputeFromHistory(
@@ -512,12 +509,11 @@ class EntryController extends GetxController {
       );
 
       if (isToday) {
-        final yesterday = normalizedToday.subtract(const Duration(days: 1));
         final yesterdayCompleted =
-            analyticsController.history[yesterday]?.any(
-              (e) => e.parameterId == parameterId,
-            ) ??
-            false;
+            streakController.yesterdayCompletedFromCache(
+              parameterId,
+              todayAlreadyRecorded: false,
+            );
         streakController.markToday(parameterId, yesterdayCompleted);
       } else {
         await streakController.recomputeFromHistory(
@@ -574,12 +570,12 @@ class EntryController extends GetxController {
 
       final existingEntry = selectedDateEntries[parameterId];
       final entryId = "$parameterId-${normalizedDate.toIso8601String()}";
-      final yesterday = normalizedToday.subtract(const Duration(days: 1));
-      final yesterdayCompleted =
-          analyticsController.history[yesterday]?.any(
-            (e) => e.parameterId == parameterId,
-          ) ??
-          false;
+      // Use cached streak rather than analytics history which may not be
+      // loaded yet on app startup when widget actions are first processed.
+      final yesterdayCompleted = streakController.yesterdayCompletedFromCache(
+        parameterId,
+        todayAlreadyRecorded: existingEntry != null,
+      );
 
       if (type == 'checklist') {
         final isCompleted = existingEntry != null;
