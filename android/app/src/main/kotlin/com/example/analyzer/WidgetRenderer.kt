@@ -4,13 +4,23 @@ import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
-import android.widget.RemoteViews
 import android.util.Log
+import android.widget.RemoteViews
+
+data class WidgetSnapshot(
+    val percent: Int,
+    val completed: Int,
+    val total: Int,
+    val loggedIn: Boolean
+)
 
 object WidgetRenderer {
 
+    @Synchronized
     fun refreshAll(context: Context) {
         Log.d("WIDGET_DEBUG", "refreshAll called")
+
+    val snapshot = readSnapshot(context)
 
     val manager =
         AppWidgetManager.getInstance(context)
@@ -37,18 +47,31 @@ object WidgetRenderer {
     )
 
     for (id in smallIds) {
-        render(context, manager, id, false)
+        render(
+            context,
+            manager,
+            id,
+            false,
+            snapshot
+        )
     }
 
     for (id in mediumIds) {
-        render(context, manager, id, true)
+        render(
+            context,
+            manager,
+            id,
+            true,
+            snapshot
+        )
     }
 
     for (id in largeIds) {
         LargeWidgetRenderer.render(
             context,
             manager,
-            id
+            id,
+            snapshot
         )
         Log.d("WIDGET_DEBUG", "Large widget render id=$id")
     }
@@ -66,18 +89,13 @@ object WidgetRenderer {
         context: Context,
         manager: AppWidgetManager,
         widgetId: Int,
-        forceMedium: Boolean
+        forceMedium: Boolean,
+        snapshot: WidgetSnapshot = readSnapshot(context)
     ) {
-
-        val prefs = context.getSharedPreferences(
-            "widget_native",
-            Context.MODE_PRIVATE
-        )
-
-        val percent = prefs.getInt("percent", 0)
-        val completed = prefs.getInt("completed", 0)
-        val total = prefs.getInt("total", 0)
-        val loggedIn = prefs.getBoolean("logged_in", false)
+        val percent = snapshot.percent
+        val completed = snapshot.completed
+        val total = snapshot.total
+        val loggedIn = snapshot.loggedIn
 
         val width = manager.getAppWidgetOptions(widgetId)
             .getInt(
@@ -250,6 +268,20 @@ object WidgetRenderer {
         manager.updateAppWidget(
             widgetId,
             views
+        )
+    }
+
+    fun readSnapshot(context: Context): WidgetSnapshot {
+        val prefs = context.getSharedPreferences(
+            "widget_native",
+            Context.MODE_PRIVATE
+        )
+
+        return WidgetSnapshot(
+            percent = prefs.getInt("percent", 0),
+            completed = prefs.getInt("completed", 0),
+            total = prefs.getInt("total", 0),
+            loggedIn = prefs.getBoolean("logged_in", false)
         )
     }
 }

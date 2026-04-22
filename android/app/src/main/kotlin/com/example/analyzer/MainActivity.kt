@@ -96,7 +96,7 @@ class MainActivity : FlutterActivity() {
                         "items_json",
                         itemsJson
                     )
-                    .apply()
+                    .commit()
 
                 WidgetRenderer
                     .refreshAll(this)
@@ -219,7 +219,7 @@ class MainActivity : FlutterActivity() {
 
                 prefs.edit()
                     .remove("pending_actions_json")
-                    .apply()
+                    .commit()
 
                 result.success(true)
 

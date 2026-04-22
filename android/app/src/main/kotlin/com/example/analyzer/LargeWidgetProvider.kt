@@ -15,7 +15,8 @@ class LargeWidgetProvider : AppWidgetProvider() {
             LargeWidgetRenderer.render(
                 context,
                 manager,
-                id
+                id,
+                WidgetRenderer.readSnapshot(context)
             )
         }
     }

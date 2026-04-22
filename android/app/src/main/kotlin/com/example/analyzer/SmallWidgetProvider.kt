@@ -18,7 +18,8 @@ class SmallWidgetProvider :
                 context,
                 manager,
                 id,
-                false
+                false,
+                WidgetRenderer.readSnapshot(context)
             )
         }
     }
@@ -33,7 +34,8 @@ class SmallWidgetProvider :
             context,
             manager,
             widgetId,
-            false
+            false,
+            WidgetRenderer.readSnapshot(context)
         )
     }
 

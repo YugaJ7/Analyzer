@@ -10,6 +10,7 @@ import android.widget.RemoteViews
 object LargeWidgetRenderer {
 
     fun refreshAll(context: Context) {
+        val snapshot = WidgetRenderer.readSnapshot(context)
         val manager = AppWidgetManager.getInstance(context)
 
         val ids = manager.getAppWidgetIds(
@@ -20,33 +21,20 @@ object LargeWidgetRenderer {
         )
 
         for (id in ids) {
-            render(context, manager, id)
+            render(context, manager, id, snapshot)
         }
     }
 
     fun render(
         context: Context,
         manager: AppWidgetManager,
-        widgetId: Int
+        widgetId: Int,
+        snapshot: WidgetSnapshot = WidgetRenderer.readSnapshot(context)
     ) {
-
-        val prefs =
-            context.getSharedPreferences(
-                "widget_native",
-                Context.MODE_PRIVATE
-            )
-
-        val percent =
-            prefs.getInt("percent", 0)
-
-        val completed =
-            prefs.getInt("completed", 0)
-
-        val total =
-            prefs.getInt("total", 0)
-
-        val loggedIn =
-            prefs.getBoolean("logged_in", false)
+        val percent = snapshot.percent
+        val completed = snapshot.completed
+        val total = snapshot.total
+        val loggedIn = snapshot.loggedIn
 
         val views =
             RemoteViews(

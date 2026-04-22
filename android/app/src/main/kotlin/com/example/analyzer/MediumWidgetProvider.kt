@@ -18,7 +18,8 @@ class MediumWidgetProvider :
                 context,
                 manager,
                 id,
-                true
+                true,
+                WidgetRenderer.readSnapshot(context)
             )
         }
     }
@@ -33,7 +34,8 @@ class MediumWidgetProvider :
             context,
             manager,
             widgetId,
-            true
+            true,
+            WidgetRenderer.readSnapshot(context)
         )
     }
 }

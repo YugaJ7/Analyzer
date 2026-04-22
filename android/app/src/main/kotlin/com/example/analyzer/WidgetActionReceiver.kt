@@ -136,7 +136,7 @@ class WidgetActionReceiver : BroadcastReceiver() {
                 KEY_PENDING_ACTIONS_JSON,
                 pendingActions.toString()
             )
-            .apply()
+            .commit()
 
         WidgetRenderer.refreshAll(context)
     }
@@ -256,7 +256,7 @@ class WidgetActionReceiver : BroadcastReceiver() {
                 KEY_PENDING_ACTIONS_JSON,
                 pendingActions.toString()
             )
-            .apply()
+            .commit()
 
         WidgetRenderer.refreshAll(context)
     }
