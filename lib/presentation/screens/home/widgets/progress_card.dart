@@ -65,7 +65,7 @@ class ProgressCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white.withOpacity(.9),
+                    color: Colors.white.withValues(alpha: .9),
                   ),
                 ),
                 Text(
@@ -98,7 +98,7 @@ class ProgressCard extends StatelessWidget {
                   return LinearProgressIndicator(
                     value: value,
                     minHeight: 10,
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
                     valueColor: const AlwaysStoppedAnimation<Color>(
                       Colors.white,
                     ),

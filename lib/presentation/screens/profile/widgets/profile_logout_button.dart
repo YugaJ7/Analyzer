@@ -1,4 +1,5 @@
 import 'package:analyzer/core/utils/app_strings.dart';
+import 'package:analyzer/data/services/widget_sync_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -77,6 +78,7 @@ class ProfileLogoutButton extends StatelessWidget {
             onPressed: () async {
               Navigator.pop(context);
               await FirebaseAuth.instance.signOut();
+              await WidgetSyncService.syncNow();
               Get.offAllNamed(AppRoutes.login);
             },
             style: ElevatedButton.styleFrom(

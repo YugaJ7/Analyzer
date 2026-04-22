@@ -8,7 +8,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../data/services/auth_lock_service.dart';
 import '../../../data/services/preferences_service.dart';
-import '../../../data/repositories/user_repository_impl.dart';
 
 import '../../../core/routes/app_routes.dart';
 
@@ -20,62 +19,91 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  final UserRepositoryImpl _userRepo = UserRepositoryImpl();
-
   final RxBool showUnlock = false.obs;
   final RxBool isAuthenticating = false.obs;
 
   @override
   void initState() {
     super.initState();
-    _initializeApp();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeApp();
+    });
   }
 
   Future<void> _initializeApp() async {
-    await Future.delayed(const Duration(seconds: 2));
+    final totalStopwatch = Stopwatch()..start();
+    final startedAt = DateTime.now();
+    log('startup: splash init', name: 'PERF');
 
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
+      await _ensureMinimumSplashTime(startedAt);
+      log(
+        'startup: splash -> login in ${totalStopwatch.elapsedMilliseconds}ms',
+        name: 'PERF',
+      );
       Get.offAllNamed(AppRoutes.login);
       return;
     }
 
     try {
-      final userData = await _userRepo.getUser(user.uid);
-
-      if (userData == null) {
-        Get.offAllNamed(AppRoutes.parameterSetup);
-        return;
-      }
-
-      final isLockEnabled =
-          PreferencesService.instance.appLockEnabled;
+      final isLockEnabled = PreferencesService.instance.appLockEnabled;
 
       log('App Lock Enabled: $isLockEnabled');
 
       if (isLockEnabled) {
-        final isAuthenticated = await _authenticate();
+        final authStopwatch = Stopwatch()..start();
+        final authResult = await _authenticate();
+        log(
+          'startup: app lock auth finished in ${authStopwatch.elapsedMilliseconds}ms',
+          name: 'PERF',
+        );
 
-        if (!isAuthenticated) {
+        if (!authResult.isAuthenticated) {
           showUnlock.value = true;
           return;
         }
       }
 
+      await _ensureMinimumSplashTime(startedAt);
+      log(
+        'startup: splash -> home in ${totalStopwatch.elapsedMilliseconds}ms',
+        name: 'PERF',
+      );
       Get.offAllNamed(AppRoutes.home);
     } catch (e) {
+      await _ensureMinimumSplashTime(startedAt);
+      log(
+        'startup: splash failed -> login in ${totalStopwatch.elapsedMilliseconds}ms',
+        name: 'PERF',
+      );
       Get.offAllNamed(AppRoutes.login);
     }
   }
 
-  Future<bool> _authenticate() async {
-    if (isAuthenticating.value) return false;
+  Future<void> _ensureMinimumSplashTime(DateTime startedAt) async {
+    final elapsed = DateTime.now().difference(startedAt);
+    const minimum = Duration(milliseconds: 250);
+
+    if (elapsed < minimum) {
+      await Future.delayed(minimum - elapsed);
+    }
+  }
+
+  Future<AuthLockResult> _authenticate() async {
+    if (isAuthenticating.value) {
+      return const AuthLockResult.failure(AuthLockFailure.systemCanceled);
+    }
 
     isAuthenticating.value = true;
 
-    final result =
-        await AuthLockService.instance.authenticate();
+    var result = await AuthLockService.instance.authenticate(showErrors: false);
+
+    if (result.failure == AuthLockFailure.uiUnavailable) {
+      await Future.delayed(const Duration(milliseconds: 400));
+      result = await AuthLockService.instance.authenticate(showErrors: false);
+    }
 
     isAuthenticating.value = false;
 
@@ -83,9 +111,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _unlock() async {
-    final success = await _authenticate();
+    final result = await _authenticate();
 
-    if (success) {
+    if (result.isAuthenticated) {
       Get.offAllNamed(AppRoutes.home);
     } else {
       Get.snackbar(

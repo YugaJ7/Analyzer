@@ -2,11 +2,57 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
-    
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <application
         android:label="Personal Analyzer"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
+        <receiver
+    android:name=".SmallWidgetProvider"
+    android:exported="false">
+
+    <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+    </intent-filter>
+
+    <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/widget_info_small"/>
+</receiver>
+
+<receiver
+    android:name=".MediumWidgetProvider"
+    android:exported="false">
+
+    <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+    </intent-filter>
+
+    <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/widget_info_medium"/>
+</receiver>
+<receiver
+    android:name=".LargeWidgetProvider"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+    </intent-filter>
+
+    <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/widget_info_large" />
+</receiver>
+<receiver
+    android:name=".WidgetActionReceiver"
+    android:exported="false"/>
+<receiver
+    android:name=".MidnightResetReceiver"
+    android:exported="false"/>
+    <service
+        android:name=".LargeWidgetService"
+        android:permission="android.permission.BIND_REMOTEVIEWS"
+        android:exported="false"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

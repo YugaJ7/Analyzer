@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/errors/app_exception.dart';
 import '../../data/services/preferences_service.dart';
 import '../../data/services/export_service.dart';
-import '../../data/services/auth_lock_service.dart'; 
+import '../../data/services/auth_lock_service.dart';
 import '../../domain/repositories/user_repository.dart';
 import 'analytics_controller.dart';
 import 'parameter_controller.dart';
@@ -35,10 +35,7 @@ class ProfileController extends GetxController {
     final analytics = Get.find<AnalyticsController>();
     final params = Get.find<ParameterController>();
 
-    exportService = ExportService(
-      analytics: analytics,
-      parameters: params,
-    );
+    exportService = ExportService(analytics: analytics, parameters: params);
 
     loadPrefs();
   }
@@ -59,16 +56,15 @@ class ProfileController extends GetxController {
 
     if (currentUser != null) {
       try {
-        final userEntity =
-            await userRepository.getUser(currentUser.uid);
+        final userEntity = await userRepository.getUser(currentUser.uid);
 
         final name = userEntity?.name;
 
         final finalName = (name != null && name.isNotEmpty)
             ? name
             : (currentUser.displayName ??
-                currentUser.email?.split('@').first ??
-                'User');
+                  currentUser.email?.split('@').first ??
+                  'User');
 
         displayName.value = finalName;
         await prefs.setUserName(finalName);
@@ -95,10 +91,9 @@ class ProfileController extends GetxController {
   // 🔐 APP LOCK (UPDATED)
   Future<void> toggleAppLock(bool value) async {
     if (value) {
-      final authenticated =
-          await AuthLockService.instance.authenticate();
+      final authenticated = await AuthLockService.instance.authenticate();
 
-      if (!authenticated) return; 
+      if (!authenticated.isAuthenticated) return;
     }
 
     await PreferencesService.instance.setAppLockEnabled(value);
@@ -157,10 +152,7 @@ class ProfileController extends GetxController {
 
     if (currentUser != null) {
       try {
-        await userRepository.updateUser(
-          currentUser.uid,
-          {'name': newName},
-        );
+        await userRepository.updateUser(currentUser.uid, {'name': newName});
       } on AppException catch (e) {
         Get.snackbar('Sync Error', e.message);
       }

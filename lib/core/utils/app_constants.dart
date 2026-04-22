@@ -10,7 +10,8 @@ abstract final class AppConstants {
   static const String kStreakCacheBox = 'streak_cache';
 
   //SharedPreferences keys
-  static const String kAppLockKey = 'app_lock_enabled';
+  static const String kLegacyAppLockKey = 'app_lock_enabled';
+  static const String kAppLockKeyPrefix = 'app_lock_enabled';
   static const String kAvatarKey = 'avatar_emoji';
   static const String kUserNameKey = 'user_name';
 

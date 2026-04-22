@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/utils/app_constants.dart';
 
 class PreferencesService {
@@ -19,11 +20,25 @@ class PreferencesService {
   }
 
   // App Lock (Biometric + Device Lock)
-bool get appLockEnabled =>
-    _prefs.getBool(AppConstants.kAppLockKey) ?? true;
+  bool get appLockEnabled => _prefs.getBool(_appLockKeyForCurrentUser) ?? false;
 
-Future<void> setAppLockEnabled(bool value) =>
-    _prefs.setBool(AppConstants.kAppLockKey, value);
+  Future<void> setAppLockEnabled(bool value) =>
+      _prefs.setBool(_appLockKeyForCurrentUser, value);
+
+  Future<void> clearLegacyAppLock() =>
+      _prefs.remove(AppConstants.kLegacyAppLockKey);
+
+  Future<void> clearGuestAppLock() =>
+      _prefs.remove('${AppConstants.kAppLockKeyPrefix}__guest');
+
+  String get _appLockKeyForCurrentUser {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || uid.isEmpty) {
+      return '${AppConstants.kAppLockKeyPrefix}__guest';
+    }
+
+    return '${AppConstants.kAppLockKeyPrefix}_$uid';
+  }
 
   // Avatar
   String get avatarEmoji =>
@@ -44,8 +59,7 @@ Future<void> setAppLockEnabled(bool value) =>
   bool getBool(String key, {bool defaultValue = false}) =>
       _prefs.getBool(key) ?? defaultValue;
 
-  Future<void> setBool(String key, bool value) =>
-      _prefs.setBool(key, value);
+  Future<void> setBool(String key, bool value) => _prefs.setBool(key, value);
 
   String? getString(String key) => _prefs.getString(key);
 
@@ -55,6 +69,8 @@ Future<void> setAppLockEnabled(bool value) =>
   Future<void> remove(String key) => _prefs.remove(key);
 
   Future<void> clearAll() async {
+    await clearLegacyAppLock();
+    await clearGuestAppLock();
     await clearUserName();
   }
 }

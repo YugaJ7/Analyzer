@@ -117,7 +117,14 @@ class AnalyticsController extends GetxController {
         .toList();
 
     totalActiveHabits.value = activeHabits.length;
-    if (activeHabits.isEmpty) return;
+    if (activeHabits.isEmpty) {
+      return;
+    }
+
+    final activeIds = activeHabits.map((habit) => habit.id).toSet();
+    final activeNamesById = {
+      for (final habit in activeHabits) habit.id: habit.name,
+    };
 
     final now = DateTime.now();
 
@@ -132,7 +139,13 @@ class AnalyticsController extends GetxController {
 
     final Map<int, List<double>> weekdayMap = {};
     final Map<int, double> currentWeekMap = {
-      1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+      6: 0,
+      7: 0,
     };
     final Map<String, int> habitCount = {};
 
@@ -140,7 +153,9 @@ class AnalyticsController extends GetxController {
     final List<double> trend30 = [];
 
     final startOfToday = DateTime(now.year, now.month, now.day);
-    final mondayOfThisWeek = startOfToday.subtract(Duration(days: now.weekday - 1));
+    final mondayOfThisWeek = startOfToday.subtract(
+      Duration(days: now.weekday - 1),
+    );
 
     heatmapData.clear();
 
@@ -152,17 +167,24 @@ class AnalyticsController extends GetxController {
       ).subtract(Duration(days: i));
 
       final entries = _history[date] ?? [];
+      final completedIds = <String>{};
 
-      int completedToday = 0;
-
-      for (final habit in activeHabits) {
-        final matched = entries.any((e) => e.parameterId == habit.id);
-
-        if (matched) {
-          completedToday++;
-          habitCount[habit.name] = (habitCount[habit.name] ?? 0) + 1;
+      for (final entry in entries) {
+        final parameterId = entry.parameterId;
+        if (!activeIds.contains(parameterId) ||
+            !completedIds.add(parameterId)) {
+          continue;
         }
+
+        final habitName = activeNamesById[parameterId];
+        if (habitName == null) {
+          continue;
+        }
+
+        habitCount[habitName] = (habitCount[habitName] ?? 0) + 1;
       }
+
+      final completedToday = completedIds.length;
 
       final completionRate = completedToday / activeHabits.length;
 

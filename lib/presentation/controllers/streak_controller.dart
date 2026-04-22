@@ -87,6 +87,26 @@ class StreakController extends GetxController {
     _persist(parameterId);
   }
 
+  /// Returns true if yesterday was completed, using the cached streak value.
+  /// This is reliable even before analytics history has finished loading from
+  /// Firestore, because streak data is loaded from local cache on startup.
+  ///
+  /// Logic: if the current streak is > 0 and today has NOT yet been marked
+  /// (i.e. we are about to call markToday for the first time today), then the
+  /// streak continuing means yesterday was completed. We use the caller-supplied
+  /// [todayAlreadyRecorded] flag to handle the "today was already in the
+  /// streak" case correctly.
+  bool yesterdayCompletedFromCache(
+    String parameterId, {
+    bool todayAlreadyRecorded = false,
+  }) {
+    final current = currentStreaks[parameterId] ?? 0;
+    if (current <= 0) return false;
+    // If today was already recorded the streak already includes today,
+    // so yesterday was part of it only if current > 1.
+    return todayAlreadyRecorded ? current > 1 : true;
+  }
+
   void _persist(String parameterId) {
     final userId = FirebaseAuth.instance.currentUser!.uid;
     final current = currentStreaks[parameterId] ?? 0;

@@ -2,98 +2,131 @@ import 'package:local_auth/local_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+enum AuthLockFailure {
+  notSupported,
+  noCredentialsSet,
+  noBiometricsEnrolled,
+  userCanceled,
+  systemCanceled,
+  timeout,
+  lockout,
+  uiUnavailable,
+  platform,
+  unknown,
+}
+
+class AuthLockResult {
+  const AuthLockResult._({required this.isAuthenticated, this.failure});
+
+  const AuthLockResult.success() : this._(isAuthenticated: true);
+
+  const AuthLockResult.failure(AuthLockFailure failure)
+    : this._(isAuthenticated: false, failure: failure);
+
+  final bool isAuthenticated;
+  final AuthLockFailure? failure;
+}
+
 class AuthLockService {
   AuthLockService._();
   static final AuthLockService instance = AuthLockService._();
 
   final LocalAuthentication _auth = LocalAuthentication();
 
-  Future<bool> authenticate() async {
+  Future<bool> canAuthenticate() async {
+    final canCheckBiometrics = await _auth.canCheckBiometrics;
+    return canCheckBiometrics || await _auth.isDeviceSupported();
+  }
+
+  Future<AuthLockResult> authenticate({bool showErrors = true}) async {
     try {
-      final isSupported = await _auth.isDeviceSupported();
+      final isSupported = await canAuthenticate();
       if (!isSupported) {
-        _show('Not Supported', 'Device does not support authentication');
-        return false;
+        if (showErrors) {
+          _show('Not Supported', 'Device does not support authentication');
+        }
+        return const AuthLockResult.failure(AuthLockFailure.notSupported);
       }
 
       final result = await _auth.authenticate(
         localizedReason: 'Unlock Personal Analyzer',
-        biometricOnly: false
+        biometricOnly: false,
+        persistAcrossBackgrounding: true,
       );
 
-      return result;
-    }
-
-    // HANDLE LOCAL AUTH EXCEPTION PROPERLY
-    on LocalAuthException catch (e) {
+      return result
+          ? const AuthLockResult.success()
+          : const AuthLockResult.failure(AuthLockFailure.userCanceled);
+    } on LocalAuthException catch (e) {
       switch (e.code) {
         case LocalAuthExceptionCode.noCredentialsSet:
-          _show(
-            'No Lock Found',
-            'Please set a screen lock (PIN/Pattern/Password) in device settings.',
-          );
-          break;
+          if (showErrors) {
+            _show(
+              'No Lock Found',
+              'Please set a screen lock (PIN/Pattern/Password) in device settings.',
+            );
+          }
+          return const AuthLockResult.failure(AuthLockFailure.noCredentialsSet);
 
         case LocalAuthExceptionCode.noBiometricsEnrolled:
-          _show(
-            'No Biometrics',
-            'No fingerprint or face registered. Using device lock instead.',
+          if (showErrors) {
+            _show(
+              'No Biometrics',
+              'No fingerprint or face registered. Using device lock instead.',
+            );
+          }
+          return const AuthLockResult.failure(
+            AuthLockFailure.noBiometricsEnrolled,
           );
-          break;
 
         case LocalAuthExceptionCode.userCanceled:
-          break;
+          return const AuthLockResult.failure(AuthLockFailure.userCanceled);
 
         case LocalAuthExceptionCode.systemCanceled:
-          break;
+          return const AuthLockResult.failure(AuthLockFailure.systemCanceled);
 
         case LocalAuthExceptionCode.timeout:
-          _show('Timeout', 'Authentication timed out. Try again.');
-          break;
+          if (showErrors) {
+            _show('Timeout', 'Authentication timed out. Try again.');
+          }
+          return const AuthLockResult.failure(AuthLockFailure.timeout);
 
         case LocalAuthExceptionCode.biometricLockout:
         case LocalAuthExceptionCode.temporaryLockout:
-          _show(
-            'Locked Out',
-            'Too many attempts. Use device password.',
-          );
-          break;
+          if (showErrors) {
+            _show('Locked Out', 'Too many attempts. Use device password.');
+          }
+          return const AuthLockResult.failure(AuthLockFailure.lockout);
 
         case LocalAuthExceptionCode.uiUnavailable:
-          _show(
-            'UI Error',
-            'Authentication UI not available.',
-          );
-          break;
+          if (showErrors) {
+            _show(
+              'UI Error',
+              'Authentication UI not available on this device right now.',
+            );
+          }
+          return const AuthLockResult.failure(AuthLockFailure.uiUnavailable);
 
         default:
-          _show(
-            'Auth Error',
-            e.description ?? 'Authentication failed',
-          );
+          if (showErrors) {
+            _show('Auth Error', e.description ?? 'Authentication failed');
+          }
+          return const AuthLockResult.failure(AuthLockFailure.unknown);
       }
-
-      return false;
-    }
-
-    
-    on PlatformException catch (e) {
-      _show('Platform Error', e.message ?? 'Something went wrong');
-      return false;
-    }
-
-    // UNKNOWN
-    catch (e) {
-      _show('Error', "Something went wrong");
-      return false;
+    } on PlatformException catch (e) {
+      if (showErrors) {
+        _show('Platform Error', e.message ?? 'Something went wrong');
+      }
+      return const AuthLockResult.failure(AuthLockFailure.platform);
+    } catch (e) {
+      if (showErrors) {
+        _show('Error', 'Something went wrong');
+      }
+      return const AuthLockResult.failure(AuthLockFailure.unknown);
     }
   }
 
   void _show(String title, String message) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-    );
+    Get.snackbar(title, message, snackPosition: SnackPosition.BOTTOM);
   }
 }

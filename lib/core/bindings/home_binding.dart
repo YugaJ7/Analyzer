@@ -135,13 +135,13 @@ class HomeBinding extends Bindings {
       permanent: true,
     );
 
-    Get.put<AnalyticsController>(
-      AnalyticsController(
+    Get.lazyPut<AnalyticsController>(
+      () => AnalyticsController(
         entryRepository: Get.find<EntryRepository>(),
         parameterController: Get.find<ParameterController>(),
         cacheService: Get.find<AnalyticsCacheService>(),
       ),
-      permanent: true,
+      fenix: true,
     );
 
     Get.put<StreakController>(
@@ -152,9 +152,9 @@ class HomeBinding extends Bindings {
       permanent: true,
     );
 
-    Get.put<ProfileController>(
-      ProfileController(userRepository: Get.find<UserRepository>()),
-      permanent: true,
+    Get.lazyPut<ProfileController>(
+      () => ProfileController(userRepository: Get.find<UserRepository>()),
+      fenix: true,
     );
 
     if (!Get.isRegistered<AuthController>()) {}

@@ -1,8 +1,9 @@
+import 'dart:developer';
+
 import 'package:analyzer/core/theme/app_colors.dart';
 import 'package:analyzer/core/utils/app_strings.dart';
-import 'package:analyzer/presentation/controllers/analytics_controller.dart';
+import 'package:analyzer/data/services/widget_action_sync_service.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
-import 'package:analyzer/presentation/controllers/parameter_controller.dart';
 import 'package:analyzer/presentation/screens/home/widgets/date_selector.dart';
 import 'package:analyzer/presentation/screens/home/widgets/home_header.dart';
 import 'package:analyzer/presentation/screens/home/widgets/parameter_list.dart';
@@ -18,34 +19,100 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final EntryController _entryController = Get.find<EntryController>();
-  final ParameterController _paramController = Get.find<ParameterController>();
-  final AnalyticsController _analyticsController =
-      Get.find<AnalyticsController>();
 
   bool _showSkeleton = true;
   late DateTime _startTime;
   Worker? _worker;
+  bool _widgetSyncReady = false;
+  Stopwatch? _loadStopwatch;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _startTime = DateTime.now();
 
-    Future.microtask(() => _entryController.loadEntries());
+    Future.microtask(_loadAndProcessWidgetActions);
 
     _worker = everAll([
-      _paramController.isLoading,
-      _analyticsController.isLoading,
+      WidgetActionSyncService.isStartupSyncing,
     ], (_) => _checkLoadingComplete());
+  }
+
+  Future<void> _loadAndProcessWidgetActions({
+    bool showSkeleton = true,
+    bool skipEntryReload = false,
+  }) async {
+    if (mounted && showSkeleton) {
+      setState(() {
+        _showSkeleton = true;
+        _widgetSyncReady = false;
+        _startTime = DateTime.now();
+      });
+    }
+
+    _loadStopwatch = Stopwatch()..start();
+    log('home: startup sync begin', name: 'PERF');
+
+    final entriesStopwatch = Stopwatch()..start();
+    if (!skipEntryReload) {
+      await _entryController.loadEntries(syncWidget: false);
+    }
+    log(
+      'home: entries ready in ${entriesStopwatch.elapsedMilliseconds}ms',
+      name: 'PERF',
+    );
+
+    final widgetActionStopwatch = Stopwatch()..start();
+    await WidgetActionSyncService.processPendingActions();
+    log(
+      'home: widget actions processed in ${widgetActionStopwatch.elapsedMilliseconds}ms',
+      name: 'PERF',
+    );
+
+    if (mounted) {
+      setState(() {
+        _widgetSyncReady = true;
+      });
+    }
+
+    await _checkLoadingComplete();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      Future.microtask(_handleResumeSync);
+    }
+  }
+
+  Future<void> _handleResumeSync() async {
+    final hasPendingActions = await WidgetActionSyncService.hasPendingActions();
+
+    if (!hasPendingActions) {
+      return;
+    }
+
+    final selectedDate = _entryController.selectedDate.value;
+    final today = DateTime.now();
+    final isShowingToday =
+        selectedDate.year == today.year &&
+        selectedDate.month == today.month &&
+        selectedDate.day == today.day;
+
+    await _loadAndProcessWidgetActions(
+      showSkeleton: false,
+      skipEntryReload:
+          isShowingToday && _entryController.hasLoadedEntries.value,
+    );
   }
 
   Future<void> _checkLoadingComplete() async {
     final stillLoading =
-        _paramController.isLoading.value ||
-        _analyticsController.isLoading.value;
+        WidgetActionSyncService.isStartupSyncing.value || !_widgetSyncReady;
 
     if (!stillLoading && _showSkeleton) {
       final elapsed = DateTime.now().difference(_startTime).inMilliseconds;
@@ -59,11 +126,19 @@ class _HomeScreenState extends State<HomeScreen> {
           _showSkeleton = false;
         });
       }
+
+      if (_loadStopwatch != null) {
+        log(
+          'home: content visible in ${_loadStopwatch!.elapsedMilliseconds}ms',
+          name: 'PERF',
+        );
+      }
     }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _worker?.dispose();
     super.dispose();
   }
@@ -92,8 +167,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ? Skeletonizer(
                 enabled: true,
                 effect: ShimmerEffect(
-                  baseColor: Colors.white.withOpacity(0.05),
-                  highlightColor: Colors.white.withOpacity(0.1),
+                  baseColor: Colors.white.withValues(alpha: 0.05),
+                  highlightColor: Colors.white.withValues(alpha: 0.1),
                   duration: const Duration(milliseconds: 1400),
                 ),
                 child: _HomeTab(),

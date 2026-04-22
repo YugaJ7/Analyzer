@@ -47,8 +47,8 @@ class AnalyticsScreen extends StatelessWidget {
             enabled: loading,
             effect: ShimmerEffect(
               duration: Duration(milliseconds: 1200),
-              baseColor: Colors.white.withOpacity(0.07),
-              highlightColor: Colors.white.withOpacity(0.16),
+              baseColor: Colors.white.withValues(alpha: 0.07),
+              highlightColor: Colors.white.withValues(alpha: 0.16),
             ),
             child: const _AnalyticsTab(),
           ),

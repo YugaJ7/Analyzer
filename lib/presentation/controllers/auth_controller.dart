@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/errors/app_exception.dart';
@@ -47,35 +49,35 @@ class AuthController extends GetxController {
       await loginUser(email, password);
 
       final uid = FirebaseAuth.instance.currentUser!.uid;
-      await _loadUserData(uid);
 
-      // Get.snackbar('Welcome back!', '',
-      //     snackPosition: SnackPosition.BOTTOM);
+      unawaited(_loadUserData(uid));
+
+      await Future.delayed(const Duration(milliseconds: 700));
+
       Get.offAllNamed(AppRoutes.home);
     } on AppException catch (e) {
       errorMessage.value = e.message;
-      Get.snackbar('Login Failed', e.message,
-          snackPosition: SnackPosition.BOTTOM);
-    } catch (_) {
-      const msg = 'An unexpected error occurred.';
-      errorMessage.value = msg;
-      Get.snackbar('Error', msg, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Login Failed',
+        e.message,
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> register(
-    String email,
-    String password,
-    String name,
-  ) async {
+  Future<void> register(String email, String password, String name) async {
     try {
       isLoading.value = true;
       errorMessage.value = '';
 
       final user = await registerUser(email, password, name);
       currentUser.value = user;
+
+      await PreferencesService.instance.clearLegacyAppLock();
+      await PreferencesService.instance.clearGuestAppLock();
+      await PreferencesService.instance.setAppLockEnabled(false);
 
       // Cache display name locally via PreferencesService
       await PreferencesService.instance.setUserName(name);
@@ -85,8 +87,11 @@ class AuthController extends GetxController {
       Get.offNamed(AppRoutes.parameterSetup);
     } on AppException catch (e) {
       errorMessage.value = e.message;
-      Get.snackbar('Registration Failed', e.message,
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Registration Failed',
+        e.message,
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } catch (_) {
       const msg = 'Registration failed. Please try again.';
       errorMessage.value = msg;
