@@ -444,7 +444,37 @@ class EntryController extends GetxController {
       }
 
       final nextValue = value?.toString();
-      if (nextValue == null || nextValue.isEmpty) {
+      if (nextValue == null) {
+        continue;
+      }
+
+      // Blank sentinel from widget means unselect (delete the entry)
+      if (nextValue.isEmpty) {
+        if (existingEntry == null) continue;
+
+        selectedDateEntries.remove(parameterId);
+        analyticsController.updateFromEntryChange(
+          parameterId,
+          normalizedDate,
+          false,
+        );
+
+        if (isToday) {
+          final yesterday = normalizedToday.subtract(const Duration(days: 1));
+          final yesterdayCompleted =
+              analyticsController.history[yesterday]?.any(
+                (e) => e.parameterId == parameterId,
+              ) ??
+              false;
+          streakController.unmarkToday(parameterId, yesterdayCompleted);
+        } else {
+          await streakController.recomputeFromHistory(
+            parameterId,
+            analyticsController.history,
+          );
+        }
+
+        pendingWrites.add(deleteEntry(userId, normalizedDate, parameterId));
         continue;
       }
 
@@ -595,7 +625,22 @@ class EntryController extends GetxController {
       }
 
       final nextValue = value?.toString();
-      if (nextValue == null || nextValue.isEmpty) {
+      if (nextValue == null) {
+        continue;
+      }
+
+      // Blank sentinel from widget means unselect (delete the entry)
+      if (nextValue.isEmpty) {
+        if (existingEntry == null) continue;
+
+        selectedDateEntries.remove(parameterId);
+        analyticsController.updateFromEntryChange(
+          parameterId,
+          normalizedDate,
+          false,
+        );
+        streakController.unmarkToday(parameterId, yesterdayCompleted);
+        pendingWrites.add(deleteEntry(userId, normalizedDate, parameterId));
         continue;
       }
 

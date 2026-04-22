@@ -22,7 +22,11 @@ class OptionSelector extends StatelessWidget {
 
           return GestureDetector(
             onTap: () {
-              entryController.toggleEntry(param.id, option);
+              if (isSelected) {
+                entryController.toggleEntry(param.id, null);
+              } else {
+                entryController.toggleEntry(param.id, option);
+              }
             },
             child: Container(
               margin: const EdgeInsets.fromLTRB(0, 20, 12, 0),

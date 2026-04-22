@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:analyzer/data/services/widget_refresh_service.dart';
+import 'package:analyzer/domain/entities/parameter_entity.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:analyzer/presentation/controllers/parameter_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -89,13 +90,19 @@ class WidgetSyncService {
 
     final items = params.take(9).map((p) {
       final entry = entries[p.id];
+      // For optionSelector, prepend blank sentinel so the widget cycles
+      // blank → option A → option B → blank → ...
+      final List<String> opts = p.type == ParameterType.optionSelector
+          ? ['', ...(p.options ?? const <String>[])]
+          : (p.options ?? const <String>[]);
       return {
         'id': p.id,
         'name': p.name,
         'type': p.type.name,
         'done': entry != null,
         'value': entry?.value?.toString() ?? '',
-        'options': p.options ?? const <String>[],
+        'options': opts,
+        'unit': p.unit ?? '',
       };
     }).toList();
 

@@ -190,10 +190,12 @@ class WidgetActionReceiver : BroadcastReceiver() {
                 )
 
             item.put("value", nextValue)
-            item.put("done", true)
+            // Blank sentinel means unselected
+            val nextIsDone = nextValue.isNotEmpty()
+            item.put("done", nextIsDone)
 
             newValue = nextValue
-            isDone = true
+            isDone = nextIsDone
             break
         }
 
@@ -234,7 +236,7 @@ class WidgetActionReceiver : BroadcastReceiver() {
             JSONObject().apply {
                 put("parameterId", parameterId)
                 put("type", type)
-                put("done", true)
+                put("done", isDone)
                 put("value", newValue)
             }
         )

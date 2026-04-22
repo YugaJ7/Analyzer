@@ -13,7 +13,8 @@ data class WidgetRow(
     val type: String,
     val done: Boolean,
     val value: String,
-    val options: List<String>
+    val options: List<String>,
+    val unit: String
 )
 
 class LargeWidgetFactory(
@@ -94,7 +95,8 @@ class LargeWidgetFactory(
                         value = value,
                         options = obj.optJSONArray("options")
                             ?.let(::parseOptions)
-                            ?: emptyList()
+                            ?: emptyList(),
+                        unit = obj.optString("unit", "")
                     )
 
                 items.add(row)
@@ -167,11 +169,8 @@ class LargeWidgetFactory(
 
             "optionSelector" ->
                 if (item.value.isBlank()) {
-                    if (item.options.isNotEmpty()) {
-                        "${item.name} • ${item.options.first()}"
-                    } else {
-                        "${item.name} • Tap to choose"
-                    }
+                    // Blank = unselected; show a dash to indicate nothing chosen
+                    "${item.name} • —"
                 } else {
                     "${item.name} • ${item.value}"
                 }
@@ -179,6 +178,8 @@ class LargeWidgetFactory(
             else ->
                 if (item.value.isBlank()) {
                     "${item.name} • Open app"
+                } else if (item.unit.isNotBlank()) {
+                    "${item.name} • ${item.value} ${item.unit}"
                 } else {
                     "${item.name} • ${item.value}"
                 }
@@ -190,9 +191,8 @@ class LargeWidgetFactory(
 
         for (index in 0 until array.length()) {
             val option = array.optString(index)
-            if (option.isNotBlank()) {
-                options.add(option)
-            }
+            // Allow empty string (blank sentinel for unselect)
+            options.add(option)
         }
 
         return options
