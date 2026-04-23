@@ -11,10 +11,8 @@ class ParameterModel extends ParameterEntity {
     required super.type,
     required super.order,
     super.isActive,
-    super.checklistItems,
     super.options,
     super.unit,
-    super.valueType,
     super.icon,
     super.color,
   });
@@ -31,10 +29,8 @@ class ParameterModel extends ParameterEntity {
       type: entity.type,
       order: entity.order,
       isActive: entity.isActive,
-      checklistItems: entity.checklistItems,
       options: entity.options,
       unit: entity.unit,
-      valueType: entity.valueType,
       icon: entity.icon,
       color: entity.color,
     );
@@ -53,14 +49,10 @@ class ParameterModel extends ParameterEntity {
       ),
       order: (json['order'] as num).toInt(),
       isActive: json['isActive'] as bool? ?? true,
-      checklistItems: (json['checklistItems'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
       options: (json['options'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
       unit: json['unit'] as String?,
-      valueType: json['valueType'] as String?,
       icon: json['icon'] as String?,
       color: json['color'] as int?,
     );
@@ -83,14 +75,10 @@ class ParameterModel extends ParameterEntity {
       ),
       order: (data['order'] as num?)?.toInt() ?? 0,
       isActive: data['isActive'] as bool? ?? true,
-      checklistItems: data['checklistItems'] != null
-          ? List<String>.from(data['checklistItems'] as List)
-          : null,
       options: data['options'] != null
           ? List<String>.from(data['options'] as List)
           : null,
       unit: data['unit'] as String?,
-      valueType: data['valueType'] as String?,
       icon: data['icon'] as String?,
       color: data['color'] as int?,
     );
@@ -107,10 +95,8 @@ class ParameterModel extends ParameterEntity {
       'type': type.name,
       'order': order,
       'isActive': isActive,
-      'checklistItems': checklistItems,
       'options': options,
       'unit': unit,
-      'valueType': valueType,
       'icon': icon,
       'color': color,
     };
@@ -124,10 +110,8 @@ class ParameterModel extends ParameterEntity {
       'type': type.name,
       'order': order,
       'isActive': isActive,
-      'checklistItems': checklistItems,
       'options': options,
       'unit': unit,
-      'valueType': valueType,
       'icon': icon,
       'color': color,
     };

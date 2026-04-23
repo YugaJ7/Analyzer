@@ -22,7 +22,6 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
   late TextEditingController nameController;
   late TextEditingController descriptionController;
   late ParameterType selectedType;
-  late List<String> checklistItems;
   late List<String> options;
   late TextEditingController unitController;
   late Color selectedColor;
@@ -33,7 +32,6 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
     nameController = TextEditingController(text: widget.parameter?.name ?? '');
     descriptionController = TextEditingController(text: widget.parameter?.description ?? '');
     selectedType = widget.parameter?.type ?? ParameterType.checklist;
-    checklistItems = widget.parameter?.checklistItems ?? [''];
     options = widget.parameter?.options ?? [''];
     unitController = TextEditingController(text: widget.parameter?.unit ?? '');
     selectedColor = Color(widget.parameter?.color ?? 0xFF6C63FF);
@@ -131,11 +129,6 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                             );
                             return;
                           }
-
-                          final cleanedChecklist = checklistItems
-                              .map((e) => e.trim())
-                              .where((e) => e.isNotEmpty)
-                              .toList();
                           final cleanedOptions = options
                               .map((e) => e.trim())
                               .where((e) => e.isNotEmpty)
@@ -153,21 +146,12 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                                 : descriptionController.text.trim(),
                             type: selectedType,
                             order: widget.parameter?.order ?? 0,
-                            checklistItems:
-                                selectedType == ParameterType.checklist
-                                ? (cleanedChecklist.isEmpty
-                                    ? null
-                                    : cleanedChecklist)
-                                : null,
                             options:
                                 selectedType == ParameterType.optionSelector
                                 ? (cleanedOptions.isEmpty ? null : cleanedOptions)
                                 : null,
                             unit: selectedType == ParameterType.value
                                 ? (trimmedUnit.isEmpty ? null : trimmedUnit)
-                                : null,
-                            valueType: selectedType == ParameterType.value
-                                ? 'number'
                                 : null,
                             color: selectedColor.toARGB32(),
                           );
@@ -215,73 +199,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
   Widget _buildTypeSpecificFields() {
     switch (selectedType) {
       case ParameterType.checklist:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Checklist Items',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 8),
-            ...checklistItems.asMap().entries.map((entry) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: entry.value,
-                        onChanged: (val) => checklistItems[entry.key] = val,
-                        validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return 'Required';
-                          }
-                          return null;
-                        },
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Item ${entry.key + 1}',
-                          hintStyle: const TextStyle(color: Colors.white54),
-                          filled: true,
-                          fillColor: AppColors.background,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                          errorStyle: const TextStyle(
-                            color: Colors.redAccent,
-                            fontSize: 12,
-                            height: 0.8,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                     IconButton(
-                      icon: const Icon(
-                        Icons.remove_circle_outline,
-                        color: AppColors.error,
-                      ),
-                      onPressed: () {
-                        if (checklistItems.length > 1) {
-                          setState(() => checklistItems.removeAt(entry.key));
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              );
-            }),
-            TextButton.icon(
-              onPressed: () => setState(() => checklistItems.add('')),
-              icon: const Icon(Icons.add),
-              label: const Text('Add Item'),
-            ),
-          ],
-        );
+        return const SizedBox.shrink();
 
       case ParameterType.optionSelector:
         return Column(

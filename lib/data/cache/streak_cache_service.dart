@@ -21,4 +21,7 @@ class StreakCacheService {
   Map<dynamic, dynamic> loadAll() {
     return box.toMap();
   }
+
+  /// Wipes all streak data — call this on logout so the next user starts clean.
+  Future<void> clear() => box.clear();
 }

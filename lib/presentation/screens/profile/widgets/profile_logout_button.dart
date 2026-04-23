@@ -1,11 +1,9 @@
 import 'package:analyzer/core/utils/app_strings.dart';
-import 'package:analyzer/data/services/widget_sync_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/routes/app_routes.dart';
+import '../../../controllers/profile_controller.dart';
 
 class ProfileLogoutButton extends StatelessWidget {
   const ProfileLogoutButton({super.key});
@@ -77,9 +75,8 @@ class ProfileLogoutButton extends StatelessWidget {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              await FirebaseAuth.instance.signOut();
-              await WidgetSyncService.syncNow();
-              Get.offAllNamed(AppRoutes.login);
+              // Delegate to ProfileController which handles full cache cleanup
+              await Get.find<ProfileController>().logout();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,

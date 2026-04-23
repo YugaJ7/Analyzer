@@ -1,10 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum ParameterType {
-  checklist,
-  value,
-  optionSelector,
-}
+enum ParameterType { checklist, value, optionSelector }
 
 class ParameterEntity extends Equatable {
   final String id;
@@ -15,10 +11,8 @@ class ParameterEntity extends Equatable {
   final ParameterType type;
   final int order;
   final bool isActive;
-  final List<String>? checklistItems;
   final List<String>? options;
   final String? unit;
-  final String? valueType;
   final String? icon;
   final int? color;
 
@@ -31,10 +25,8 @@ class ParameterEntity extends Equatable {
     required this.type,
     required this.order,
     this.isActive = true,
-    this.checklistItems,
     this.options,
     this.unit,
-    this.valueType,
     this.icon,
     this.color,
   });
@@ -48,7 +40,6 @@ class ParameterEntity extends Equatable {
     ParameterType? type,
     int? order,
     bool? isActive,
-    List<String>? checklistItems,
     List<String>? options,
     String? unit,
     String? valueType,
@@ -64,10 +55,8 @@ class ParameterEntity extends Equatable {
       type: type ?? this.type,
       order: order ?? this.order,
       isActive: isActive ?? this.isActive,
-      checklistItems: checklistItems ?? this.checklistItems,
       options: options ?? this.options,
       unit: unit ?? this.unit,
-      valueType: valueType ?? this.valueType,
       icon: icon ?? this.icon,
       color: color ?? this.color,
     );
@@ -75,7 +64,17 @@ class ParameterEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-    id, userId, createdAt, name, description, type, order, isActive,
-    checklistItems, options, unit, valueType, icon, color,
+    id,
+    userId,
+    createdAt,
+    name,
+    description,
+    type,
+    order,
+    isActive,
+    options,
+    unit,
+    icon,
+    color,
   ];
 }

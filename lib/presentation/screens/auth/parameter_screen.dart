@@ -1,16 +1,15 @@
-import 'package:analyzer/core/routes/app_routes.dart';
 import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/domain/entities/parameter_entity.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../controllers/parameter_controller.dart';
-import '../../../core/theme/app_background.dart';
-import '../../widgets/empty_state.dart';
-import '../../widgets/parameter_card.dart';
 import '../../widgets/parameter_form_dialog.dart';
+import '../manage_habits/widgets/habit_empty_state.dart';
+import '../manage_habits/widgets/habit_tile.dart';
 
 class ParameterSetupScreen extends GetView<ParameterController> {
   const ParameterSetupScreen({super.key});
@@ -18,80 +17,111 @@ class ParameterSetupScreen extends GetView<ParameterController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(AppStrings.paramSetupTitle),
+        backgroundColor: AppColors.background,
+        elevation: 0,
         automaticallyImplyLeading: false,
+        title: const Text(
+          AppStrings.paramSetupTitle,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         actions: [
+          // "Done" — only shown when at least one habit exists
           Obx(
             () => controller.parameters.isNotEmpty
-                ? TextButton(
-                    onPressed: () => Get.offAllNamed(AppRoutes.home),
-                    child: const Text(
-                      AppStrings.paramSetupDoneButton,
-                      style: TextStyle(
-                        color: AppColors.secondary,
-                        fontWeight: FontWeight.w600,
+                ? Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: TextButton(
+                      onPressed: () => Get.offAllNamed(AppRoutes.home),
+                      child: const Text(
+                        AppStrings.paramSetupDoneButton,
+                        style: TextStyle(
+                          color: AppColors.secondary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   )
-                : const SizedBox(),
+                : const SizedBox.shrink(),
+          ),
+          // "Add" button
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: GestureDetector(
+              onTap: () => _showAddDialog(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.add_rounded, color: Colors.white, size: 18),
+                    SizedBox(width: 4),
+                    Text(
+                      AppStrings.manageAddButton,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
-      body: AppBackground(
-        colors: [
-          AppColors.background,
-          AppColors.surface,
-          AppColors.primary.withValues(alpha: 0.1),
-        ],
-        child: SafeArea(
-          child: Obx(() {
-            if (controller.parameters.isEmpty) {
-              return const EmptyStateWidget(
-                title: AppStrings.paramSetupEmptyTitle,
-                message: AppStrings.paramSetupEmptyMessage,
-                icon: Icons.tune_rounded,
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: controller.parameters.length,
-              itemBuilder: (context, index) {
-                final param = controller.parameters[index];
-                return Container(
-                  key: ValueKey(param.id),
-                  child:
-                      ParameterCard(
-                            param: param,
-                            index: index,
-                            onDismissed: (direction) =>
-                                controller.deleteExistingParameter(param.id),
-                            onTap: () =>
-                                _showEditParameterDialog(context, param),
-                          )
-                          .animate()
-                          .fadeIn(delay: Duration(milliseconds: 100 * index))
-                          .slideX(begin: 0.2, end: 0),
-                );
-              },
-            );
-          }),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddParameterDialog(context),
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add),
-        label: const Text(AppStrings.addParameterButton),
-      ).animate().scale(delay: 500.ms),
+      body: Obx(() {
+        final habits = controller.parameters;
+
+        if (habits.isEmpty) {
+          return const HabitEmptyState();
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+          itemCount: habits.length,
+          itemBuilder: (context, index) {
+            final param = habits[index];
+            return HabitTile(
+              key: ValueKey(param.id),
+              param: param,
+              controller: controller,
+              animDelay: index * 50,
+            )
+                .animate()
+                .fadeIn(delay: Duration(milliseconds: index * 50))
+                .slideX(begin: 0.1);
+          },
+        );
+      }),
     );
   }
 
-  void _showAddParameterDialog(BuildContext context) {
-    Get.dialog(
-      Dialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+  void _showAddDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: ParameterFormDialog(
           onSave: (param) async {
             final paramWithOrder = ParameterEntity(
@@ -103,73 +133,18 @@ class ParameterSetupScreen extends GetView<ParameterController> {
               type: param.type,
               order: controller.parameters.length,
               isActive: param.isActive,
-              checklistItems: param.checklistItems,
               options: param.options,
               unit: param.unit,
-              valueType: param.valueType,
               icon: param.icon,
               color: param.color,
             );
+            Navigator.pop(context);
             await controller.addNewParameter(paramWithOrder);
-            Get.back();
             Get.snackbar(
-              AppStrings.paramAddedTitle,
-              AppStrings.paramAddedMessage,
-              snackPosition: SnackPosition.BOTTOM,
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  void _showEditParameterDialog(BuildContext context, ParameterEntity param) {
-    Get.dialog(
-      Dialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: ParameterFormDialog(
-          parameter: param,
-          onSave: (updatedParam) async {
-            final updates = <String, dynamic>{
-              'name': updatedParam.name,
-              'description': updatedParam.description,
-              'type': updatedParam.type.toString().split('.').last,
-              'color': updatedParam.color,
-            };
-
-            switch (updatedParam.type) {
-              case ParameterType.checklist:
-                updates['checklistItems'] = updatedParam.checklistItems;
-                updates['minValue'] = FieldValue.delete();
-                updates['maxValue'] = FieldValue.delete();
-                updates['options'] = FieldValue.delete();
-                updates['unit'] = FieldValue.delete();
-                updates['valueType'] = FieldValue.delete();
-                break;
-              case ParameterType.optionSelector:
-                updates['options'] = updatedParam.options;
-                updates['minValue'] = FieldValue.delete();
-                updates['maxValue'] = FieldValue.delete();
-                updates['checklistItems'] = FieldValue.delete();
-                updates['unit'] = FieldValue.delete();
-                updates['valueType'] = FieldValue.delete();
-                break;
-              case ParameterType.value:
-                updates['unit'] = updatedParam.unit;
-                updates['valueType'] = updatedParam.valueType;
-                updates['minValue'] = FieldValue.delete();
-                updates['maxValue'] = FieldValue.delete();
-                updates['checklistItems'] = FieldValue.delete();
-                updates['options'] = FieldValue.delete();
-                break;
-            }
-
-            await controller.updateExistingParameter(param.id, updates);
-            Get.back();
-            Get.snackbar(
-              AppStrings.paramUpdatedTitle,
-              AppStrings.paramUpdatedMessage,
+              AppStrings.habitAddedTitle,
+              '"${param.name}" ${AppStrings.paramAddedMessage}',
+              backgroundColor: AppColors.secondary.withValues(alpha: 0.9),
+              colorText: Colors.white,
               snackPosition: SnackPosition.BOTTOM,
             );
           },

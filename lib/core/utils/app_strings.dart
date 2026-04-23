@@ -34,17 +34,17 @@ abstract final class AppStrings {
   static const String fullName = 'Full Name';
   static const String confirmPassword = 'Confirm Password';
 
-  // ── Auth — Parameter Setup ────────────────────────────────────────────────
-  static const String paramSetupTitle = 'Setup Parameters';
+  // ── Auth — Habit Setup ────────────────────────────────────────────────
+  static const String paramSetupTitle = 'Setup Habits';
   static const String paramSetupDoneButton = 'Done';
-  static const String paramSetupEmptyTitle = 'No parameters added yet.';
+  static const String paramSetupEmptyTitle = 'No habits added yet.';
   static const String paramSetupEmptyMessage =
-      'Create your first parameter to start tracking your progress';
-  static const String addParameterButton = 'Add Parameter';
+      'Create your first habit to start tracking your progress';
+  static const String addParameterButton = 'Add Habit';
   static const String paramAddedTitle = 'Success';
-  static const String paramAddedMessage = 'Parameter added successfully';
+  static const String paramAddedMessage = 'Habit added successfully';
   static const String paramUpdatedTitle = 'Success';
-  static const String paramUpdatedMessage = 'Parameter updated successfully';
+  static const String paramUpdatedMessage = 'Habit updated successfully';
 
   // ── Home ─────────────────────────────────────────────────────────────────
   static const String homeGreeting = 'Hello,';
@@ -87,8 +87,6 @@ abstract final class AppStrings {
   static const String weekdayBreakdown = 'Weekday Breakdown';
   static const String weeklySummary = 'Weekly Summary';
   static const String completed = 'completed';
-  
-  
 
   // ── Manage Habits ─────────────────────────────────────────────────────────
   static const String manageHabitsTitle = 'Manage Habits';
