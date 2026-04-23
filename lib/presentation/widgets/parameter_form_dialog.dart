@@ -48,7 +48,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                widget.parameter == null ? 'Add Parameter' : 'Edit Parameter',
+                widget.parameter == null ? 'Add Habit' : 'Edit Habit',
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -79,7 +79,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
               ),
               SizedBox(height: 20),
               const Text(
-                'Parameter Type',
+                'Habit Type',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 12),
@@ -124,7 +124,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                           if (currentUser == null) {
                             Get.snackbar(
                               'Error',
-                              'You must be signed in to save parameters',
+                              'You must be signed in to save habits',
                               snackPosition: SnackPosition.BOTTOM,
                             );
                             return;

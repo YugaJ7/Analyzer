@@ -53,7 +53,7 @@ abstract final class AppStrings {
   static const String todayProgress = "Today's Progress";
   static const String progress = 'Progress';
   static const String todayBadge = 'Today';
-  static const String noParametersForDay = 'No Parameters For This Day';
+  static const String noParametersForDay = 'No Habits For This Day';
   static const String enterValue = '0';
   static const String hint = 'Enter the value';
   static const String home = 'Home';

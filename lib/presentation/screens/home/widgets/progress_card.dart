@@ -37,11 +37,14 @@ class ProgressCard extends StatelessWidget {
       }).toList();
 
       final totalParams = visibleParams.length;
-      final completedParams = entryController.selectedDateEntries.length;
+      final visibleParamIds = visibleParams.map((p) => p.id).toSet();
+      final completedParams = entryController.selectedDateEntries.keys
+          .where((id) => visibleParamIds.contains(id))
+          .length;
 
-      final completion = totalParams == 0
-          ? 0
-          : (completedParams / totalParams) * 100;
+      final double completion = totalParams == 0
+          ? 0.0
+          : (completedParams / totalParams) * 100.0;
 
       return Container(
         margin: EdgeInsets.only(bottom: 16),
@@ -91,7 +94,8 @@ class ProgressCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: completion / 100),
+                key: ValueKey(completion),
+                tween: Tween(begin: 0.0, end: completion / 100.0),
                 duration: const Duration(milliseconds: 900),
                 curve: Curves.easeOutCubic,
                 builder: (context, value, _) {

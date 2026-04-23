@@ -80,7 +80,8 @@ class WidgetSyncService {
     if (Get.isRegistered<EntryController>()) {
       final entryController = Get.find<EntryController>();
       entries = entryController.selectedDateEntries;
-      completed = entries.length;
+      final activeParamIds = params.map((p) => p.id).toSet();
+      completed = entries.keys.where((id) => activeParamIds.contains(id)).length;
     }
 
     final totalHabits = params.length;

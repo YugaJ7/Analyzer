@@ -31,7 +31,6 @@ class ParameterSetupScreen extends GetView<ParameterController> {
           ),
         ),
         actions: [
-          // "Done" — only shown when at least one habit exists
           Obx(
             () => controller.parameters.isNotEmpty
                 ? Padding(
