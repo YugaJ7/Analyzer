@@ -1,8 +1,18 @@
-# Personal Analyzer
+# Analyzer
+
+![Analyzer Banner](assets/banner.jpg)
 
 A modern Flutter habit tracking app focused on daily consistency, progress visibility, and lightweight personal analytics.
 
 Built with `GetX`, `Firebase`, `Hive`, and a clean layered structure, Personal Analyzer lets users create custom habits, log progress across days, review trends, export reports, and sync status to Android home-screen widgets.
+
+
+## Download the APK
+Access the latest APK for Personal Analyzer from the link below.
+
+[![Get APK](https://img.shields.io/badge/Get%20APK-darkcyan?style=for-the-badge&logo=android&logoColor=white)]()
+
+---
 
 ## Overview
 
@@ -10,7 +20,7 @@ Personal Analyzer is designed around three core flows:
 
 - Track habits daily with flexible input types
 - Analyze consistency with streaks, trends, and heatmaps
-- Manage data securely with Firebase auth, local caching, and app lock
+- Manage data securely with Firebase auth, local caching, cloud synchronization, multi device synchronization and app lock
 
 The app currently includes:
 
@@ -24,6 +34,8 @@ The app currently includes:
 - Biometric/device-lock app protection
 - Android home-screen widgets with action sync
 - Firestore offline persistence
+
+---
 
 ## Feature Highlights
 
@@ -74,28 +86,54 @@ The app currently includes:
 
 ## Architecture
 
-The project follows a layered structure that separates UI, business logic, domain contracts, and data access:
+### Architecture Overview
 
 ```mermaid
-graph LR
-    UI[Presentation<br/>Screens, widgets, controllers]
-    Domain[Domain<br/>Entities, repositories, use cases]
-    Data[Data<br/>Repository implementations, models, services]
-    Firebase[Firebase<br/>Auth + Firestore]
-    Local[Local Storage<br/>Hive + SharedPreferences]
+graph TD
+    subgraph AppFlow [Application Lifecycle]
+        Activity([MainActivity / OS]) --> Nav([Navigation / Routing])
+        Nav --> App([Application Context])
+    end
 
-    UI --> Domain
-    Domain --> Data
-    Data --> Firebase
-    Data --> Local
+    App --> UI_Layer
+    App -. Instance .-> Repository
+
+    subgraph UI_Layer [UI Layer - Presentation]
+        direction TB
+        Controllers[GetX Controllers / ViewModels]
+        Widgets[Widgets / Composables]
+        
+        Controllers -- "Expose State" --> Widgets
+        Widgets -- "Trigger Events" --> Controllers
+    end
+
+    subgraph Data_Layer [Data Layer - Infrastructure]
+        direction TB
+        Repository[Repository Implementation]
+        Cache[(Memory Cache)]
+        Database[(Local Database - Hive)]
+        Remote[(Remote - Firebase)]
+
+        Repository <--> Cache
+        Repository <--> Database
+        Repository <--> Remote
+    end
+
+    Controllers <--> Repository
 ```
 
-### Layers
+### Layer Responsibilities
 
-- `presentation/`: screens, reusable widgets, GetX controllers
-- `domain/`: entities, repository contracts, use cases
-- `data/`: repository implementations, models, cache, export, widget sync, local services
-- `core/`: bindings, routing, theme, constants, validators, app-level utilities
+- **UI Layer (Presentation)**:
+  - **Widgets**: Reusable UI components (Composables) that react to state changes.
+  - **Controllers**: GetX Controllers acting as ViewModels, managing UI state and interacting with repositories.
+- **Data Layer (Infrastructure)**:
+  - **Repository**: The single source of truth for the UI. It orchestrates data flow between local and remote sources.
+  - **Remote**: Firebase Auth and Cloud Firestore for cloud-based persistence.
+  - **Database**: Hive for fast, offline-first local storage.
+  - **Cache**: In-memory caching for performance-critical data (like analytics aggregations).
+- **Domain Layer**: Defines entities and repository interfaces (contracts) that describe *what* the app does without knowing *how* data is fetched.
+- **Core Layer**: Application-wide utilities, theme definitions, and dependency injection bindings.
 
 ## Project Structure
 
@@ -124,38 +162,6 @@ lib/
 └── main.dart
 ```
 
-## Tech Stack
-
-### Core
-
-- `Flutter`
-- `Dart`
-- `GetX`
-
-### Backend and storage
-
-- `firebase_core`
-- `firebase_auth`
-- `cloud_firestore`
-- `Hive`
-- `shared_preferences`
-
-### UI and charts
-
-- `google_fonts`
-- `flutter_animate`
-- `fl_chart`
-- `skeletonizer`
-- `persistent_bottom_nav_bar_v2`
-- `font_awesome_flutter`
-
-### Device features
-
-- `local_auth`
-- `share_plus`
-- `printing`
-- `pdf`
-
 ## Data Model
 
 Firestore uses a user-scoped structure:
@@ -163,142 +169,114 @@ Firestore uses a user-scoped structure:
 ### `users/{userId}`
 
 Stores the profile:
-
-- `email`
-- `name`
-- `createdAt`
+```json
+{
+    "email": "[EMAIL_ADDRESS]",
+    "name": "John Doe",
+    "createdAt": "2022-01-01T00:00:00.000Z"
+}
+```
 
 ### `users/{userId}/parameters/{parameterId}`
 
 Stores habit definitions:
-
-- `name`
-- `description`
-- `type`
-- `order`
-- `isActive`
-- `options`
-- `unit`
-- `icon`
-- `color`
-- `createdAt`
+```json
+{
+    "name": "Habit Name",
+    "description": "Habit Description",
+    "type": "Habit Type",
+    "order": 1,
+    "isActive": true,
+    "options": ["Option 1", "Option 2", "Option 3"],
+    "unit": "Habit Unit",
+    "icon": "Habit Icon",
+    "color": "Habit Color",
+    "createdAt": "2022-01-01T00:00:00.000Z"
+}
+```
 
 ### `users/{userId}/entries/{entryId}`
 
 Stores daily habit logs:
-
-- `parameterId`
-- `date`
-- `value`
-- `notes`
-- `createdAt`
+```json
+{
+    "parameterId": "Habit ID",
+    "date": "Date",
+    "value": "Value",
+    "notes": "Notes",
+    "createdAt": "2022-01-01T00:00:00.000Z"
+}
+```
 
 ### Local storage
 
 - `Hive`: analytics cache and streak cache
 - `SharedPreferences`: app lock flag, avatar emoji, cached display name
 
-## App Flow
 
-1. App launches into splash screen
-2. Existing session is checked with Firebase Auth
-3. If app lock is enabled, biometric/device auth is required
-4. New users register and create their first habits
-5. Users log daily progress from the home tab
-6. Analytics and exports are generated from synced history
+## Current Roadmap v0.1.0
 
-## Screens
+- [x] Initialize core architecture with Firebase Auth, Cloud Firestore, and Hive local caching.
+- [x] Implement secure authentication with Email/Password and Google Sign-In integration.
+- [x] Develop dynamic habit management for custom types (Checklist, Numeric, Option Selector).
+- [x] Build reactive Analytics dashboard with streaks, trends, and 90-day activity heatmaps.
+- [x] Implement biometric and device-lock protection for enhanced privacy.
+- [x] Create data export tools for CSV history and branded PDF reports.
+- [x] Develop native Android home-screen widgets with action sync and midnight reset scheduling.
+- [x] Optimize state management and caching for smooth UI transitions and offline-first performance.
+- [ ] Create store publishing assets, banners, and privacy policy documentation.
+- [ ] Enhance offline handling and network resilience for edge-case sync scenarios.
+- [ ] Implement multi-language support.
+- [ ] Add each habit analytic screen
+- [ ] Add widget for iOS
+- [ ] Add notification management to send reminders for each habit
 
-- `Splash`: startup auth and app-lock gate
-- `Login`: email/password and Google sign-in
-- `Register`: account creation
-- `Setup Habits`: first-time habit creation flow
-- `Home`: date-based daily habit logging
-- `Analytics`: scorecards, charts, trends, heatmap
-- `Profile`: habit management, exports, account and security settings
 
-## Design Direction
+## App Previews
 
-The current UI uses a dark-first visual system with:
+| Login | Home (Loading) | Home | Analytics 1 |
+| :---: | :------------: | :--: | :---------: |
+| <img src="assets/login.png" alt="Login Screen" width="200" /> | <img src="assets/home_loading.png" alt="Home Loading Screen" width="200" /> | <img src="assets/home.png" alt="Home Screen" width="200" /> | <img src="assets/analytics_1.png" alt="Analytics Screen 1" width="200" /> |
 
-- deep navy background tones
-- violet and teal accents
-- glassy surfaces and subtle borders
-- animated entrances and skeleton loading states
+| Analytics 2 | Profile | Manage Habits | Widget |
+| :---------: | :-----: | :-----------: | :----: |
+| <img src="assets/analytics_2.png" alt="Analytics Screen 2" width="200" /> | <img src="assets/profile.png" alt="Profile Screen" width="200" /> | <img src="assets/manage_habits.png" alt="Manage Habits Screen" width="200" /> | <img src="assets/widget.png" alt="Widget Screen" width="200" /> |
 
-Key colors from the app:
-
-- `#0D1117` background
-- `#161C27` surface
-- `#6C63FF` primary
-- `#4ECDC4` secondary
-- `#FF6B6B` error/accent
-
-## Getting Started
-
-### Prerequisites
-
-- Flutter SDK installed
-- A Firebase project
-- Android Studio or VS Code
-- An Android device/emulator for widget testing
-
-### Setup
-
-1. Clone the project.
-2. Install dependencies:
+## Installation
 
 ```bash
+git clone https://github.com/YugaJ7/CashCue.git
+cd cashcue
 flutter pub get
-```
-
-3. Configure Firebase for your app:
-
-- Enable Firebase Authentication
-- Enable Cloud Firestore
-- Add your platform config files
-- Regenerate `lib/firebase_options.dart` if needed:
-
-```bash
-flutterfire configure
-```
-
-4. Run the app:
-
-```bash
 flutter run
 ```
 
-## Build
+---
+
+## Build & Deploy
 
 ### Android
 
-```bash
-flutter build apk --release
 ```
-
-or
-
-```bash
+flutter build apk --release
+# or
 flutter build appbundle --release
 ```
 
 ### iOS
 
-```bash
+```
 flutter build ios --release
 ```
 
-## Testing and Analysis
 
-Run tests:
+## Contributions & Credits
 
-```bash
-flutter test
-```
+This project is developed and maintained by [Yuga Jaiswal](https://github.com/YugaJ7).  
+Feel free to fork, contribute, or give feedback!
 
-Run static analysis:
+---
 
-```bash
-flutter analyze
-```
+## Feedback
+
+If you have any ideas, feature requests, or spot a bug, feel free to open an issue or connect via [LinkedIn](https://linkedin.com/in/yuga-jaiswal).
