@@ -6,14 +6,6 @@ A modern Flutter habit tracking app focused on daily consistency, progress visib
 
 Built with `GetX`, `Firebase`, `Hive`, and a clean layered structure, Personal Analyzer lets users create custom habits, log progress across days, review trends, export reports, and sync status to Android home-screen widgets.
 
-
-<!-- ## Download the APK
-Access the latest APK for Personal Analyzer from the link below.
-
-[![Get APK](https://img.shields.io/badge/Get%20APK-darkcyan?style=for-the-badge&logo=android&logoColor=white)]()
-
---- -->
-
 ## Overview
 
 Personal Analyzer is designed around three core flows:
@@ -245,8 +237,8 @@ Stores daily habit logs:
 ## Installation
 
 ```bash
-git clone https://github.com/YugaJ7/CashCue.git
-cd cashcue
+git clone https://github.com/YugaJ7/Analyzer.git
+cd analyzer
 flutter pub get
 flutter run
 ```
