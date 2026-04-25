@@ -10,16 +10,19 @@ import '../../../domain/usecases/login_user.dart';
 import '../../../domain/usecases/register_user.dart';
 import '../../../domain/usecases/logout_user.dart';
 import '../../../domain/usecases/user_usecases.dart';
+import '../../../domain/usecases/sign_in_with_google.dart';
 
 class AuthController extends GetxController {
   final LoginUser loginUser;
   final RegisterUser registerUser;
+  final SignInWithGoogle signInWithGoogle;
   final LogoutUser logoutUser;
   final GetUserProfile getUserProfile;
 
   AuthController({
     required this.loginUser,
     required this.registerUser,
+    required this.signInWithGoogle,
     required this.logoutUser,
     required this.getUserProfile,
   });
@@ -62,6 +65,40 @@ class AuthController extends GetxController {
         e.message,
         snackPosition: SnackPosition.BOTTOM,
       );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> signInWithGoogleMethod() async {
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+
+      final user = await signInWithGoogle();
+      currentUser.value = user;
+
+      await PreferencesService.instance.clearLegacyAppLock();
+      await PreferencesService.instance.clearGuestAppLock();
+      await PreferencesService.instance.setAppLockEnabled(false);
+
+      // Cache display name locally
+      await PreferencesService.instance.setUserName(user.name.isEmpty ? 'User' : user.name);
+
+      Get.offAllNamed(AppRoutes.home);
+    } on AppException catch (e) {
+      if (e.message != 'Google sign-in aborted.') {
+        errorMessage.value = e.message;
+        Get.snackbar(
+          'Login Failed',
+          e.message,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    } catch (_) {
+      const msg = 'Google sign-in failed. Please try again.';
+      errorMessage.value = msg;
+      Get.snackbar('Error', msg, snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
     }

@@ -19,6 +19,8 @@ abstract final class AppStrings {
   static const String welcomeBackSnackbar = 'Welcome back!';
   static const String loginFailedTitle = 'Login Failed';
   static const String loginErrorMessage = 'An unexpected error occurred.';
+  static const String continueWithGoogle = 'Continue with Google';
+  static const String orContinueWith = 'Or continue with';
 
   // ── Auth — Register ───────────────────────────────────────────────────────
   static const String registerTitle = 'Create\nAccount';

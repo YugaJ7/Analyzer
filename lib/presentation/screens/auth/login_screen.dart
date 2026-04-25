@@ -1,5 +1,6 @@
 import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/routes/app_routes.dart';
@@ -102,6 +103,44 @@ class LoginScreen extends GetView<AuthController> {
                     ),
                   ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2, end: 0),
                   const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: AppColors.textSecondary.withValues(alpha: 0.2))),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          AppStrings.orContinueWith,
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                        ),
+                      ),
+                      Expanded(child: Divider(color: AppColors.textSecondary.withValues(alpha: 0.2))),
+                    ],
+                  ).animate().fadeIn(delay: 550.ms),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: OutlinedButton.icon(
+                      onPressed: () => controller.signInWithGoogleMethod(),
+                      icon: const FaIcon(FontAwesomeIcons.google, size: 20, color: AppColors.textPrimary),
+                      label: const Text(
+                        AppStrings.continueWithGoogle,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppColors.textSecondary.withValues(alpha: 0.2)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        backgroundColor: AppColors.surface,
+                      ),
+                    ),
+                  ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2, end: 0),
+                  const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

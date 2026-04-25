@@ -7,6 +7,7 @@ import '../../domain/usecases/login_user.dart';
 import '../../domain/usecases/register_user.dart';
 import '../../domain/usecases/logout_user.dart';
 import '../../domain/usecases/user_usecases.dart';
+import '../../domain/usecases/sign_in_with_google.dart';
 import '../../presentation/controllers/auth_controller.dart';
 
 class AuthBinding extends Bindings {
@@ -25,6 +26,7 @@ class AuthBinding extends Bindings {
     Get.put<RegisterUser>(
       RegisterUser(Get.find<AuthRepository>(), Get.find<UserRepository>()),
     );
+    Get.put<SignInWithGoogle>(SignInWithGoogle(Get.find<AuthRepository>()));
     Get.put<LogoutUser>(LogoutUser(Get.find<AuthRepository>()));
     Get.put<GetUserProfile>(GetUserProfile(Get.find<UserRepository>()));
 
@@ -33,6 +35,7 @@ class AuthBinding extends Bindings {
       AuthController(
         loginUser: Get.find<LoginUser>(),
         registerUser: Get.find<RegisterUser>(),
+        signInWithGoogle: Get.find<SignInWithGoogle>(),
         logoutUser: Get.find<LogoutUser>(),
         getUserProfile: Get.find<GetUserProfile>(),
       ),
