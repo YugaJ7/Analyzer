@@ -8,12 +8,13 @@ import '../../data/cache/streak_cache_service.dart';
 import '../../data/services/auth_lock_service.dart';
 import '../../data/services/export_service.dart';
 import '../../data/services/preferences_service.dart';
-import '../../data/services/widget_sync_service.dart';
+import '../../data/services/user_session_storage.dart';
 import '../../domain/repositories/entry_repository.dart';
 import '../../domain/repositories/parameter_repository.dart';
 import '../../domain/repositories/streak_repository.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../../domain/usecases/entry_usecases.dart';
+import '../../domain/usecases/logout_user.dart';
 import '../../domain/usecases/parameter_usecases.dart';
 import '../../domain/usecases/user_usecases.dart';
 import 'analytics_controller.dart';
@@ -23,8 +24,9 @@ import 'streak_controller.dart';
 
 class ProfileController extends GetxController {
   final UserRepository userRepository;
+  final LogoutUser logoutUser;
 
-  ProfileController({required this.userRepository});
+  ProfileController({required this.userRepository, required this.logoutUser});
 
   late final ExportService exportService;
 
@@ -171,61 +173,49 @@ class ProfileController extends GetxController {
     }
   }
 
-  // 🔥 LOGOUT — clears all caches and resets GetX state for the next user
+  /// Signs out first so a failure leaves the app fully usable; cleanup after
+  /// is best-effort and never blocks navigation.
   Future<void> logout() async {
     try {
-      // 1. Clear Hive disk caches
-      if (Get.isRegistered<AnalyticsCacheService>()) {
-        Get.find<AnalyticsCacheService>().clear();
-      }
-      if (Get.isRegistered<StreakCacheService>()) {
-        await Get.find<StreakCacheService>().clear();
-      }
+      await logoutUser();
+    } on AppException catch (e) {
+      Get.snackbar('Error', e.message, snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
 
-      // 2. Clear SharedPreferences user-scoped data
-      final prefs = PreferencesService.instance;
-      await prefs.clearUserName();
-      await prefs.remove('avatar_emoji');
+    await UserSessionStorage.clear();
+    _disposeSessionDependencies();
+    Get.offAllNamed(AppRoutes.login);
+  }
 
-      // 3. Force-delete all home-scoped permanent GetX registrations
-      //    so HomeBinding re-initialises fresh on next login.
-      Get.delete<ParameterController>(force: true);
-      Get.delete<EntryController>(force: true);
-      Get.delete<StreakController>(force: true);
-      Get.delete<AnalyticsController>(force: true);
-      Get.delete<AnalyticsCacheService>(force: true);
-      Get.delete<StreakCacheService>(force: true);
+  // Permanent registrations must be forced out so HomeBinding rebuilds them.
+  void _disposeSessionDependencies() {
+    Get.delete<ParameterController>(force: true);
+    Get.delete<EntryController>(force: true);
+    Get.delete<StreakController>(force: true);
+    Get.delete<AnalyticsController>(force: true);
+    Get.delete<AnalyticsCacheService>(force: true);
+    Get.delete<StreakCacheService>(force: true);
 
-      // Use cases
-      Get.delete<GetParameters>(force: true);
-      Get.delete<WatchParameters>(force: true);
-      Get.delete<AddParameter>(force: true);
-      Get.delete<UpdateParameter>(force: true);
-      Get.delete<DeleteParameter>(force: true);
-      Get.delete<ReorderParameters>(force: true);
-      Get.delete<GetEntriesForDate>(force: true);
-      Get.delete<GetEntriesForLastNDays>(force: true);
-      Get.delete<SaveEntry>(force: true);
-      Get.delete<UpdateEntry>(force: true);
-      Get.delete<DeleteEntry>(force: true);
-      Get.delete<DeleteAllEntriesForParameter>(force: true);
-      Get.delete<GetUserProfile>(force: true);
-      Get.delete<UpdateUserProfile>(force: true);
+    // Use cases
+    Get.delete<GetParameters>(force: true);
+    Get.delete<WatchParameters>(force: true);
+    Get.delete<AddParameter>(force: true);
+    Get.delete<UpdateParameter>(force: true);
+    Get.delete<DeleteParameter>(force: true);
+    Get.delete<ReorderParameters>(force: true);
+    Get.delete<GetEntriesForDate>(force: true);
+    Get.delete<GetEntriesForLastNDays>(force: true);
+    Get.delete<SaveEntry>(force: true);
+    Get.delete<UpdateEntry>(force: true);
+    Get.delete<DeleteEntry>(force: true);
+    Get.delete<DeleteAllEntriesForParameter>(force: true);
+    Get.delete<GetUserProfile>(force: true);
+    Get.delete<UpdateUserProfile>(force: true);
 
-      // Repositories
-      Get.delete<EntryRepository>(force: true);
+    // Repositories
+    Get.delete<EntryRepository>(force: true);
       Get.delete<ParameterRepository>(force: true);
       Get.delete<StreakRepository>(force: true);
-
-      // 4. Sign out from Firebase
-      await FirebaseAuth.instance.signOut();
-      await WidgetSyncService.syncNow();
-
-      // 5. Navigate to login
-      Get.offAllNamed(AppRoutes.login);
-    } catch (e) {
-      Get.snackbar('Error', 'Logout failed. Please try again.',
-          snackPosition: SnackPosition.BOTTOM);
-    }
   }
 }

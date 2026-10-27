@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../data/services/auth_lock_service.dart';
 import '../../../data/services/preferences_service.dart';
+import '../../../data/services/user_session_storage.dart';
 
 import '../../../core/routes/app_routes.dart';
 
@@ -48,6 +49,8 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     try {
+      await UserSessionStorage.bindToUser(user.uid);
+
       final isLockEnabled = PreferencesService.instance.appLockEnabled;
 
       log('App Lock Enabled: $isLockEnabled');

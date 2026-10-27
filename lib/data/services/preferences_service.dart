@@ -47,6 +47,8 @@ class PreferencesService {
   Future<void> setAvatarEmoji(String emoji) =>
       _prefs.setString(AppConstants.kAvatarKey, emoji);
 
+  Future<void> clearAvatarEmoji() => _prefs.remove(AppConstants.kAvatarKey);
+
   // User name
   String? get userName => _prefs.getString(AppConstants.kUserNameKey);
 

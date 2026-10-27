@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../data/services/preferences_service.dart';
+import '../../../data/services/user_session_storage.dart';
 import '../../../domain/entities/user_entity.dart';
 import '../../../domain/usecases/login_user.dart';
 import '../../../domain/usecases/register_user.dart';
@@ -52,6 +53,7 @@ class AuthController extends GetxController {
       await loginUser(email, password);
 
       final uid = FirebaseAuth.instance.currentUser!.uid;
+      await UserSessionStorage.bindToUser(uid);
 
       unawaited(_loadUserData(uid));
 
@@ -77,6 +79,7 @@ class AuthController extends GetxController {
 
       final user = await signInWithGoogle();
       currentUser.value = user;
+      await UserSessionStorage.bindToUser(user.id);
 
       await PreferencesService.instance.clearLegacyAppLock();
       await PreferencesService.instance.clearGuestAppLock();
@@ -111,6 +114,7 @@ class AuthController extends GetxController {
 
       final user = await registerUser(email, password, name);
       currentUser.value = user;
+      await UserSessionStorage.bindToUser(user.id);
 
       await PreferencesService.instance.clearLegacyAppLock();
       await PreferencesService.instance.clearGuestAppLock();

@@ -8,6 +8,10 @@ abstract final class AppConstants {
   //Hive box names
   static const String kAnalyticsCacheBox = 'analytics_cache';
   static const String kStreakCacheBox = 'streak_cache';
+  static const String kSessionMetaBox = 'session_meta';
+
+  //Hive keys
+  static const String kSessionOwnerUidKey = 'owner_uid';
 
   //SharedPreferences keys
   static const String kLegacyAppLockKey = 'app_lock_enabled';

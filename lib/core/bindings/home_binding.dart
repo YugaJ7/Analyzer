@@ -9,11 +9,13 @@ import '../../data/repositories/entry_repository_impl.dart';
 import '../../data/repositories/parameter_repository_impl.dart';
 import '../../data/repositories/streak_repository_impl.dart';
 import '../../data/repositories/user_repository_impl.dart';
+import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/entry_repository.dart';
 import '../../domain/repositories/parameter_repository.dart';
 import '../../domain/repositories/streak_repository.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../../domain/usecases/entry_usecases.dart';
+import '../../domain/usecases/logout_user.dart';
 import '../../domain/usecases/parameter_usecases.dart';
 import '../../domain/usecases/user_usecases.dart';
 import '../../presentation/controllers/analytics_controller.dart';
@@ -153,7 +155,10 @@ class HomeBinding extends Bindings {
     );
 
     Get.lazyPut<ProfileController>(
-      () => ProfileController(userRepository: Get.find<UserRepository>()),
+      () => ProfileController(
+        userRepository: Get.find<UserRepository>(),
+        logoutUser: LogoutUser(Get.find<AuthRepository>()),
+      ),
       fenix: true,
     );
 

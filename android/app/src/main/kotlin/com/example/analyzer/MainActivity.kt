@@ -212,6 +212,29 @@ class MainActivity : FlutterActivity() {
 
                 result.success(true)
 
+            } else if (
+                call.method ==
+                "clearWidgetData"
+            ) {
+
+                // Sign-out / account switch: no data may outlive the user.
+                getSharedPreferences(
+                    "widget_native",
+                    Context.MODE_PRIVATE
+                ).edit()
+                    .remove("pending_actions_json")
+                    .remove("items_json")
+                    .putInt("percent", 0)
+                    .putInt("completed", 0)
+                    .putInt("total", 0)
+                    .putBoolean("logged_in", false)
+                    .commit()
+
+                WidgetRenderer
+                    .refreshAll(this)
+
+                result.success(true)
+
             } else {
                 result.notImplemented()
             }

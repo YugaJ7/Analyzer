@@ -46,4 +46,9 @@ class WidgetRefreshService {
   static Future<void> clearPendingWidgetActions() async {
     await _channel.invokeMethod('clearPendingWidgetActions');
   }
+
+  /// Drops items, progress and queued actions; renders logged-out.
+  static Future<void> clearWidgetData() async {
+    await _channel.invokeMethod('clearWidgetData');
+  }
 }

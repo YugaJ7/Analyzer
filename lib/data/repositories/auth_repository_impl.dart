@@ -13,6 +13,20 @@ class AuthRepositoryImpl implements AuthRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
+  // v7: initialize() must complete exactly once before any other call.
+  static Future<void>? _googleInitialization;
+
+  Future<void> _ensureGoogleInitialized() {
+    return _googleInitialization ??= _googleSignIn.initialize().catchError((
+      Object error,
+      StackTrace stackTrace,
+    ) {
+      // Don't cache the failure; let the next attempt retry.
+      _googleInitialization = null;
+      Error.throwWithStackTrace(error, stackTrace);
+    });
+  }
+
   @override
   Future<UserEntity> login(String email, String password) async {
     try {
@@ -61,16 +75,33 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> logout() async {
     try {
       await _auth.signOut();
+    } catch (e, stackTrace) {
+      _logAuthError(
+        'Firebase sign-out failed: ${e.runtimeType}',
+        stackTrace: stackTrace,
+      );
+      throw AppException(
+        const AuthFailure('Sign-out failed. Please try again.'),
+      );
+    }
+
+    // Firebase holds data access; Google only affects the account picker,
+    // so its failure must not fail the logout.
+    try {
+      await _ensureGoogleInitialized();
       await _googleSignIn.signOut();
-    } catch (e) {
-      throw AppException(AuthFailure('Sign-out failed. Please try again.'));
+    } catch (e, stackTrace) {
+      _logAuthError(
+        'Google sign-out failed: ${e.runtimeType}',
+        stackTrace: stackTrace,
+      );
     }
   }
 
   @override
   Future<UserEntity> signInWithGoogle() async {
     try {
-      await _googleSignIn.initialize();
+      await _ensureGoogleInitialized();
       final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
       final credential = GoogleAuthProvider.credential(

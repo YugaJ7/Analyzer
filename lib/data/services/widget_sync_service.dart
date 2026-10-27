@@ -12,6 +12,13 @@ class WidgetSyncService {
   static _WidgetSyncPayload? _queuedPayload;
   static String? _lastSentSignature;
 
+  /// Call after wiping native widget data, or an identical next payload is
+  /// deduped and the widget stays blank.
+  static void reset() {
+    _queuedPayload = null;
+    _lastSentSignature = null;
+  }
+
   static Future<void> syncNow() async {
     final payload = _buildPayload();
     if (payload == null) {
