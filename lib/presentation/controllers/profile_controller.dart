@@ -102,13 +102,11 @@ class ProfileController extends GetxController {
     selectedAvatar.value = emoji;
   }
 
-  // 🔐 APP LOCK (UPDATED)
+  // Both directions need auth, or anyone holding the unlocked phone could
+  // switch the lock off.
   Future<void> toggleAppLock(bool value) async {
-    if (value) {
-      final authenticated = await AuthLockService.instance.authenticate();
-
-      if (!authenticated.isAuthenticated) return;
-    }
+    final result = await AuthLockService.instance.authenticate();
+    if (!result.isAuthenticated) return;
 
     await PreferencesService.instance.setAppLockEnabled(value);
     appLockEnabled.value = value;

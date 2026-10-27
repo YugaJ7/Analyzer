@@ -83,7 +83,6 @@ class AuthController extends GetxController {
 
       await PreferencesService.instance.clearLegacyAppLock();
       await PreferencesService.instance.clearGuestAppLock();
-      await PreferencesService.instance.setAppLockEnabled(false);
 
       // Cache display name locally
       await PreferencesService.instance.setUserName(user.name.isEmpty ? 'User' : user.name);
@@ -118,7 +117,6 @@ class AuthController extends GetxController {
 
       await PreferencesService.instance.clearLegacyAppLock();
       await PreferencesService.instance.clearGuestAppLock();
-      await PreferencesService.instance.setAppLockEnabled(false);
 
       // Cache display name locally via PreferencesService
       await PreferencesService.instance.setUserName(name);

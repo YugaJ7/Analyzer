@@ -100,17 +100,20 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     isAuthenticating.value = true;
+    try {
+      var result = await AuthLockService.instance.authenticate(
+        showErrors: false,
+      );
 
-    var result = await AuthLockService.instance.authenticate(showErrors: false);
+      if (result.failure == AuthLockFailure.uiUnavailable) {
+        await Future.delayed(const Duration(milliseconds: 400));
+        result = await AuthLockService.instance.authenticate(showErrors: false);
+      }
 
-    if (result.failure == AuthLockFailure.uiUnavailable) {
-      await Future.delayed(const Duration(milliseconds: 400));
-      result = await AuthLockService.instance.authenticate(showErrors: false);
+      return result;
+    } finally {
+      isAuthenticating.value = false;
     }
-
-    isAuthenticating.value = false;
-
-    return result;
   }
 
   Future<void> _unlock() async {
