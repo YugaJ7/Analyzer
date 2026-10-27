@@ -85,6 +85,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      // Timers don't fire while suspended; catch a missed midnight here.
+      _entryController.handleDayChange();
       Future.microtask(_handleResumeSync);
     }
   }
