@@ -8,8 +8,8 @@ import 'package:printing/printing.dart' show PdfGoogleFonts;
 import 'package:share_plus/share_plus.dart';
 import '../../core/utils/date_utils.dart';
 
-import '../../../presentation/controllers/analytics_controller.dart';
-import '../../../presentation/controllers/parameter_controller.dart';
+import '../controllers/analytics_controller.dart';
+import '../controllers/parameter_controller.dart';
 
 class ExportService {
   final AnalyticsController analytics;

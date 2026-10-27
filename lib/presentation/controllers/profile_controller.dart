@@ -3,24 +3,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../core/errors/app_exception.dart';
 import '../../core/routes/app_routes.dart';
-import '../../data/cache/analytics_cache_service.dart';
-import '../../data/cache/streak_cache_service.dart';
+import '../../core/bindings/home_binding.dart';
 import '../../data/services/auth_lock_service.dart';
-import '../../data/services/export_service.dart';
+import '../services/export_service.dart';
 import '../../data/services/preferences_service.dart';
 import '../../data/services/user_session_storage.dart';
-import '../../domain/repositories/entry_repository.dart';
-import '../../domain/repositories/parameter_repository.dart';
-import '../../domain/repositories/streak_repository.dart';
 import '../../domain/repositories/user_repository.dart';
-import '../../domain/usecases/entry_usecases.dart';
 import '../../domain/usecases/logout_user.dart';
-import '../../domain/usecases/parameter_usecases.dart';
-import '../../domain/usecases/user_usecases.dart';
 import 'analytics_controller.dart';
-import 'entry_controller.dart';
 import 'parameter_controller.dart';
-import 'streak_controller.dart';
 
 class ProfileController extends GetxController {
   final UserRepository userRepository;
@@ -182,38 +173,7 @@ class ProfileController extends GetxController {
     }
 
     await UserSessionStorage.clear();
-    _disposeSessionDependencies();
+    HomeBinding.tearDown();
     Get.offAllNamed(AppRoutes.login);
-  }
-
-  // Permanent registrations must be forced out so HomeBinding rebuilds them.
-  void _disposeSessionDependencies() {
-    Get.delete<ParameterController>(force: true);
-    Get.delete<EntryController>(force: true);
-    Get.delete<StreakController>(force: true);
-    Get.delete<AnalyticsController>(force: true);
-    Get.delete<AnalyticsCacheService>(force: true);
-    Get.delete<StreakCacheService>(force: true);
-
-    // Use cases
-    Get.delete<GetParameters>(force: true);
-    Get.delete<WatchParameters>(force: true);
-    Get.delete<AddParameter>(force: true);
-    Get.delete<UpdateParameter>(force: true);
-    Get.delete<DeleteParameter>(force: true);
-    Get.delete<ReorderParameters>(force: true);
-    Get.delete<GetEntriesForDate>(force: true);
-    Get.delete<GetEntriesForLastNDays>(force: true);
-    Get.delete<SaveEntry>(force: true);
-    Get.delete<UpdateEntry>(force: true);
-    Get.delete<DeleteEntry>(force: true);
-    Get.delete<DeleteAllEntriesForParameter>(force: true);
-    Get.delete<GetUserProfile>(force: true);
-    Get.delete<UpdateUserProfile>(force: true);
-
-    // Repositories
-    Get.delete<EntryRepository>(force: true);
-      Get.delete<ParameterRepository>(force: true);
-      Get.delete<StreakRepository>(force: true);
   }
 }

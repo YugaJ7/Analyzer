@@ -4,6 +4,9 @@ class WidgetRefreshService {
   static const MethodChannel _channel =
       MethodChannel('habit_widget_channel');
 
+  /// Last payload the native side accepted; identical refreshes are skipped.
+  static String? _lastSentSignature;
+
   static Future<void> refresh({
     required int percent,
     required int completed,
@@ -11,6 +14,9 @@ class WidgetRefreshService {
     required bool loggedIn,
     String itemsJson = '[]',
   }) async {
+    final signature = '$loggedIn|$percent|$completed|$total|$itemsJson';
+    if (signature == _lastSentSignature) return;
+
     await _channel.invokeMethod(
       'refreshWidget',
       {
@@ -21,6 +27,7 @@ class WidgetRefreshService {
         'itemsJson': itemsJson,
       },
     );
+    _lastSentSignature = signature;
   }
 
   static Future<List<Map<String, dynamic>>> getPendingWidgetActions() async {
@@ -49,6 +56,8 @@ class WidgetRefreshService {
 
   /// Drops items, progress and queued actions; renders logged-out.
   static Future<void> clearWidgetData() async {
+    // Forget first: the next refresh must repaint even if it matches.
+    _lastSentSignature = null;
     await _channel.invokeMethod('clearWidgetData');
   }
 }

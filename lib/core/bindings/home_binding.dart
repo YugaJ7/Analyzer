@@ -19,15 +19,19 @@ import '../../domain/usecases/logout_user.dart';
 import '../../domain/usecases/parameter_usecases.dart';
 import '../../domain/usecases/user_usecases.dart';
 import '../../presentation/controllers/analytics_controller.dart';
-import '../../presentation/controllers/auth_controller.dart';
 import '../../presentation/controllers/entry_controller.dart';
 import '../../presentation/controllers/parameter_controller.dart';
 import '../../presentation/controllers/profile_controller.dart';
 import '../../presentation/controllers/streak_controller.dart';
 
+/// Composition root for the signed-in session. Registration and [tearDown]
+/// live together so the two lists can't drift.
 class HomeBinding extends Bindings {
   @override
   void dependencies() {
+    // Three routes share this binding; the session scope is built once.
+    if (Get.isRegistered<ParameterController>()) return;
+
     //Cache services
     Get.put<AnalyticsCacheService>(
       AnalyticsCacheService(Hive.box<dynamic>(AppConstants.kAnalyticsCacheBox)),
@@ -161,7 +165,37 @@ class HomeBinding extends Bindings {
       ),
       fenix: true,
     );
+  }
 
-    if (!Get.isRegistered<AuthController>()) {}
+  /// Disposes everything [dependencies] registered so the next sign-in
+  /// starts from a clean scope. Permanent instances need `force`.
+  static void tearDown() {
+    Get.delete<ProfileController>(force: true);
+    Get.delete<ParameterController>(force: true);
+    Get.delete<EntryController>(force: true);
+    Get.delete<StreakController>(force: true);
+    Get.delete<AnalyticsController>(force: true);
+
+    Get.delete<GetParameters>(force: true);
+    Get.delete<WatchParameters>(force: true);
+    Get.delete<AddParameter>(force: true);
+    Get.delete<UpdateParameter>(force: true);
+    Get.delete<DeleteParameter>(force: true);
+    Get.delete<ReorderParameters>(force: true);
+    Get.delete<GetEntriesForDate>(force: true);
+    Get.delete<GetEntriesForLastNDays>(force: true);
+    Get.delete<SaveEntry>(force: true);
+    Get.delete<UpdateEntry>(force: true);
+    Get.delete<DeleteEntry>(force: true);
+    Get.delete<DeleteAllEntriesForParameter>(force: true);
+    Get.delete<GetUserProfile>(force: true);
+    Get.delete<UpdateUserProfile>(force: true);
+
+    Get.delete<EntryRepository>(force: true);
+    Get.delete<ParameterRepository>(force: true);
+    Get.delete<StreakRepository>(force: true);
+
+    Get.delete<AnalyticsCacheService>(force: true);
+    Get.delete<StreakCacheService>(force: true);
   }
 }

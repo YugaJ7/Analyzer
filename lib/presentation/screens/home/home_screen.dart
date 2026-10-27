@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:analyzer/core/theme/app_colors.dart';
 import 'package:analyzer/core/utils/app_logger.dart';
 import 'package:analyzer/core/utils/app_strings.dart';
-import 'package:analyzer/data/services/widget_action_sync_service.dart';
+import 'package:analyzer/presentation/services/widget_action_sync_service.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:analyzer/presentation/screens/home/widgets/date_selector.dart';
 import 'package:analyzer/presentation/screens/home/widgets/home_header.dart';

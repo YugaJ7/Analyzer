@@ -1,25 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
-import '../../controllers/app_navigation_controller.dart';
 import '../analytics/analytics_screen.dart';
 import '../home/home_screen.dart';
 import '../profile/profile_screen.dart';
 
-class AppShell extends StatelessWidget {
+class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
   @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  // Owned here so the selected tab survives rebuilds; was recreated (and
+  // leaked) on every build.
+  final _tabController = PersistentTabController();
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final navController = Get.put(AppNavigationController());
-
-    final controller = PersistentTabController(
-      initialIndex: navController.currentIndex,
-    );
-
     return PersistentTabView(
-      controller: controller,
+      controller: _tabController,
       tabs: [
         PersistentTabConfig(
           screen: const HomeScreen(),
@@ -75,9 +82,6 @@ class AppShell extends StatelessWidget {
         curve: Curves.easeInOut,
         duration: Duration(milliseconds: 250),
       ),
-      onTabChanged: (index) {
-        navController.changeByIndex(index);
-      },
     );
   }
 }

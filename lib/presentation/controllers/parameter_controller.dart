@@ -3,7 +3,7 @@ import 'dart:developer';
 
 import 'package:analyzer/core/utils/app_logger.dart';
 import 'package:analyzer/core/utils/app_strings.dart';
-import 'package:analyzer/data/services/widget_sync_service.dart';
+import 'package:analyzer/presentation/services/widget_sync_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import '../../domain/entities/parameter_entity.dart';

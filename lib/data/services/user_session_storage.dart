@@ -1,13 +1,10 @@
-import 'dart:developer';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/utils/app_constants.dart';
+import '../../core/utils/app_logger.dart';
 import 'hive_service.dart';
 import 'preferences_service.dart';
 import 'widget_refresh_service.dart';
-import 'widget_sync_service.dart';
 
 /// Single owner of user-scoped local state (Hive caches, cached profile,
 /// widget data), tagged with the owning uid.
@@ -42,7 +39,6 @@ class UserSessionStorage {
   }
 
   static Future<void> _clearWidget() async {
-    WidgetSyncService.reset();
     try {
       await WidgetRefreshService.clearWidgetData();
     } on MissingPluginException {
@@ -57,14 +53,12 @@ class UserSessionStorage {
     try {
       await step();
     } catch (error, stackTrace) {
-      if (kDebugMode) {
-        log(
-          'Failed to clear $name',
-          name: 'UserSessionStorage',
-          error: error,
-          stackTrace: stackTrace,
-        );
-      }
+      AppLogger.error(
+        'Failed to clear $name',
+        name: 'UserSessionStorage',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
   }
 }

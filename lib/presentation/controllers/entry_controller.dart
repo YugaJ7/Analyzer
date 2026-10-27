@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:analyzer/core/utils/app_logger.dart';
 import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/core/utils/date_utils.dart';
-import 'package:analyzer/data/services/widget_sync_service.dart';
+import 'package:analyzer/presentation/services/widget_sync_service.dart';
 import 'package:analyzer/presentation/controllers/analytics_controller.dart';
 import 'package:analyzer/presentation/controllers/streak_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';

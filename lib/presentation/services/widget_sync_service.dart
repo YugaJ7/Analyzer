@@ -12,14 +12,6 @@ import 'package:get/get.dart';
 class WidgetSyncService {
   static Future<void>? _inFlightSync;
   static _WidgetSyncPayload? _queuedPayload;
-  static String? _lastSentSignature;
-
-  /// Call after wiping native widget data, or an identical next payload is
-  /// deduped and the widget stays blank.
-  static void reset() {
-    _queuedPayload = null;
-    _lastSentSignature = null;
-  }
 
   /// Best-effort: the widget is a mirror, so failures are logged and never
   /// propagate into the save/logout flows that trigger a sync.
@@ -51,10 +43,6 @@ class WidgetSyncService {
       final nextPayload = _queuedPayload!;
       _queuedPayload = null;
 
-      if (nextPayload.signature == _lastSentSignature) {
-        continue;
-      }
-
       try {
         await WidgetRefreshService.refresh(
           percent: nextPayload.percent,
@@ -63,7 +51,6 @@ class WidgetSyncService {
           loggedIn: nextPayload.loggedIn,
           itemsJson: nextPayload.itemsJson,
         );
-        _lastSentSignature = nextPayload.signature;
       } on MissingPluginException {
         return; // Widget is Android-only.
       } catch (error, stackTrace) {
@@ -152,7 +139,6 @@ class _WidgetSyncPayload {
   final int total;
   final bool loggedIn;
   final String itemsJson;
-  final String signature;
 
   _WidgetSyncPayload({
     required this.percent,
@@ -160,5 +146,5 @@ class _WidgetSyncPayload {
     required this.total,
     required this.loggedIn,
     required this.itemsJson,
-  }) : signature = '$loggedIn|$percent|$completed|$total|$itemsJson';
+  });
 }
