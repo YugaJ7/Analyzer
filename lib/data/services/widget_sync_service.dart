@@ -4,7 +4,9 @@ import 'package:analyzer/data/services/widget_refresh_service.dart';
 import 'package:analyzer/domain/entities/parameter_entity.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:analyzer/presentation/controllers/parameter_controller.dart';
+import 'package:analyzer/core/utils/app_logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class WidgetSyncService {
@@ -19,6 +21,8 @@ class WidgetSyncService {
     _lastSentSignature = null;
   }
 
+  /// Best-effort: the widget is a mirror, so failures are logged and never
+  /// propagate into the save/logout flows that trigger a sync.
   static Future<void> syncNow() async {
     final payload = _buildPayload();
     if (payload == null) {
@@ -32,6 +36,17 @@ class WidgetSyncService {
       return;
     }
 
+    final drain = _drainQueue();
+    _inFlightSync = drain;
+    try {
+      await drain;
+    } finally {
+      // Reset even on failure, or every later sync would await this one.
+      _inFlightSync = null;
+    }
+  }
+
+  static Future<void> _drainQueue() async {
     while (_queuedPayload != null) {
       final nextPayload = _queuedPayload!;
       _queuedPayload = null;
@@ -40,18 +55,25 @@ class WidgetSyncService {
         continue;
       }
 
-      final future = WidgetRefreshService.refresh(
-        percent: nextPayload.percent,
-        completed: nextPayload.completed,
-        total: nextPayload.total,
-        loggedIn: nextPayload.loggedIn,
-        itemsJson: nextPayload.itemsJson,
-      );
-
-      _inFlightSync = future;
-      await future;
-      _lastSentSignature = nextPayload.signature;
-      _inFlightSync = null;
+      try {
+        await WidgetRefreshService.refresh(
+          percent: nextPayload.percent,
+          completed: nextPayload.completed,
+          total: nextPayload.total,
+          loggedIn: nextPayload.loggedIn,
+          itemsJson: nextPayload.itemsJson,
+        );
+        _lastSentSignature = nextPayload.signature;
+      } on MissingPluginException {
+        return; // Widget is Android-only.
+      } catch (error, stackTrace) {
+        AppLogger.error(
+          'Widget refresh failed',
+          name: 'WidgetSyncService',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
     }
   }
 

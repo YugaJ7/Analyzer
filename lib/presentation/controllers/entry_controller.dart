@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:analyzer/core/utils/app_logger.dart';
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/core/utils/date_utils.dart';
 import 'package:analyzer/data/services/widget_sync_service.dart';
 import 'package:analyzer/presentation/controllers/analytics_controller.dart';
@@ -165,7 +167,73 @@ class EntryController extends GetxController {
     }
   }
 
+  /// Applies the change optimistically; if persisting fails, local state is
+  /// rolled back and the user is told.
   Future<void> toggleEntry(
+    String parameterId,
+    dynamic value, {
+    String? notes,
+    bool syncWidget = true,
+  }) async {
+    final normalizedDate = _normalizedSelectedDate();
+
+    // Entries on screen belong to another date until the load lands; acting
+    // now would write against the wrong day's state.
+    if (_displayedKey != _dateKey(normalizedDate)) return;
+
+    final previous = selectedDateEntries[parameterId];
+    try {
+      await _applyEntryChange(
+        parameterId,
+        value,
+        notes: notes,
+        syncWidget: syncWidget,
+      );
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'Entry save failed',
+        name: 'EntryController',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      await _rollbackEntry(parameterId, normalizedDate, previous);
+      _onSaveFailed();
+    }
+  }
+
+  Future<void> _rollbackEntry(
+    String parameterId,
+    DateTime date,
+    EntryEntity? previous,
+  ) async {
+    if (_dateKey(_normalizedSelectedDate()) == _dateKey(date)) {
+      if (previous == null) {
+        selectedDateEntries.remove(parameterId);
+      } else {
+        selectedDateEntries[parameterId] = previous;
+      }
+      _updateDailyCacheForSelectedDate();
+    } else {
+      _dailyCache.remove(_dateKey(date));
+    }
+
+    final analytics = Get.find<AnalyticsController>();
+    final streaks = Get.find<StreakController>();
+    final wasCompleted = previous != null;
+    analytics.updateFromEntryChange(parameterId, date, wasCompleted);
+
+    // mark/unmark are exact inverses; history may not be loaded yet.
+    if (date == _today()) {
+      wasCompleted
+          ? streaks.markToday(parameterId)
+          : streaks.unmarkToday(parameterId);
+    } else if (analytics.history.isNotEmpty) {
+      await streaks.recomputeFromHistory(parameterId, analytics.history);
+    }
+    await WidgetSyncService.syncNow();
+  }
+
+  Future<void> _applyEntryChange(
     String parameterId,
     dynamic value, {
     String? notes,
@@ -174,10 +242,6 @@ class EntryController extends GetxController {
     final userId = _userId();
     final normalizedDate = _normalizedSelectedDate();
     final normalizedToday = _today();
-
-    // Entries on screen belong to another date until the load lands; acting
-    // now would write against the wrong day's state.
-    if (_displayedKey != _dateKey(normalizedDate)) return;
 
     final existingEntry = selectedDateEntries[parameterId];
 
@@ -662,6 +726,15 @@ class EntryController extends GetxController {
     if (pendingWrites.isNotEmpty) {
       await Future.wait(pendingWrites);
     }
+  }
+
+  void _onSaveFailed() {
+    if (Get.testMode) return;
+    Get.snackbar(
+      AppStrings.saveFailedTitle,
+      AppStrings.saveFailedMessage,
+      snackPosition: SnackPosition.BOTTOM,
+    );
   }
 
   void changeSelectedDate(DateTime date) {

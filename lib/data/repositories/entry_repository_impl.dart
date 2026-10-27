@@ -4,6 +4,7 @@ import '../../core/errors/failures.dart';
 import '../../core/utils/app_constants.dart';
 import '../../domain/entities/entry_entity.dart';
 import '../../domain/repositories/entry_repository.dart';
+import '../../core/utils/app_logger.dart';
 import '../../core/utils/date_utils.dart';
 import '../cache/analytics_cache_service.dart';
 
@@ -126,7 +127,15 @@ class EntryRepositoryImpl implements EntryRepository {
     final fetchStarted = DateTime.now();
     _fetchFromFirestore(userId, days)
         .then((fresh) => _cache.saveIfFresh(fresh, fetchStarted))
-        .catchError((_) {});
+        .catchError((Object error, StackTrace stackTrace) {
+          // Cached data stays valid; the next call retries the refresh.
+          AppLogger.error(
+            'Background analytics refresh failed',
+            name: 'EntryRepository',
+            error: error,
+            stackTrace: stackTrace,
+          );
+        });
   }
   String _parameterIdFromEntryId(String entryId) {
     const suffixLen = 24;

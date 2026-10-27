@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'dart:developer';
 
+import 'package:analyzer/core/utils/app_logger.dart';
+import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/data/services/widget_sync_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -38,6 +41,7 @@ class ParameterController extends GetxController {
 
   final Map<String, ParameterModel> _cache = {};
   bool _hasLoggedFirstEmission = false;
+  StreamSubscription<List<ParameterEntity>>? _subscription;
 
   @override
   void onInit() {
@@ -46,11 +50,20 @@ class ParameterController extends GetxController {
     _listen();
   }
 
+  @override
+  void onClose() {
+    // Otherwise the listener outlives logout and fails on permission-denied.
+    _subscription?.cancel();
+    super.onClose();
+  }
+
   void _listen() {
     isLoading.value = true;
     final listenStopwatch = Stopwatch()..start();
 
-    watchParameters(userId).listen((list) async {
+    _subscription = watchParameters(userId).listen(onError: _onStreamError, (
+      list,
+    ) async {
       final models = list.map((e) => ParameterModel.fromEntity(e)).toList();
 
       parameters.value = models;
@@ -71,6 +84,21 @@ class ParameterController extends GetxController {
 
       await WidgetSyncService.syncNow();
     });
+  }
+
+  void _onStreamError(Object error, StackTrace stackTrace) {
+    AppLogger.error(
+      'Parameter stream failed',
+      name: 'ParameterController',
+      error: error,
+      stackTrace: stackTrace,
+    );
+    isLoading.value = false;
+    Get.snackbar(
+      AppStrings.errorTitle,
+      AppStrings.habitsLoadFailedMessage,
+      snackPosition: SnackPosition.BOTTOM,
+    );
   }
 
   // Instant read from in-memory cache.

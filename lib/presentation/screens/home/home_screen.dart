@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:analyzer/core/theme/app_colors.dart';
+import 'package:analyzer/core/utils/app_logger.dart';
 import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/data/services/widget_action_sync_service.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
@@ -57,26 +58,36 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _loadStopwatch = Stopwatch()..start();
     log('home: startup sync begin', name: 'PERF');
 
-    final entriesStopwatch = Stopwatch()..start();
-    if (!skipEntryReload) {
-      await _entryController.loadEntries(syncWidget: false);
-    }
-    log(
-      'home: entries ready in ${entriesStopwatch.elapsedMilliseconds}ms',
-      name: 'PERF',
-    );
+    try {
+      final entriesStopwatch = Stopwatch()..start();
+      if (!skipEntryReload) {
+        await _entryController.loadEntries(syncWidget: false);
+      }
+      log(
+        'home: entries ready in ${entriesStopwatch.elapsedMilliseconds}ms',
+        name: 'PERF',
+      );
 
-    final widgetActionStopwatch = Stopwatch()..start();
-    await WidgetActionSyncService.processPendingActions();
-    log(
-      'home: widget actions processed in ${widgetActionStopwatch.elapsedMilliseconds}ms',
-      name: 'PERF',
-    );
-
-    if (mounted) {
-      setState(() {
-        _widgetSyncReady = true;
-      });
+      final widgetActionStopwatch = Stopwatch()..start();
+      await WidgetActionSyncService.processPendingActions();
+      log(
+        'home: widget actions processed in ${widgetActionStopwatch.elapsedMilliseconds}ms',
+        name: 'PERF',
+      );
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'Home startup sync failed',
+        name: 'HomeScreen',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      // Always release the skeleton, or a failed load leaves it up forever.
+      if (mounted) {
+        setState(() {
+          _widgetSyncReady = true;
+        });
+      }
     }
 
     await _checkLoadingComplete();

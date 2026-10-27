@@ -1,10 +1,10 @@
-import 'dart:developer';
+import 'dart:async';
 import 'dart:math' show max;
 
 import 'package:analyzer/domain/entities/entry_entity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import '../../core/utils/app_logger.dart';
 import '../../core/utils/date_utils.dart';
 import '../../domain/repositories/streak_repository.dart';
 import '../../domain/services/streak_calculator.dart';
@@ -52,14 +52,12 @@ class StreakController extends GetxController {
       recomputeAllFromHistory(history);
     } catch (error, stackTrace) {
       // Cached values stay usable; getCurrent() still decays stale runs.
-      if (kDebugMode) {
-        log(
-          'Streak refresh failed',
-          name: 'StreakController',
-          error: error,
-          stackTrace: stackTrace,
-        );
-      }
+      AppLogger.error(
+        'Streak refresh failed',
+        name: 'StreakController',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -202,12 +200,19 @@ class StreakController extends GetxController {
       lastCompleted: lastCompleted,
     );
     _saveToCache(parameterId);
-    streakRepository.saveStreak(
-      _userId(),
-      parameterId,
-      current,
-      best,
-      lastCompleted,
+    // Fire-and-forget: the cache is authoritative locally and the next
+    // recompute re-persists, so a failed write only needs logging.
+    unawaited(
+      streakRepository
+          .saveStreak(_userId(), parameterId, current, best, lastCompleted)
+          .catchError((Object error, StackTrace stackTrace) {
+            AppLogger.error(
+              'Streak save failed',
+              name: 'StreakController',
+              error: error,
+              stackTrace: stackTrace,
+            );
+          }),
     );
   }
 

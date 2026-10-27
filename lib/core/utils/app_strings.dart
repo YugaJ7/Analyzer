@@ -155,4 +155,9 @@ abstract final class AppStrings {
   // ── Generic ──────────────────────────────────────────────────────────────
   static const String errorTitle = 'Error';
   static const String unexpectedError = 'Something went wrong.';
+  static const String saveFailedTitle = "Couldn't save";
+  static const String saveFailedMessage =
+      'Your change was undone. Check your connection and try again.';
+  static const String habitsLoadFailedMessage =
+      "Couldn't load your habits. Please try again later.";
 }

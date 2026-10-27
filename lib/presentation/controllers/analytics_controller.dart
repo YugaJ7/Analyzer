@@ -1,3 +1,4 @@
+import 'package:analyzer/core/utils/app_logger.dart';
 import 'package:analyzer/data/cache/analytics_cache_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -60,16 +61,26 @@ class AnalyticsController extends GetxController {
 
   Future<void> loadAnalytics() async {
     isLoading.value = true;
-    final userId = FirebaseAuth.instance.currentUser!.uid;
+    try {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final data = await entryRepository.getEntriesForLastNDays(userId, 365);
 
-    final data = await entryRepository.getEntriesForLastNDays(userId, 365);
+      _history
+        ..clear()
+        ..addAll(data);
 
-    _history
-      ..clear()
-      ..addAll(data);
-
-    _computeAnalytics();
-    isLoading.value = false;
+      _computeAnalytics();
+    } catch (error, stackTrace) {
+      // Keep whatever is on screen; a later load or entry change recomputes.
+      AppLogger.error(
+        'Analytics load failed',
+        name: 'AnalyticsController',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void updateFromEntryChange(String parameterId, DateTime date, bool isAdded) {
