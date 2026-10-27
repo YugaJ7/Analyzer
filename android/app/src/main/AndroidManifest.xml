@@ -6,7 +6,9 @@
     <application
         android:label="Personal Analyzer"
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon">
+        android:icon="@mipmap/launcher_icon"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <receiver
     android:name=".SmallWidgetProvider"
     android:exported="false">

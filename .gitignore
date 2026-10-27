@@ -39,6 +39,18 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
+# Secrets and credentials (keystores are covered in android/.gitignore)
+.env
+.env.*
+*service-account*.json
+*.p8
+*.p12
+
+# Firebase CLI
+.firebase/
+firebase-debug*.log
+firestore-debug*.log
+
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile
