@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:analyzer/core/utils/helper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/errors/failures.dart';
@@ -66,80 +67,48 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-@override
-Future<UserEntity> signInWithGoogle() async {
-  try {
-    log('STEP 1: Initializing Google Sign-In...');
-    await _googleSignIn.initialize();
+  @override
+  Future<UserEntity> signInWithGoogle() async {
+    try {
+      await _googleSignIn.initialize();
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
-    log('STEP 2: Opening Google account picker...');
-    final GoogleSignInAccount googleUser =
-        await _googleSignIn.authenticate();
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleUser.authentication.idToken,
+      );
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
 
-    log('STEP 3: User selected account: ${googleUser.email}');
+      final user = userCredential.user;
+      if (user == null) {
+        throw AppException(const AuthFailure('Google sign-in failed.'));
+      }
 
-    log('STEP 4: Getting authentication tokens...');
-    final GoogleSignInAuthentication googleAuth =
-        googleUser.authentication;
-
-    log('STEP 5: idToken: ${googleAuth.idToken}');
-
-    log('STEP 7: Creating Firebase credential...');
-    final credential = GoogleAuthProvider.credential(
-      idToken: googleAuth.idToken,
-    );
-
-    log('STEP 8: Signing in to Firebase...');
-    final UserCredential userCredential =
-        await _auth.signInWithCredential(credential);
-
-    final user = userCredential.user;
-
-    log('STEP 9: Firebase user = ${user?.email}');
-
-    if (user == null) {
+      return UserEntity(
+        id: user.uid,
+        email: user.email ?? '',
+        name: user.displayName ?? '',
+        createdAt: user.metadata.creationTime ?? DateTime.now(),
+      );
+    } on GoogleSignInException catch (e) {
+      // Log the error code only: tokens, emails and raw provider messages
+      // are sensitive and must never reach the log.
+      _logAuthError('GoogleSignInException(${e.code.name})');
+      throw AppException(AuthFailure(_mapGoogleSignInError(e)));
+    } on FirebaseAuthException catch (e) {
+      _logAuthError('FirebaseAuthException(${e.code})');
+      throw AppException(AuthFailure(mapAuthError(e.code)));
+    } catch (e, stackTrace) {
+      _logAuthError(
+        'Unexpected Google sign-in failure: ${e.runtimeType}',
+        stackTrace: stackTrace,
+      );
       throw AppException(
-        const AuthFailure('Google sign-in failed.'),
+        NetworkFailure('Google sign-in failed. Please try again.'),
       );
     }
-
-    log('STEP 10: Success');
-
-    return UserEntity(
-      id: user.uid,
-      email: user.email ?? '',
-      name: user.displayName ?? '',
-      createdAt:
-          user.metadata.creationTime ?? DateTime.now(),
-    );
-  } on GoogleSignInException catch (e) {
-    log('GOOGLE SIGN IN ERROR');
-    log('Code: ${e.code}');
-    log('Message: $e');
-
-    throw AppException(
-      AuthFailure(_mapGoogleSignInError(e)),
-    );
-  } on FirebaseAuthException catch (e) {
-    log('FIREBASE AUTH ERROR');
-    log('Code: ${e.code}');
-    log('Message: ${e.message}');
-
-    throw AppException(
-      AuthFailure(mapAuthError(e.code)),
-    );
-  } catch (e, stack) {
-    log('UNKNOWN ERROR');
-    log(e.toString());
-    log(stack.toString());
-
-    throw AppException(
-      NetworkFailure(
-        'Google sign-in failed. Please try again.',
-      ),
-    );
   }
-}
 
   @override
   Stream<UserEntity?> get authStateChanges {
@@ -176,6 +145,14 @@ Future<UserEntity> signInWithGoogle() async {
       if (e is AppException) rethrow;
       throw AppException(NetworkFailure('Password change failed.'));
     }
+  }
+
+  /// Debug-only diagnostic logging for auth failures.
+  ///
+  /// Callers must pass sanitised descriptions (error codes / types only).
+  void _logAuthError(String message, {StackTrace? stackTrace}) {
+    if (!kDebugMode) return;
+    log(message, name: 'AuthRepository', stackTrace: stackTrace);
   }
 
   /// Maps v7 [GoogleSignInException] error codes to user-friendly messages.

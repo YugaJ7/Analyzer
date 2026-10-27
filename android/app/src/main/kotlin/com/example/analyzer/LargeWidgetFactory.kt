@@ -21,6 +21,10 @@ class LargeWidgetFactory(
     private val context: Context
 ) : RemoteViewsService.RemoteViewsFactory {
 
+    private companion object {
+        const val TAG = "LargeWidgetFactory"
+    }
+
     private val items =
         mutableListOf<WidgetRow>()
 
@@ -30,10 +34,7 @@ class LargeWidgetFactory(
         items.clear()
     }
 
-    override fun getCount(): Int {
-        Log.d("WIDGET_DEBUG", "getCount=${items.size}")
-        return items.size
-    }
+    override fun getCount(): Int = items.size
 
     override fun getViewTypeCount(): Int = 1
 
@@ -61,8 +62,6 @@ class LargeWidgetFactory(
                     "items_json",
                     "[]"
                 ) ?: "[]"
-
-            Log.d("WIDGET_DEBUG", "Factory json=$json")
 
             val array = JSONArray(json)
 
@@ -101,16 +100,10 @@ class LargeWidgetFactory(
 
                 items.add(row)
             }
-
-            Log.d("WIDGET_DEBUG", "Loaded rows=${items.size}")
-
         } catch (e: Exception) {
-
-            Log.e(
-                "WIDGET_DEBUG",
-                "Parse fail",
-                e
-            )
+            // Log the exception type only: JSONException messages embed the
+            // raw input, which contains the user's habit data.
+            Log.e(TAG, "Failed to parse widget items: ${e.javaClass.simpleName}")
         }
     }
 
@@ -148,11 +141,6 @@ class LargeWidgetFactory(
         views.setOnClickFillInIntent(
             R.id.rowRoot,
             fillInIntent
-        )
-
-        Log.d(
-            "WIDGET_DEBUG",
-            "row=$position text=${buildRowText(items[position])}"
         )
 
         return views

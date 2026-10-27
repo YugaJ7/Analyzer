@@ -1,7 +1,6 @@
 package com.example.analyzer
 
 import android.content.Context
-import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -58,16 +57,6 @@ class MainActivity : FlutterActivity() {
                     call.argument<String>(
                         "itemsJson"
                     ) ?: "[]"
-
-                Log.d(
-                    "CHANNEL",
-                    "percent=$percent completed=$completed total=$total loggedIn=$loggedIn"
-                )
-
-                Log.d(
-                    "WIDGET_DEBUG",
-                    itemsJson
-                )
 
                 val prefs =
                     getSharedPreferences(
