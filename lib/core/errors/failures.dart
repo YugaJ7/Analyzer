@@ -21,6 +21,11 @@ class AuthFailure extends Failure {
   const AuthFailure(super.message);
 }
 
+// User dismissed the sign-in flow; not an error to report.
+class AuthCancelledFailure extends AuthFailure {
+  const AuthCancelledFailure() : super('Sign-in was cancelled.');
+}
+
 // Device has no internet connection.
 class NetworkFailure extends Failure {
   const NetworkFailure(super.message);
@@ -30,4 +35,3 @@ class NetworkFailure extends Failure {
 class ValidationFailure extends Failure {
   const ValidationFailure(super.message);
 }
-

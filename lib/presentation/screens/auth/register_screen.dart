@@ -92,7 +92,8 @@ class RegisterScreen extends GetView<AuthController> {
 
                   const SizedBox(height: 20),
                   Obx(() => CustomTextField(
-                        validator: passwordValidator,
+                        validator: (value) =>
+                            confirmPasswordValidator(value, passwordController.text),
                         controller: confirmPasswordController,
                         label: AppStrings.confirmPassword,
                         hint: "",

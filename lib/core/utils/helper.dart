@@ -57,7 +57,7 @@ String mapAuthError(String code) {
     case 'email-already-in-use':
       return 'This email is already registered.';
     case 'weak-password':
-      return 'Password must be at least 6 characters with letters and numbers.';
+      return 'Password must be at least 8 characters with letters and numbers.';
     case 'network-request-failed':
       return 'No internet connection. Please check your network.';
     case 'too-many-requests':

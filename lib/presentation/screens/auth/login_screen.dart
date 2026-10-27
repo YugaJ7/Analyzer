@@ -68,7 +68,7 @@ class LoginScreen extends GetView<AuthController> {
                   const SizedBox(height: 20),
                   Obx(
                     () => CustomTextField(
-                      validator: passwordValidator,
+                      validator: loginPasswordValidator,
                       controller: passwordController,
                       label: AppStrings.password,
                       icon: Icons.lock_outline,

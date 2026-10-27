@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/firestore_error_messages.dart';
 import '../../core/utils/app_constants.dart';
 import '../../domain/entities/parameter_entity.dart';
 import '../../domain/repositories/parameter_repository.dart';
@@ -24,7 +25,11 @@ class ParameterRepositoryImpl implements ParameterRepository {
           .map((doc) => ParameterModel.fromFirestore(doc, userId).toEntity())
           .toList();
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to load habits.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to load habits.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
       throw AppException(const ServerFailure('Failed to load habits.'));
@@ -40,7 +45,11 @@ class ParameterRepositoryImpl implements ParameterRepository {
       ).add(model.toFirestore());
       return parameter.copyWith(id: docRef.id);
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to add habit.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to add habit.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
       throw AppException(const ServerFailure('Failed to add habit.'));
@@ -56,7 +65,11 @@ class ParameterRepositoryImpl implements ParameterRepository {
     try {
       await _userParams(userId).doc(id).update(updates);
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to update habit.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to update habit.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
       throw AppException(const ServerFailure('Failed to update habit.'));
@@ -68,7 +81,11 @@ class ParameterRepositoryImpl implements ParameterRepository {
     try {
       await _userParams(userId).doc(id).delete();
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to delete habit.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to delete habit.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
       throw AppException(const ServerFailure('Failed to delete habit.'));

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/firestore_error_messages.dart';
 import '../../core/utils/app_constants.dart';
 import '../../domain/entities/entry_entity.dart';
 import '../../domain/repositories/entry_repository.dart';
@@ -49,7 +50,11 @@ class EntryRepositoryImpl implements EntryRepository {
         );
       }).toList();
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to load entries.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to load entries.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
       throw AppException(const ServerFailure('Failed to load entries.'));
@@ -113,7 +118,12 @@ class EntryRepositoryImpl implements EntryRepository {
       return result;
     } on FirebaseException catch (e) {
       throw AppException(
-        ServerFailure(e.message ?? 'Failed to fetch analytics data.'),
+        ServerFailure(
+          mapFirestoreError(
+            e.code,
+            fallback: 'Failed to fetch analytics data.',
+          ),
+        ),
       );
     } catch (e) {
       if (e is AppException) rethrow;
@@ -137,12 +147,13 @@ class EntryRepositoryImpl implements EntryRepository {
           );
         });
   }
+
   String _parameterIdFromEntryId(String entryId) {
     const suffixLen = 24;
     if (entryId.length > suffixLen) {
       return entryId.substring(0, entryId.length - suffixLen);
     }
-    return entryId; 
+    return entryId;
   }
 
   @override
@@ -156,7 +167,11 @@ class EntryRepositoryImpl implements EntryRepository {
         'createdAt': Timestamp.fromDate(entry.createdAt),
       });
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to save entry.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to save entry.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
       throw AppException(const ServerFailure('Failed to save entry.'));
@@ -175,7 +190,11 @@ class EntryRepositoryImpl implements EntryRepository {
           '$parameterId-${DateTime(date.year, date.month, date.day).toIso8601String()}';
       await _entriesRef(userId).doc(entryId).update(updates);
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to update entry.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to update entry.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
       throw AppException(const ServerFailure('Failed to update entry.'));
@@ -193,7 +212,11 @@ class EntryRepositoryImpl implements EntryRepository {
           '$parameterId-${DateTime(date.year, date.month, date.day).toIso8601String()}';
       await _entriesRef(userId).doc(entryId).delete();
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to delete entry.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to delete entry.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
       throw AppException(const ServerFailure('Failed to delete entry.'));
@@ -246,7 +269,12 @@ class EntryRepositoryImpl implements EntryRepository {
       _cache.evictParameter(parameterId);
     } on FirebaseException catch (e) {
       throw AppException(
-        ServerFailure(e.message ?? 'Failed to delete habit entries.'),
+        ServerFailure(
+          mapFirestoreError(
+            e.code,
+            fallback: 'Failed to delete habit entries.',
+          ),
+        ),
       );
     } catch (e) {
       if (e is AppException) rethrow;

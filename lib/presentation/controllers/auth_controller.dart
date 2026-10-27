@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/errors/app_exception.dart';
+import '../../../core/errors/failures.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../data/services/preferences_service.dart';
 import '../../../data/services/user_session_storage.dart';
@@ -89,7 +90,7 @@ class AuthController extends GetxController {
 
       Get.offAllNamed(AppRoutes.home);
     } on AppException catch (e) {
-      if (e.message != 'Google sign-in aborted.') {
+      if (e.failure is! AuthCancelledFailure) {
         errorMessage.value = e.message;
         Get.snackbar(
           'Login Failed',

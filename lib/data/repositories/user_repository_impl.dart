@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/firestore_error_messages.dart';
 import '../../core/utils/app_constants.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/user_repository.dart';
@@ -25,7 +26,9 @@ class UserRepositoryImpl implements UserRepository {
       return userModel.toEntity();
     } on FirebaseException catch (e) {
       throw AppException(
-        ServerFailure(e.message ?? 'Failed to create user profile.'),
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to create user profile.'),
+        ),
       );
     } catch (e) {
       if (e is AppException) rethrow;
@@ -41,7 +44,9 @@ class UserRepositoryImpl implements UserRepository {
       return UserModel.fromFirestore(doc).toEntity();
     } on FirebaseException catch (e) {
       throw AppException(
-        ServerFailure(e.message ?? 'Failed to fetch user profile.'),
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to fetch user profile.'),
+        ),
       );
     } catch (e) {
       if (e is AppException) rethrow;
@@ -69,7 +74,9 @@ class UserRepositoryImpl implements UserRepository {
       await _usersRef.doc(id).set(data, SetOptions(merge: true));
     } on FirebaseException catch (e) {
       throw AppException(
-        ServerFailure(e.message ?? 'Failed to update user profile.'),
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to update user profile.'),
+        ),
       );
     } catch (e) {
       if (e is AppException) rethrow;
@@ -82,7 +89,11 @@ class UserRepositoryImpl implements UserRepository {
     try {
       await _usersRef.doc(id).delete();
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to delete user.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to delete user.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
       throw AppException(const ServerFailure('Failed to delete user.'));

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/firestore_error_messages.dart';
 import '../../core/utils/app_constants.dart';
 import '../../domain/repositories/streak_repository.dart';
 
@@ -32,7 +33,11 @@ class StreakRepositoryImpl implements StreakRepository {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to save streak.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to save streak.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
       throw AppException(const ServerFailure('Failed to save streak.'));
@@ -55,7 +60,11 @@ class StreakRepositoryImpl implements StreakRepository {
       }
       return result;
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to load streaks.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to load streaks.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
       throw AppException(const ServerFailure('Failed to load streaks.'));

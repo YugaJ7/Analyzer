@@ -109,13 +109,13 @@ class AuthLockService {
 
         default:
           if (showErrors) {
-            _show('Auth Error', e.description ?? 'Authentication failed');
+            _show('Authentication Failed', 'Please try again.');
           }
           return const AuthLockResult.failure(AuthLockFailure.unknown);
       }
-    } on PlatformException catch (e) {
+    } on PlatformException {
       if (showErrors) {
-        _show('Platform Error', e.message ?? 'Something went wrong');
+        _show('Authentication Failed', 'Please try again.');
       }
       return const AuthLockResult.failure(AuthLockFailure.platform);
     } catch (e) {

@@ -44,7 +44,7 @@ class AuthRepositoryImpl implements AuthRepository {
       throw AppException(AuthFailure(mapAuthError(e.code)));
     } catch (e) {
       throw AppException(
-        NetworkFailure('Login failed. Check your connection.'),
+        AuthFailure('Login failed. Please try again.'),
       );
     }
   }
@@ -66,7 +66,7 @@ class AuthRepositoryImpl implements AuthRepository {
       throw AppException(AuthFailure(mapAuthError(e.code)));
     } catch (e) {
       throw AppException(
-        NetworkFailure('Registration failed. Check your connection.'),
+        AuthFailure('Registration failed. Please try again.'),
       );
     }
   }
@@ -140,6 +140,9 @@ class AuthRepositoryImpl implements AuthRepository {
       // Log the error code only: tokens, emails and raw provider messages
       // are sensitive and must never reach the log.
       _logAuthError('GoogleSignInException(${e.code.name})');
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw AppException(const AuthCancelledFailure());
+      }
       throw AppException(AuthFailure(_mapGoogleSignInError(e)));
     } on FirebaseAuthException catch (e) {
       _logAuthError('FirebaseAuthException(${e.code})');
@@ -150,7 +153,7 @@ class AuthRepositoryImpl implements AuthRepository {
         stackTrace: stackTrace,
       );
       throw AppException(
-        NetworkFailure('Google sign-in failed. Please try again.'),
+        AuthFailure('Google sign-in failed. Please try again.'),
       );
     }
   }
@@ -188,7 +191,7 @@ class AuthRepositoryImpl implements AuthRepository {
       throw AppException(AuthFailure(mapAuthError(e.code)));
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(NetworkFailure('Password change failed.'));
+      throw AppException(AuthFailure('Password change failed.'));
     }
   }
 
