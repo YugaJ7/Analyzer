@@ -150,6 +150,7 @@ class HomeBinding extends Bindings {
       StreakController(
         streakRepository: Get.find<StreakRepository>(),
         streakCache: Get.find<StreakCacheService>(),
+        getEntriesForLastNDays: Get.find<GetEntriesForLastNDays>(),
       ),
       permanent: true,
     );

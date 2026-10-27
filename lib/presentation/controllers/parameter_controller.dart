@@ -97,7 +97,7 @@ class ParameterController extends GetxController {
 
     Get.find<AnalyticsController>().removeHabitEntries(id);
 
-    streakCache.save(id, 0, 0);
+    streakCache.save(id, 0, 0, null);
 
     parameters.removeWhere((p) => p.id == id);
 

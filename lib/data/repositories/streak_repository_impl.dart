@@ -20,11 +20,15 @@ class StreakRepositoryImpl implements StreakRepository {
     String parameterId,
     int current,
     int best,
+    DateTime? lastCompletedDate,
   ) async {
     try {
       await _streaks(userId).doc(parameterId).set({
         'currentStreak': current,
         'bestStreak': best,
+        'lastCompletedDate': lastCompletedDate == null
+            ? null
+            : Timestamp.fromDate(lastCompletedDate),
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (e) {
@@ -41,7 +45,13 @@ class StreakRepositoryImpl implements StreakRepository {
       final snapshot = await _streaks(userId).get();
       final Map<String, Map<String, dynamic>> result = {};
       for (final doc in snapshot.docs) {
-        result[doc.id] = doc.data();
+        final data = doc.data();
+        // Keep Firestore types out of the domain layer.
+        final last = data['lastCompletedDate'];
+        result[doc.id] = {
+          ...data,
+          'lastCompletedDate': last is Timestamp ? last.toDate() : null,
+        };
       }
       return result;
     } on FirebaseException catch (e) {

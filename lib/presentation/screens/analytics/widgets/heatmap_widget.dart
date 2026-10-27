@@ -1,4 +1,5 @@
 import 'package:analyzer/core/utils/app_strings.dart';
+import 'package:analyzer/core/utils/date_utils.dart';
 import 'package:analyzer/core/utils/helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -20,11 +21,7 @@ class HeatmapWidget extends StatelessWidget {
 
       // Only show the last 90 days for a cleaner view
       final now = DateTime.now();
-      final cutoff = DateTime(
-        now.year,
-        now.month,
-        now.day,
-      ).subtract(const Duration(days: 90));
+      final cutoff = AppDateUtils.addDays(now, -90);
 
       final filteredEntries =
           controller.heatmapData.entries
@@ -62,7 +59,7 @@ class HeatmapWidget extends StatelessWidget {
 
         final percent = dataMap[cursor] ?? 0.0;
         currentWeek.add(_DayData(date: cursor, percent: percent));
-        cursor = cursor.add(const Duration(days: 1));
+        cursor = AppDateUtils.addDays(cursor, 1);
       }
       // Add remaining week
       if (currentWeek.isNotEmpty) {

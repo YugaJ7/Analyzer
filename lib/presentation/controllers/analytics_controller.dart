@@ -1,8 +1,10 @@
 import 'package:analyzer/data/cache/analytics_cache_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
+import '../../core/utils/date_utils.dart';
 import '../../domain/entities/entry_entity.dart';
 import '../../domain/repositories/entry_repository.dart';
+import '../../domain/services/streak_calculator.dart';
 import 'parameter_controller.dart';
 
 class AnalyticsController extends GetxController {
@@ -131,8 +133,7 @@ class AnalyticsController extends GetxController {
     int totalCompletions = 0;
     int totalPossible = 0;
 
-    int overallCurrent = 0;
-    int overallBest = 0;
+    final activeDays = <DateTime>[];
 
     int weeklyComp = 0;
     int weeklyPoss = 0;
@@ -152,19 +153,16 @@ class AnalyticsController extends GetxController {
     final List<double> trend7 = [];
     final List<double> trend30 = [];
 
-    final startOfToday = DateTime(now.year, now.month, now.day);
-    final mondayOfThisWeek = startOfToday.subtract(
-      Duration(days: now.weekday - 1),
+    final startOfToday = AppDateUtils.dateOnly(now);
+    final mondayOfThisWeek = AppDateUtils.addDays(
+      startOfToday,
+      -(now.weekday - 1),
     );
 
     heatmapData.clear();
 
     for (int i = 0; i < 365; i++) {
-      final date = DateTime(
-        now.year,
-        now.month,
-        now.day,
-      ).subtract(Duration(days: i));
+      final date = AppDateUtils.addDays(startOfToday, -i);
 
       final entries = _history[date] ?? [];
       final completedIds = <String>{};
@@ -210,14 +208,7 @@ class AnalyticsController extends GetxController {
       weekdayMap.putIfAbsent(date.weekday, () => []);
       weekdayMap[date.weekday]!.add(completionRate);
 
-      if (completedToday > 0) {
-        overallCurrent++;
-        if (overallCurrent > overallBest) {
-          overallBest = overallCurrent;
-        }
-      } else {
-        overallCurrent = 0;
-      }
+      if (completedToday > 0) activeDays.add(date);
     }
 
     overallCompletionRate.value = totalPossible == 0
@@ -226,8 +217,12 @@ class AnalyticsController extends GetxController {
 
     performanceScore.value = overallCompletionRate.value;
 
-    overallCurrentStreak.value = overallCurrent;
-    overallBestStreak.value = overallBest;
+    final overallStreak = StreakCalculator.fromCompletedDays(
+      activeDays,
+      today: startOfToday,
+    );
+    overallCurrentStreak.value = overallStreak.current;
+    overallBestStreak.value = overallStreak.best;
 
     weeklyCompleted.value = weeklyComp;
     weeklyTotal.value = weeklyPoss;

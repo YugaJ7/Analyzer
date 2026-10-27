@@ -4,6 +4,7 @@ import '../../core/errors/failures.dart';
 import '../../core/utils/app_constants.dart';
 import '../../domain/entities/entry_entity.dart';
 import '../../domain/repositories/entry_repository.dart';
+import '../../core/utils/date_utils.dart';
 import '../cache/analytics_cache_service.dart';
 
 class EntryRepositoryImpl implements EntryRepository {
@@ -26,7 +27,7 @@ class EntryRepositoryImpl implements EntryRepository {
   ) async {
     try {
       final start = DateTime(date.year, date.month, date.day);
-      final end = start.add(const Duration(days: 1));
+      final end = AppDateUtils.addDays(start, 1);
 
       final snapshot = await _entriesRef(userId)
           .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
@@ -79,7 +80,7 @@ class EntryRepositoryImpl implements EntryRepository {
     try {
       final Map<DateTime, List<EntryEntity>> result = {};
       final now = DateTime.now();
-      final startDate = now.subtract(Duration(days: days));
+      final startDate = AppDateUtils.addDays(now, -days);
 
       final snapshot = await _firestore
           .collection(AppConstants.kUsersCollection)

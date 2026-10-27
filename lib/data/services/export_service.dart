@@ -6,6 +6,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart' show PdfGoogleFonts;
 import 'package:share_plus/share_plus.dart';
+import '../../core/utils/date_utils.dart';
 
 import '../../../presentation/controllers/analytics_controller.dart';
 import '../../../presentation/controllers/parameter_controller.dart';
@@ -686,11 +687,7 @@ class ExportService {
 
     // Get last 90 days
     final days = List.generate(90, (i) {
-      final d = DateTime(
-        now.year,
-        now.month,
-        now.day,
-      ).subtract(Duration(days: 89 - i));
+      final d = AppDateUtils.addDays(now, -(89 - i));
       return d;
     });
 

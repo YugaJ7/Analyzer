@@ -18,7 +18,14 @@ class SaveStreak {
     String parameterId,
     int current,
     int best,
+    DateTime? lastCompletedDate,
   ) {
-    return repository.saveStreak(userId, parameterId, current, best);
+    return repository.saveStreak(
+      userId,
+      parameterId,
+      current,
+      best,
+      lastCompletedDate,
+    );
   }
 }

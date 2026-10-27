@@ -1,4 +1,5 @@
 import 'package:analyzer/core/utils/app_strings.dart';
+import 'package:analyzer/core/utils/date_utils.dart';
 import 'package:analyzer/core/utils/helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -30,7 +31,7 @@ class DateSelector extends StatelessWidget {
             IconButton(
               onPressed: () {
                 entryController.changeSelectedDate(
-                  selectedDate.subtract(const Duration(days: 1)),
+                  AppDateUtils.addDays(selectedDate, -1),
                 );
               },
               icon: const Icon(Icons.chevron_left),
@@ -101,7 +102,7 @@ class DateSelector extends StatelessWidget {
                   ? null
                   : () {
                       entryController.changeSelectedDate(
-                        selectedDate.add(const Duration(days: 1)),
+                        AppDateUtils.addDays(selectedDate, 1),
                       );
                     },
               icon: const Icon(Icons.chevron_right),
