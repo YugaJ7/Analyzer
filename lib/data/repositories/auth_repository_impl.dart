@@ -99,6 +99,20 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> deleteCurrentUser() async {
+    try {
+      await _auth.currentUser?.delete();
+    } catch (e, stackTrace) {
+      _logAuthError(
+        'Account deletion failed: ${e.runtimeType}',
+        stackTrace: stackTrace,
+      );
+      // Can't delete; at least don't leave a half-registered session.
+      await _auth.signOut().catchError((_) {});
+    }
+  }
+
+  @override
   Future<UserEntity> signInWithGoogle() async {
     try {
       await _ensureGoogleInitialized();

@@ -26,7 +26,9 @@ class AuthBinding extends Bindings {
     Get.put<RegisterUser>(
       RegisterUser(Get.find<AuthRepository>(), Get.find<UserRepository>()),
     );
-    Get.put<SignInWithGoogle>(SignInWithGoogle(Get.find<AuthRepository>()));
+    Get.put<SignInWithGoogle>(
+      SignInWithGoogle(Get.find<AuthRepository>(), Get.find<UserRepository>()),
+    );
     Get.put<LogoutUser>(LogoutUser(Get.find<AuthRepository>()));
     Get.put<GetUserProfile>(GetUserProfile(Get.find<UserRepository>()));
 

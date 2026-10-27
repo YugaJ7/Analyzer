@@ -37,7 +37,8 @@ class UserModel extends UserEntity {
       id: doc.id,
       email: data['email'] as String? ?? '',
       name: data['name'] as String? ?? '',
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      // Absent on docs first created by a merge-update.
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
