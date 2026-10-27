@@ -21,6 +21,9 @@ class EntryController extends GetxController {
   final DateTime Function() _today;
   final String Function() _userId;
   final Future<void> Function() _syncWidget;
+  // Resolved lazily: both are registered after this controller.
+  final AnalyticsController Function() _analytics;
+  final StreakController Function() _streaks;
 
   EntryController({
     required this.getEntriesForDate,
@@ -30,9 +33,13 @@ class EntryController extends GetxController {
     DateTime Function()? today,
     String Function()? userId,
     Future<void> Function()? syncWidget,
+    AnalyticsController Function()? analytics,
+    StreakController Function()? streaks,
   }) : _today = today ?? AppDateUtils.today,
        _userId = userId ?? (() => FirebaseAuth.instance.currentUser!.uid),
        _syncWidget = syncWidget ?? WidgetSyncService.syncNow,
+       _analytics = analytics ?? Get.find<AnalyticsController>,
+       _streaks = streaks ?? Get.find<StreakController>,
        selectedDate = (today ?? AppDateUtils.today)().obs {
     _lastKnownToday = selectedDate.value;
   }
@@ -105,11 +112,6 @@ class EntryController extends GetxController {
     hasLoadedEntries.value = true;
   }
 
-  void _updateDailyCacheForSelectedDate() {
-    final key = _dateKey(_normalizedSelectedDate());
-    _dailyCache[key] = Map<String, EntryEntity>.from(selectedDateEntries);
-  }
-
   Future<void> loadEntries({
     bool forceRefresh = false,
     bool syncWidget = true,
@@ -175,20 +177,19 @@ class EntryController extends GetxController {
     String? notes,
     bool syncWidget = true,
   }) async {
-    final normalizedDate = _normalizedSelectedDate();
+    final date = _normalizedSelectedDate();
 
     // Entries on screen belong to another date until the load lands; acting
     // now would write against the wrong day's state.
-    if (_displayedKey != _dateKey(normalizedDate)) return;
+    if (_displayedKey != _dateKey(date)) return;
 
     final previous = selectedDateEntries[parameterId];
+    final next = _nextEntry(parameterId, date, previous, value, notes: notes);
+    if (previous == null && next == null) return;
+
+    await _setLocalEntry(date, parameterId, next);
     try {
-      await _applyEntryChange(
-        parameterId,
-        value,
-        notes: notes,
-        syncWidget: syncWidget,
-      );
+      await _persist(date, parameterId, previous: previous, next: next);
     } catch (error, stackTrace) {
       AppLogger.error(
         'Entry save failed',
@@ -196,536 +197,161 @@ class EntryController extends GetxController {
         error: error,
         stackTrace: stackTrace,
       );
-      await _rollbackEntry(parameterId, normalizedDate, previous);
+      await _setLocalEntry(date, parameterId, previous);
       _onSaveFailed();
+    }
+
+    if (syncWidget && date == _today()) await _syncWidgetNow();
+  }
+
+  /// Applies queued home-screen widget taps. Each failed write is rolled back
+  /// and the first error rethrown, so the caller keeps the queue for a retry.
+  Future<void> applyTodayWidgetActionsOptimistically(
+    List<Map<String, dynamic>> actions,
+  ) async {
+    if (actions.isEmpty) return;
+
+    final date = _normalizedSelectedDate();
+    if (date != _today() || _displayedKey != _dateKey(date)) {
+      throw StateError('Widget actions require today to be displayed');
+    }
+
+    final writes = <Future<void>>[];
+    for (final action in actions) {
+      final parameterId = action['parameterId'] as String?;
+      if (parameterId == null) continue;
+
+      final previous = selectedDateEntries[parameterId];
+      final result = _widgetActionResult(parameterId, date, previous, action);
+      if (result == null) continue;
+
+      await _setLocalEntry(date, parameterId, result.next);
+      writes.add(
+        _persist(
+          date,
+          parameterId,
+          previous: previous,
+          next: result.next,
+        ).catchError((Object error, StackTrace stackTrace) async {
+          await _setLocalEntry(date, parameterId, previous);
+          Error.throwWithStackTrace(error, stackTrace);
+        }),
+      );
+    }
+
+    // eagerError off: every write settles (and rolls back) before rethrowing.
+    await Future.wait(writes);
+  }
+
+  /// The entry [value] produces, or null for "no entry". A bool toggles.
+  EntryEntity? _nextEntry(
+    String parameterId,
+    DateTime date,
+    EntryEntity? existing,
+    dynamic value, {
+    String? notes,
+  }) {
+    if (value is bool) {
+      return existing != null
+          ? null
+          : _newEntry(parameterId, date, true, notes: notes);
+    }
+    if (value == null) return null;
+    return existing?.copyWith(value: value) ??
+        _newEntry(parameterId, date, value, notes: notes);
+  }
+
+  /// Null when the action changes nothing; otherwise the resulting entry.
+  ({EntryEntity? next})? _widgetActionResult(
+    String parameterId,
+    DateTime date,
+    EntryEntity? existing,
+    Map<String, dynamic> action,
+  ) {
+    switch (action['type']) {
+      case 'checklist':
+        final done = action['done'] == true;
+        if ((existing != null) == done) return null;
+        return (next: done ? _newEntry(parameterId, date, true) : null);
+      case 'optionSelector':
+        final value = action['value']?.toString();
+        if (value == null) return null;
+        // Blank is the widget's "unselect" sentinel.
+        if (value.isEmpty) return existing == null ? null : (next: null);
+        if (existing?.value?.toString() == value) return null;
+        return (
+          next:
+              existing?.copyWith(value: value) ??
+              _newEntry(parameterId, date, value),
+        );
+      default:
+        return null;
     }
   }
 
-  Future<void> _rollbackEntry(
+  EntryEntity _newEntry(
     String parameterId,
     DateTime date,
-    EntryEntity? previous,
+    dynamic value, {
+    String? notes,
+  }) {
+    return EntryEntity(
+      id: '$parameterId-${date.toIso8601String()}',
+      userId: _userId(),
+      parameterId: parameterId,
+      date: date,
+      value: value,
+      notes: notes,
+      createdAt: DateTime.now(),
+    );
+  }
+
+  /// Single point that updates every local view of an entry: the displayed
+  /// map (if [date] is on screen), day cache, analytics and streak.
+  Future<void> _setLocalEntry(
+    DateTime date,
+    String parameterId,
+    EntryEntity? entry,
   ) async {
-    if (_dateKey(_normalizedSelectedDate()) == _dateKey(date)) {
-      if (previous == null) {
-        selectedDateEntries.remove(parameterId);
-      } else {
-        selectedDateEntries[parameterId] = previous;
-      }
-      _updateDailyCacheForSelectedDate();
+    final key = _dateKey(date);
+    final dayEntries = _displayedKey == key
+        ? selectedDateEntries
+        : <String, EntryEntity>{...?_dailyCache[key]};
+    final wasCompleted = dayEntries.containsKey(parameterId);
+
+    if (entry == null) {
+      dayEntries.remove(parameterId);
     } else {
-      _dailyCache.remove(_dateKey(date));
+      dayEntries[parameterId] = entry;
     }
+    _dailyCache[key] = Map.of(dayEntries);
 
-    final analytics = Get.find<AnalyticsController>();
-    final streaks = Get.find<StreakController>();
-    final wasCompleted = previous != null;
-    analytics.updateFromEntryChange(parameterId, date, wasCompleted);
+    // Value edits don't change completion, so stats are unaffected.
+    if (wasCompleted == (entry != null)) return;
 
-    // mark/unmark are exact inverses; history may not be loaded yet.
+    final analytics = _analytics()
+      ..updateFromEntryChange(parameterId, date, entry != null);
+    final streaks = _streaks();
     if (date == _today()) {
-      wasCompleted
+      // mark/unmark are exact inverses and need no loaded history.
+      entry != null
           ? streaks.markToday(parameterId)
           : streaks.unmarkToday(parameterId);
     } else if (analytics.history.isNotEmpty) {
       await streaks.recomputeFromHistory(parameterId, analytics.history);
     }
-    await WidgetSyncService.syncNow();
   }
 
-  Future<void> _applyEntryChange(
-    String parameterId,
-    dynamic value, {
-    String? notes,
-    bool syncWidget = true,
-  }) async {
+  Future<void> _persist(
+    DateTime date,
+    String parameterId, {
+    required EntryEntity? previous,
+    required EntryEntity? next,
+  }) {
     final userId = _userId();
-    final normalizedDate = _normalizedSelectedDate();
-    final normalizedToday = _today();
-
-    final existingEntry = selectedDateEntries[parameterId];
-
-    final entryId = "$parameterId-${normalizedDate.toIso8601String()}";
-
-    final analyticsController = Get.find<AnalyticsController>();
-
-    final streakController = Get.find<StreakController>();
-
-    final isToday = normalizedDate == normalizedToday;
-
-    final bool isBoolean = value is bool;
-
-    // -----------------------------------
-    // WIDGET SYNC
-    // -----------------------------------
-    Future<void> syncWidgetIfToday() async {
-      if (!syncWidget || !isToday) return;
-
-      await WidgetSyncService.syncNow();
-    }
-
-    // -----------------------------------
-    // BOOLEAN / CHECKLIST
-    // -----------------------------------
-    if (isBoolean) {
-      if (existingEntry != null) {
-        selectedDateEntries.remove(parameterId);
-        _updateDailyCacheForSelectedDate();
-
-        analyticsController.updateFromEntryChange(
-          parameterId,
-          normalizedDate,
-          false,
-        );
-
-        if (isToday) {
-          streakController.unmarkToday(parameterId);
-        } else {
-          await streakController.recomputeFromHistory(
-            parameterId,
-            analyticsController.history,
-          );
-        }
-
-        await deleteEntry(userId, normalizedDate, parameterId);
-
-        await syncWidgetIfToday();
-        return;
-      }
-
-      final entry = EntryEntity(
-        id: entryId,
-        userId: userId,
-        parameterId: parameterId,
-        date: normalizedDate,
-        value: true,
-        notes: notes,
-        createdAt: DateTime.now(),
-      );
-
-      selectedDateEntries[parameterId] = entry;
-      _updateDailyCacheForSelectedDate();
-
-      analyticsController.updateFromEntryChange(
-        parameterId,
-        normalizedDate,
-        true,
-      );
-
-      if (isToday) {
-        streakController.markToday(parameterId);
-      } else {
-        await streakController.recomputeFromHistory(
-          parameterId,
-          analyticsController.history,
-        );
-      }
-
-      await saveEntry(entry);
-
-      await syncWidgetIfToday();
-      return;
-    }
-
-    // -----------------------------------
-    // CLEAR NUMERIC / OPTION
-    // -----------------------------------
-    if (value == null) {
-      if (existingEntry == null) return;
-
-      selectedDateEntries.remove(parameterId);
-      _updateDailyCacheForSelectedDate();
-
-      analyticsController.updateFromEntryChange(
-        parameterId,
-        normalizedDate,
-        false,
-      );
-
-      if (isToday) {
-        streakController.unmarkToday(parameterId);
-      } else {
-        await streakController.recomputeFromHistory(
-          parameterId,
-          analyticsController.history,
-        );
-      }
-
-      await deleteEntry(userId, normalizedDate, parameterId);
-
-      await syncWidgetIfToday();
-      return;
-    }
-
-    // -----------------------------------
-    // UPDATE NUMERIC / OPTION
-    // -----------------------------------
-    if (existingEntry != null) {
-      final updated = existingEntry.copyWith(value: value);
-
-      selectedDateEntries[parameterId] = updated;
-      _updateDailyCacheForSelectedDate();
-
-      await updateEntry(userId, normalizedDate, parameterId, {'value': value});
-
-      await syncWidgetIfToday();
-      return;
-    }
-
-    // -----------------------------------
-    // CREATE NUMERIC / OPTION
-    // -----------------------------------
-    final entry = EntryEntity(
-      id: entryId,
-      userId: userId,
-      parameterId: parameterId,
-      date: normalizedDate,
-      value: value,
-      notes: notes,
-      createdAt: DateTime.now(),
-    );
-
-    selectedDateEntries[parameterId] = entry;
-    _updateDailyCacheForSelectedDate();
-
-    analyticsController.updateFromEntryChange(
-      parameterId,
-      normalizedDate,
-      true,
-    );
-
-    if (isToday) {
-      streakController.markToday(parameterId);
-    } else {
-      await streakController.recomputeFromHistory(
-        parameterId,
-        analyticsController.history,
-      );
-    }
-
-    await saveEntry(entry);
-
-    await syncWidgetIfToday();
-  }
-
-  Future<void> applyWidgetActionsBatch(
-    List<Map<String, dynamic>> actions,
-  ) async {
-    if (actions.isEmpty) {
-      return;
-    }
-
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    final normalizedDate = DateTime(
-      selectedDate.value.year,
-      selectedDate.value.month,
-      selectedDate.value.day,
-    );
-
-    final normalizedToday = _today();
-    final isToday = normalizedDate == normalizedToday;
-
-    final analyticsController = Get.find<AnalyticsController>();
-    final streakController = Get.find<StreakController>();
-    final pendingWrites = <Future<void>>[];
-
-    for (final action in actions) {
-      final parameterId = action['parameterId'] as String?;
-      final type = action['type'] as String?;
-      final done = action['done'] == true;
-      final value = action['value'];
-
-      if (parameterId == null || type == null) {
-        continue;
-      }
-
-      final existingEntry = selectedDateEntries[parameterId];
-      final entryId = "$parameterId-${normalizedDate.toIso8601String()}";
-
-      if (type == 'checklist') {
-        final isCompleted = existingEntry != null;
-
-        if (isCompleted == done) {
-          continue;
-        }
-
-        if (done) {
-          final entry = EntryEntity(
-            id: entryId,
-            userId: userId,
-            parameterId: parameterId,
-            date: normalizedDate,
-            value: true,
-            createdAt: DateTime.now(),
-          );
-
-          selectedDateEntries[parameterId] = entry;
-          analyticsController.updateFromEntryChange(
-            parameterId,
-            normalizedDate,
-            true,
-          );
-
-          if (isToday) {
-            streakController.markToday(parameterId);
-          } else {
-            await streakController.recomputeFromHistory(
-              parameterId,
-              analyticsController.history,
-            );
-          }
-
-          pendingWrites.add(saveEntry(entry));
-          continue;
-        }
-
-        selectedDateEntries.remove(parameterId);
-        analyticsController.updateFromEntryChange(
-          parameterId,
-          normalizedDate,
-          false,
-        );
-
-        if (isToday) {
-          streakController.unmarkToday(parameterId);
-        } else {
-          await streakController.recomputeFromHistory(
-            parameterId,
-            analyticsController.history,
-          );
-        }
-
-        pendingWrites.add(deleteEntry(userId, normalizedDate, parameterId));
-        continue;
-      }
-
-      if (type != 'optionSelector') {
-        continue;
-      }
-
-      final nextValue = value?.toString();
-      if (nextValue == null) {
-        continue;
-      }
-
-      // Blank sentinel from widget means unselect (delete the entry)
-      if (nextValue.isEmpty) {
-        if (existingEntry == null) continue;
-
-        selectedDateEntries.remove(parameterId);
-        analyticsController.updateFromEntryChange(
-          parameterId,
-          normalizedDate,
-          false,
-        );
-
-        if (isToday) {
-          streakController.unmarkToday(parameterId);
-        } else {
-          await streakController.recomputeFromHistory(
-            parameterId,
-            analyticsController.history,
-          );
-        }
-
-        pendingWrites.add(deleteEntry(userId, normalizedDate, parameterId));
-        continue;
-      }
-
-      if (existingEntry != null) {
-        final currentValue = existingEntry.value?.toString();
-        if (currentValue == nextValue) {
-          continue;
-        }
-
-        selectedDateEntries[parameterId] = existingEntry.copyWith(
-          value: nextValue,
-        );
-        pendingWrites.add(
-          updateEntry(userId, normalizedDate, parameterId, {
-            'value': nextValue,
-          }),
-        );
-        continue;
-      }
-
-      final entry = EntryEntity(
-        id: entryId,
-        userId: userId,
-        parameterId: parameterId,
-        date: normalizedDate,
-        value: nextValue,
-        createdAt: DateTime.now(),
-      );
-
-      selectedDateEntries[parameterId] = entry;
-      analyticsController.updateFromEntryChange(
-        parameterId,
-        normalizedDate,
-        true,
-      );
-
-      if (isToday) {
-        streakController.markToday(parameterId);
-      } else {
-        await streakController.recomputeFromHistory(
-          parameterId,
-          analyticsController.history,
-        );
-      }
-
-      pendingWrites.add(saveEntry(entry));
-    }
-
-    _updateDailyCacheForSelectedDate();
-
-    if (pendingWrites.isNotEmpty) {
-      await Future.wait(pendingWrites);
-    }
-  }
-
-  Future<void> applyTodayWidgetActionsOptimistically(
-    List<Map<String, dynamic>> actions,
-  ) async {
-    if (actions.isEmpty) {
-      return;
-    }
-
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    final normalizedDate = DateTime(
-      selectedDate.value.year,
-      selectedDate.value.month,
-      selectedDate.value.day,
-    );
-
-    final normalizedToday = _today();
-
-    if (normalizedDate != normalizedToday) {
-      await applyWidgetActionsBatch(actions);
-      return;
-    }
-
-    final analyticsController = Get.find<AnalyticsController>();
-    final streakController = Get.find<StreakController>();
-    final pendingWrites = <Future<void>>[];
-
-    for (final action in actions) {
-      final parameterId = action['parameterId'] as String?;
-      final type = action['type'] as String?;
-      final done = action['done'] == true;
-      final value = action['value'];
-
-      if (parameterId == null || type == null) {
-        continue;
-      }
-
-      final existingEntry = selectedDateEntries[parameterId];
-      final entryId = "$parameterId-${normalizedDate.toIso8601String()}";
-
-      if (type == 'checklist') {
-        final isCompleted = existingEntry != null;
-
-        if (isCompleted == done) {
-          continue;
-        }
-
-        if (done) {
-          final entry = EntryEntity(
-            id: entryId,
-            userId: userId,
-            parameterId: parameterId,
-            date: normalizedDate,
-            value: true,
-            createdAt: DateTime.now(),
-          );
-
-          selectedDateEntries[parameterId] = entry;
-          analyticsController.updateFromEntryChange(
-            parameterId,
-            normalizedDate,
-            true,
-          );
-          streakController.markToday(parameterId);
-          pendingWrites.add(saveEntry(entry));
-          continue;
-        }
-
-        selectedDateEntries.remove(parameterId);
-        analyticsController.updateFromEntryChange(
-          parameterId,
-          normalizedDate,
-          false,
-        );
-        streakController.unmarkToday(parameterId);
-        pendingWrites.add(deleteEntry(userId, normalizedDate, parameterId));
-        continue;
-      }
-
-      if (type != 'optionSelector') {
-        continue;
-      }
-
-      final nextValue = value?.toString();
-      if (nextValue == null) {
-        continue;
-      }
-
-      // Blank sentinel from widget means unselect (delete the entry)
-      if (nextValue.isEmpty) {
-        if (existingEntry == null) continue;
-
-        selectedDateEntries.remove(parameterId);
-        analyticsController.updateFromEntryChange(
-          parameterId,
-          normalizedDate,
-          false,
-        );
-        streakController.unmarkToday(parameterId);
-        pendingWrites.add(deleteEntry(userId, normalizedDate, parameterId));
-        continue;
-      }
-
-      if (existingEntry != null) {
-        final currentValue = existingEntry.value?.toString();
-        if (currentValue == nextValue) {
-          continue;
-        }
-
-        selectedDateEntries[parameterId] = existingEntry.copyWith(
-          value: nextValue,
-        );
-        pendingWrites.add(
-          updateEntry(userId, normalizedDate, parameterId, {
-            'value': nextValue,
-          }),
-        );
-        continue;
-      }
-
-      final entry = EntryEntity(
-        id: entryId,
-        userId: userId,
-        parameterId: parameterId,
-        date: normalizedDate,
-        value: nextValue,
-        createdAt: DateTime.now(),
-      );
-
-      selectedDateEntries[parameterId] = entry;
-      analyticsController.updateFromEntryChange(
-        parameterId,
-        normalizedDate,
-        true,
-      );
-      streakController.markToday(parameterId);
-      pendingWrites.add(saveEntry(entry));
-    }
-
-    _updateDailyCacheForSelectedDate();
-
-    if (pendingWrites.isNotEmpty) {
-      await Future.wait(pendingWrites);
-    }
+    if (next == null) return deleteEntry(userId, date, parameterId);
+    if (previous == null) return saveEntry(next);
+    return updateEntry(userId, date, parameterId, {'value': next.value});
   }
 
   void _onSaveFailed() {

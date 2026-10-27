@@ -22,6 +22,11 @@ class ParameterController extends GetxController {
   final WatchParameters watchParameters;
   final ReorderParameters reorderParameters;
   final DeleteAllEntriesForParameter deleteAllEntriesForParameter;
+  final String Function() _userId;
+  // Resolved lazily: both are registered after this controller.
+  final StreakController Function() _streaks;
+  final AnalyticsController Function() _analytics;
+  final Future<void> Function() _syncWidget;
 
   ParameterController({
     required this.getParameters,
@@ -31,11 +36,18 @@ class ParameterController extends GetxController {
     required this.watchParameters,
     required this.reorderParameters,
     required this.deleteAllEntriesForParameter,
-  });
+    String Function()? userId,
+    StreakController Function()? streaks,
+    AnalyticsController Function()? analytics,
+    Future<void> Function()? syncWidget,
+  }) : _userId = userId ?? (() => FirebaseAuth.instance.currentUser!.uid),
+       _streaks = streaks ?? Get.find<StreakController>,
+       _analytics = analytics ?? Get.find<AnalyticsController>,
+       _syncWidget = syncWidget ?? WidgetSyncService.syncNow;
 
   final RxList<ParameterModel> parameters = <ParameterModel>[].obs;
 
-  late final String userId;
+  String get userId => _userId();
   final RxBool isLoading = true.obs;
 
   final Map<String, ParameterModel> _cache = {};
@@ -47,7 +59,6 @@ class ParameterController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    userId = FirebaseAuth.instance.currentUser!.uid;
     _listen();
   }
 
@@ -86,7 +97,7 @@ class ParameterController extends GetxController {
         );
       }
 
-      await WidgetSyncService.syncNow();
+      await _syncWidget();
     });
   }
 
@@ -98,6 +109,7 @@ class ParameterController extends GetxController {
       stackTrace: stackTrace,
     );
     isLoading.value = false;
+    if (Get.testMode) return;
     Get.snackbar(
       AppStrings.errorTitle,
       AppStrings.habitsLoadFailedMessage,
@@ -115,7 +127,7 @@ class ParameterController extends GetxController {
       _reportFailure('Add habit failed', error, stackTrace);
       return false;
     }
-    await WidgetSyncService.syncNow();
+    await _syncWidget();
     return true;
   }
 
@@ -129,7 +141,7 @@ class ParameterController extends GetxController {
       _reportFailure('Update habit failed', error, stackTrace);
       return false;
     }
-    await WidgetSyncService.syncNow();
+    await _syncWidget();
     return true;
   }
 
@@ -146,7 +158,7 @@ class ParameterController extends GetxController {
       // Dependents first, habit doc last: a failure part-way leaves the
       // habit in place, and a retry is idempotent.
       await deleteAllEntriesForParameter(userId, id);
-      await Get.find<StreakController>().removeHabit(id);
+      await _streaks().removeHabit(id);
       await deleteParameter(userId, id);
     } catch (error, stackTrace) {
       parameters.insert(index, removed);
@@ -157,8 +169,8 @@ class ParameterController extends GetxController {
       _pendingDeletes.remove(id);
     }
 
-    Get.find<AnalyticsController>().removeHabitEntries(id);
-    await WidgetSyncService.syncNow();
+    _analytics().removeHabitEntries(id);
+    await _syncWidget();
     return true;
   }
 
@@ -197,6 +209,7 @@ class ParameterController extends GetxController {
       error: error,
       stackTrace: stackTrace,
     );
+    if (Get.testMode) return;
     Get.snackbar(
       AppStrings.errorTitle,
       error is AppException ? error.message : AppStrings.unexpectedError,
