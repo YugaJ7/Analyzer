@@ -122,7 +122,6 @@ class HomeBinding extends Bindings {
         watchParameters: Get.find<WatchParameters>(),
         reorderParameters: Get.find<ReorderParameters>(),
         deleteAllEntriesForParameter: Get.find<DeleteAllEntriesForParameter>(),
-        streakCache: Get.find<StreakCacheService>(),
       ),
       permanent: true,
     );

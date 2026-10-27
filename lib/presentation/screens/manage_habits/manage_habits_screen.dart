@@ -134,8 +134,7 @@ class ManageHabitsScreen extends StatelessWidget {
         ),
         child: ParameterFormDialog(
           onSave: (param) async {
-            Navigator.pop(context); // close sheet after save
-            await controller.addNewParameter(param);
+            if (!await controller.addNewParameter(param)) return;
             Get.snackbar(
               AppStrings.habitAddedTitle,
               '"${param.name}" ${AppStrings.paramAddedMessage}',

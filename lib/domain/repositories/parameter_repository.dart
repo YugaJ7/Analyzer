@@ -21,6 +21,9 @@ abstract class ParameterRepository {
     String parameterId,
   );
 
+  /// Persists display order atomically: `order` = index in [orderedIds].
+  Future<void> reorderParameters(String userId, List<String> orderedIds);
+
   /// Real-time listener for user's parameters
   Stream<List<ParameterEntity>> watchParameters(String userId);
 }

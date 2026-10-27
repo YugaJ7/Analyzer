@@ -77,6 +77,23 @@ class ParameterRepositoryImpl implements ParameterRepository {
   }
 
   @override
+  Future<void> reorderParameters(String userId, List<String> orderedIds) async {
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+      for (final (index, id) in orderedIds.indexed) {
+        batch.update(_userParams(userId).doc(id), {'order': index});
+      }
+      await batch.commit();
+    } on FirebaseException catch (e) {
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to reorder habits.'),
+        ),
+      );
+    }
+  }
+
+  @override
   Future<void> deleteParameter(String userId, String id) async {
     try {
       await _userParams(userId).doc(id).delete();

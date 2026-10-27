@@ -32,7 +32,9 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
     nameController = TextEditingController(text: widget.parameter?.name ?? '');
     descriptionController = TextEditingController(text: widget.parameter?.description ?? '');
     selectedType = widget.parameter?.type ?? ParameterType.checklist;
-    options = widget.parameter?.options ?? [''];
+    // Copy: the form edits this list in place, which must not leak into the
+    // habit (or throw if the source list is unmodifiable).
+    options = List.of(widget.parameter?.options ?? ['']);
     unitController = TextEditingController(text: widget.parameter?.unit ?? '');
     selectedColor = Color(widget.parameter?.color ?? 0xFF6C63FF);
   }
@@ -155,8 +157,10 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                                 : null,
                             color: selectedColor.toARGB32(),
                           );
+                          // The sheet owns its dismissal; callers must not
+                          // pop, or a second pop hits the screen beneath.
+                          Navigator.of(context).pop();
                           await widget.onSave(parameter);
-                          Get.back();
                         }
                       },
                     ),
@@ -179,11 +183,14 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
         return ChoiceChip(
           label: Text(getTypeLabel(type)),
           selected: isSelected,
-          onSelected: (selected) {
-            if (selected) {
-              setState(() => selectedType = type);
-            }
-          },
+          // Type is fixed once created: existing entries hold values of it.
+          onSelected: widget.parameter != null
+              ? null
+              : (selected) {
+                  if (selected) {
+                    setState(() => selectedType = type);
+                  }
+                },
           selectedColor: const Color(0xFF6C63FF),
           backgroundColor: const Color(0xFF0A0E27),
           labelStyle: TextStyle(

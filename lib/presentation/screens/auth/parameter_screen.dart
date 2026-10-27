@@ -137,8 +137,7 @@ class ParameterSetupScreen extends GetView<ParameterController> {
               icon: param.icon,
               color: param.color,
             );
-            Navigator.pop(context);
-            await controller.addNewParameter(paramWithOrder);
+            if (!await controller.addNewParameter(paramWithOrder)) return;
             Get.snackbar(
               AppStrings.habitAddedTitle,
               '"${param.name}" ${AppStrings.paramAddedMessage}',

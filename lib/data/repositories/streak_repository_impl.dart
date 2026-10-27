@@ -45,6 +45,19 @@ class StreakRepositoryImpl implements StreakRepository {
   }
 
   @override
+  Future<void> deleteStreak(String userId, String parameterId) async {
+    try {
+      await _streaks(userId).doc(parameterId).delete();
+    } on FirebaseException catch (e) {
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to delete streak.'),
+        ),
+      );
+    }
+  }
+
+  @override
   Future<Map<String, Map<String, dynamic>>> getAllStreaks(String userId) async {
     try {
       final snapshot = await _streaks(userId).get();

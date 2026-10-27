@@ -182,12 +182,14 @@ class HabitTile extends StatelessWidget {
         child: ParameterFormDialog(
           parameter: param,
           onSave: (updated) async {
-            Navigator.pop(context); // close sheet first
-            await controller.updateExistingParameter(param.id, {
+            final saved = await controller.updateExistingParameter(param.id, {
               'name': updated.name,
               'description': updated.description,
               'color': updated.color,
+              'options': updated.options,
+              'unit': updated.unit,
             });
+            if (!saved) return;
             Get.snackbar(
               AppStrings.habitUpdatedTitle,
               '"${updated.name}" ${AppStrings.paramUpdatedMessage}',

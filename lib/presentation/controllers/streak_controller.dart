@@ -168,6 +168,16 @@ class StreakController extends GetxController {
 
   int getBest(String parameterId) => bestStreaks[parameterId] ?? 0;
 
+  /// Drops all streak state for a deleted habit, remote first so a failure
+  /// leaves the local view consistent with the server.
+  Future<void> removeHabit(String parameterId) async {
+    await streakRepository.deleteStreak(_userId(), parameterId);
+    await streakCache.remove(parameterId);
+    currentStreaks.remove(parameterId);
+    bestStreaks.remove(parameterId);
+    _lastCompleted.remove(parameterId);
+  }
+
   void _apply(
     String parameterId, {
     required int current,

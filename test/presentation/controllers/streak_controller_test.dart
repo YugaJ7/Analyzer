@@ -26,6 +26,11 @@ class _FakeStreakRepository implements StreakRepository {
   }
 
   @override
+  Future<void> deleteStreak(String userId, String parameterId) async {
+    saved.remove(parameterId);
+  }
+
+  @override
   Future<Map<String, Map<String, dynamic>>> getAllStreaks(
     String userId,
   ) async => {};

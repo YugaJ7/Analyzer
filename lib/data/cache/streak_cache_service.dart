@@ -31,6 +31,8 @@ class StreakCacheService {
     return box.toMap();
   }
 
+  Future<void> remove(String parameterId) => box.delete(parameterId);
+
   /// Wipes all streak data — call this on logout so the next user starts clean.
   Future<void> clear() => box.clear();
 }
