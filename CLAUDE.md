@@ -30,5 +30,6 @@ Layers: `lib/core`, `lib/data`, `lib/domain`, `lib/presentation`.
 - All user-scoped local state goes through `UserSessionStorage`.
 
 ## Pending
-- **Fix 1 (Firestore rules) is deferred to last.** `firestore.rules` exists untracked. On resume, re-add
-  `"firestore": {"rules": "firestore.rules"}` to `firebase.json`, then deploy. Test rules expire 2026-11-01.
+- **Firestore rules must be deployed** (`firebase deploy --only firestore:rules`). Test rules expire
+  2026-11-01. Any new Firestore field must also be added to the matching `hasOnly([...])` list in
+  `firestore.rules`, or writes will be denied.
