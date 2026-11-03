@@ -13,11 +13,19 @@ class AnalyticsController extends GetxController {
   final ParameterController parameterController;
   final AnalyticsCacheService cacheService;
 
+  final DateTime Function() _today;
+  final String Function() _userId;
+
   AnalyticsController({
     required this.entryRepository,
     required this.parameterController,
     required this.cacheService,
-  });
+    DateTime Function()? today,
+    String Function()? userId,
+  }) : _today = today ?? AppDateUtils.today,
+       _userId = userId ?? (() => FirebaseAuth.instance.currentUser!.uid);
+
+  static const _windowDays = 365;
 
   final RxBool isLoading = false.obs;
 
@@ -50,20 +58,18 @@ class AnalyticsController extends GetxController {
     isLoading.value = true;
     loadAnalytics();
 
-    // Recompute when parameters change (covers initial load race condition
-    // where parameters arrive after entries are already fetched)
-    ever(parameterController.parameters, (_) {
-      if (_history.isNotEmpty) {
-        _computeAnalytics();
-      }
-    });
+    // Habits can arrive after entries, and removing the last one must still
+    // clear the stats, so recompute on every change even with no history.
+    ever(parameterController.parameters, (_) => _computeAnalytics());
   }
 
   Future<void> loadAnalytics() async {
     isLoading.value = true;
     try {
-      final userId = FirebaseAuth.instance.currentUser!.uid;
-      final data = await entryRepository.getEntriesForLastNDays(userId, 365);
+      final data = await entryRepository.getEntriesForLastNDays(
+        _userId(),
+        _windowDays,
+      );
 
       _history
         ..clear()
@@ -124,6 +130,8 @@ class AnalyticsController extends GetxController {
     }
   }
 
+  /// Builds every stat locally and publishes each observable once; writing
+  /// into them per day fired hundreds of rebuilds per recompute.
   void _computeAnalytics() {
     final activeHabits = parameterController.parameters
         .where((p) => p.isActive)
@@ -131,102 +139,78 @@ class AnalyticsController extends GetxController {
 
     totalActiveHabits.value = activeHabits.length;
     if (activeHabits.isEmpty) {
+      _resetStats();
       return;
     }
 
-    final activeIds = activeHabits.map((habit) => habit.id).toSet();
-    final activeNamesById = {
-      for (final habit in activeHabits) habit.id: habit.name,
+    // A habit only counts toward days on or after the day it was created.
+    final startById = {
+      for (final habit in activeHabits)
+        habit.id: AppDateUtils.dateOnly(habit.createdAt),
     };
+    final nameById = {for (final habit in activeHabits) habit.id: habit.name};
 
-    final now = DateTime.now();
-
-    int totalCompletions = 0;
-    int totalPossible = 0;
-
-    final activeDays = <DateTime>[];
-
-    int weeklyComp = 0;
-    int weeklyPoss = 0;
-
-    final Map<int, List<double>> weekdayMap = {};
-    final Map<int, double> currentWeekMap = {
-      1: 0,
-      2: 0,
-      3: 0,
-      4: 0,
-      5: 0,
-      6: 0,
-      7: 0,
-    };
-    final Map<String, int> habitCount = {};
-
-    final List<double> trend7 = [];
-    final List<double> trend30 = [];
-
-    final startOfToday = AppDateUtils.dateOnly(now);
+    final startOfToday = AppDateUtils.dateOnly(_today());
     final mondayOfThisWeek = AppDateUtils.addDays(
       startOfToday,
-      -(now.weekday - 1),
+      -(startOfToday.weekday - 1),
     );
 
-    heatmapData.clear();
+    var totalCompleted = 0, totalPossible = 0;
+    var weekCompleted = 0, weekPossible = 0;
+    var monthCompleted = 0, monthPossible = 0;
+    final heatmap = <DateTime, double>{};
+    final trend30 = <double>[];
+    final weekdayRates = <int, List<double>>{};
+    final currentWeek = {for (var day = 1; day <= 7; day++) day: 0.0};
+    final completionsById = <String, int>{};
+    final activeDays = <DateTime>[];
 
-    for (int i = 0; i < 365; i++) {
+    for (var i = 0; i < _windowDays; i++) {
       final date = AppDateUtils.addDays(startOfToday, -i);
+      final possible = startById.values
+          .where((start) => !start.isAfter(date))
+          .length;
 
-      final entries = _history[date] ?? [];
       final completedIds = <String>{};
-
-      for (final entry in entries) {
-        final parameterId = entry.parameterId;
-        if (!activeIds.contains(parameterId) ||
-            !completedIds.add(parameterId)) {
-          continue;
+      for (final entry in _history[date] ?? const <EntryEntity>[]) {
+        final start = startById[entry.parameterId];
+        if (start != null && !start.isAfter(date)) {
+          completedIds.add(entry.parameterId);
         }
-
-        final habitName = activeNamesById[parameterId];
-        if (habitName == null) {
-          continue;
-        }
-
-        habitCount[habitName] = (habitCount[habitName] ?? 0) + 1;
       }
+      final completed = completedIds.length;
+      final rate = _percent(completed, possible);
 
-      final completedToday = completedIds.length;
-
-      final completionRate = completedToday / activeHabits.length;
-
-      totalCompletions += completedToday;
-      totalPossible += activeHabits.length;
-
-      heatmapData[date] = completionRate * 100;
-
-      if (i < 7) {
-        trend7.insert(0, completionRate * 100);
+      for (final id in completedIds) {
+        completionsById.update(id, (count) => count + 1, ifAbsent: () => 1);
       }
-
-      if (!date.isBefore(mondayOfThisWeek)) {
-        weeklyComp += completedToday;
-        weeklyPoss += activeHabits.length;
-        currentWeekMap[date.weekday] = completionRate * 100;
-      }
+      if (completed > 0) activeDays.add(date);
+      heatmap[date] = rate;
 
       if (i < 30) {
-        trend30.insert(0, completionRate * 100);
+        trend30.add(rate);
+        monthCompleted += completed;
+        monthPossible += possible;
       }
-
-      weekdayMap.putIfAbsent(date.weekday, () => []);
-      weekdayMap[date.weekday]!.add(completionRate);
-
-      if (completedToday > 0) activeDays.add(date);
+      if (!date.isBefore(mondayOfThisWeek)) {
+        currentWeek[date.weekday] = rate;
+        weekCompleted += completed;
+        weekPossible += possible;
+      }
+      // Days before any habit existed would drag every average toward zero.
+      if (possible > 0) {
+        weekdayRates.putIfAbsent(date.weekday, () => []).add(rate);
+        totalCompleted += completed;
+        totalPossible += possible;
+      }
     }
 
-    overallCompletionRate.value = totalPossible == 0
-        ? 0
-        : (totalCompletions / totalPossible) * 100;
-
-    performanceScore.value = overallCompletionRate.value;
+    final overallRate = _percent(totalCompleted, totalPossible);
+    overallCompletionRate.value = overallRate;
+    performanceScore.value = overallRate;
+    monthComparison.value =
+        _percent(monthCompleted, monthPossible) - overallRate;
 
     final overallStreak = StreakCalculator.fromCompletedDays(
       activeDays,
@@ -235,30 +219,42 @@ class AnalyticsController extends GetxController {
     overallCurrentStreak.value = overallStreak.current;
     overallBestStreak.value = overallStreak.best;
 
-    weeklyCompleted.value = weeklyComp;
-    weeklyTotal.value = weeklyPoss;
+    weeklyCompleted.value = weekCompleted;
+    weeklyTotal.value = weekPossible;
 
-    last7DaysTrend.assignAll(trend7);
-    last30DaysTrend.assignAll(trend30);
+    final oldestFirst = trend30.reversed.toList();
+    last30DaysTrend.assignAll(oldestFirst);
+    last7DaysTrend.assignAll(oldestFirst.sublist(oldestFirst.length - 7));
 
-    final Map<int, double> weekdayAvg = {};
-    weekdayMap.forEach((weekday, list) {
-      final avg = list.reduce((a, b) => a + b) / list.length;
-      weekdayAvg[weekday] = avg * 100;
+    weekdayBreakdown.assignAll({
+      for (final MapEntry(key: weekday, value: rates) in weekdayRates.entries)
+        weekday: rates.reduce((a, b) => a + b) / rates.length,
     });
+    currentWeekBreakdown.assignAll(currentWeek);
+    heatmapData.assignAll(heatmap);
 
-    weekdayBreakdown.assignAll(weekdayAvg);
-    currentWeekBreakdown.assignAll(currentWeekMap);
-
-    if (trend30.isNotEmpty) {
-      final lastMonthAvg = trend30.reduce((a, b) => a + b) / trend30.length;
-
-      monthComparison.value = lastMonthAvg - overallCompletionRate.value;
-    }
-
-    final sorted = habitCount.entries.toList()
+    // Ranked by id so two habits sharing a name aren't merged.
+    final ranked = completionsById.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-
-    topHabits.assignAll(sorted.take(3).map((e) => e.key));
+    topHabits.assignAll(ranked.take(3).map((e) => nameById[e.key]!));
   }
+
+  void _resetStats() {
+    overallCompletionRate.value = 0;
+    performanceScore.value = 0;
+    monthComparison.value = 0;
+    overallCurrentStreak.value = 0;
+    overallBestStreak.value = 0;
+    weeklyCompleted.value = 0;
+    weeklyTotal.value = 0;
+    last7DaysTrend.clear();
+    last30DaysTrend.clear();
+    weekdayBreakdown.clear();
+    currentWeekBreakdown.clear();
+    heatmapData.clear();
+    topHabits.clear();
+  }
+
+  static double _percent(int part, int whole) =>
+      whole == 0 ? 0 : part / whole * 100;
 }
