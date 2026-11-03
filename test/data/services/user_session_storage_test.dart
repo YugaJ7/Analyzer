@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:analyzer/core/utils/app_constants.dart';
+import 'package:analyzer/data/services/export_file_store.dart';
 import 'package:analyzer/data/services/hive_service.dart';
 import 'package:analyzer/data/services/preferences_service.dart';
 import 'package:analyzer/data/services/user_session_storage.dart';
@@ -21,6 +22,7 @@ void main() {
     hiveDir = await Directory.systemTemp.createTemp('user_session_test');
     Hive.init(hiveDir.path);
     await HiveService.init();
+    ExportFileStore.baseDirectory = () async => hiveDir;
 
     SharedPreferences.setMockInitialValues({
       AppConstants.kUserNameKey: 'Previous User',
@@ -107,6 +109,7 @@ void main() {
         'uid-a',
       );
       await seedUserData();
+      final export = await ExportFileStore.write('report.csv', text: 'a');
 
       await UserSessionStorage.clear();
 
@@ -114,6 +117,7 @@ void main() {
       expect(HiveService.streakBox.isEmpty, isTrue);
       expect(PreferencesService.instance.userName, isNull);
       expect(widgetCalls, contains('clearWidgetData'));
+      expect(export.existsSync(), isFalse);
       expect(ownerUid(), isNull);
     });
 

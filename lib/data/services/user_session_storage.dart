@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/utils/app_constants.dart';
 import '../../core/utils/app_logger.dart';
+import 'export_file_store.dart';
 import 'hive_service.dart';
 import 'preferences_service.dart';
 import 'widget_refresh_service.dart';
@@ -32,6 +33,7 @@ class UserSessionStorage {
     await _runStep('display name', PreferencesService.instance.clearUserName);
     await _runStep('avatar', PreferencesService.instance.clearAvatarEmoji);
     await _runStep('widget data', _clearWidget);
+    await _runStep('export files', ExportFileStore.clear);
     await _runStep(
       'session owner',
       () => HiveService.sessionMetaBox.delete(AppConstants.kSessionOwnerUidKey),

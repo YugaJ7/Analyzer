@@ -1,12 +1,12 @@
-import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart' show PdfGoogleFonts;
 import 'package:share_plus/share_plus.dart';
 import '../../core/utils/date_utils.dart';
+import '../../data/services/export_file_store.dart';
 
 import '../controllers/analytics_controller.dart';
 import '../controllers/parameter_controller.dart';
@@ -20,7 +20,6 @@ class ExportService {
   // CSV Export
   Future<void> exportCsv() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
       final history = analytics.history;
       final habits = parameters.parameters;
       final dateFormat = DateFormat('yyyy-MM-dd');
@@ -48,19 +47,17 @@ class ExportService {
         ]);
       }
 
-      final csvData = _toCsv(rows);
-      final dir = await getTemporaryDirectory();
-      final file = File(
-        '${dir.path}/analyzer_export_${DateTime.now().millisecondsSinceEpoch}.csv',
+      final file = await ExportFileStore.write(
+        'analyzer_export_${dateFormat.format(DateTime.now())}.csv',
+        text: toCsv(rows),
       );
-      await file.writeAsString(csvData);
 
+      // No email: share text is visible to the receiving app/recipient.
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path)],
           text:
               'Analyzer — Habit Data Export\n'
-              'User: ${user?.email ?? "Unknown"}\n'
               'Exported: ${dateFormat.format(DateTime.now())}',
         ),
       );
@@ -531,19 +528,16 @@ class ExportService {
       }
 
       // Share — save to temp file and use SharePlus
-      final pdfBytes = await pdf.save();
-      final dir = await getTemporaryDirectory();
-      final filename =
-          'analyzer_report_${DateFormat('yyyy-MM-dd').format(now)}.pdf';
-      final pdfFile = File('${dir.path}/$filename');
-      await pdfFile.writeAsBytes(pdfBytes);
+      final pdfFile = await ExportFileStore.write(
+        'analyzer_report_${DateFormat('yyyy-MM-dd').format(now)}.pdf',
+        bytes: await pdf.save(),
+      );
 
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(pdfFile.path, mimeType: 'application/pdf')],
           text:
               'Analyzer — Full Report\n'
-              'User: ${user?.email ?? "Unknown"}\n'
               'Generated: ${DateFormat('yyyy-MM-dd').format(now)}',
         ),
       );
@@ -553,20 +547,23 @@ class ExportService {
   }
 
   // Helpers
-  static String _toCsv(List<List<dynamic>> rows) {
+  @visibleForTesting
+  static String toCsv(List<List<dynamic>> rows) {
     final buf = StringBuffer();
     for (final row in rows) {
-      final cells = row.map((cell) {
-        final s = cell.toString();
-        if (s.contains(',') || s.contains('"') || s.contains('\n')) {
-          final escaped = s.replaceAll('"', '""');
-          return '"$escaped"';
-        }
-        return s;
-      });
-      buf.writeln(cells.join(','));
+      buf.writeln(row.map((cell) => _csvCell(cell.toString())).join(','));
     }
     return buf.toString();
+  }
+
+  static String _csvCell(String value) {
+    // Spreadsheets execute cells starting with these as formulas (CSV
+    // injection); a leading quote forces them to render as text.
+    final safe = RegExp(r'^[=+\-@\t\r]').hasMatch(value) ? "'$value" : value;
+    if (RegExp(r'[,"\r\n]').hasMatch(safe)) {
+      return '"${safe.replaceAll('"', '""')}"';
+    }
+    return safe;
   }
 
   static pw.Widget _sectionTitle(String title, PdfColor color) {
