@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart' show PdfGoogleFonts;
 import 'package:share_plus/share_plus.dart';
 import '../../core/utils/date_utils.dart';
 import '../../data/services/export_file_store.dart';
@@ -16,6 +16,26 @@ class ExportService {
   final ParameterController parameters;
 
   ExportService({required this.analytics, required this.parameters});
+
+  static Future<pw.ThemeData>? _theme;
+
+  /// Fonts ship with the app; fetching them at export time failed offline.
+  @visibleForTesting
+  static Future<pw.ThemeData> pdfTheme() =>
+      _theme ??= _loadTheme().catchError((Object error) {
+        _theme = null;
+        throw error;
+      });
+
+  static Future<pw.ThemeData> _loadTheme() async {
+    Future<pw.Font> load(String weight) async => pw.Font.ttf(
+      await rootBundle.load('assets/fonts/inter/Inter-$weight.ttf'),
+    );
+    return pw.ThemeData.withFont(
+      base: await load('Regular'),
+      bold: await load('Bold'),
+    );
+  }
 
   // CSV Export
   Future<void> exportCsv() async {
@@ -87,10 +107,7 @@ class ExportService {
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
-          theme: pw.ThemeData.withFont(
-            base: await PdfGoogleFonts.interRegular(),
-            bold: await PdfGoogleFonts.interBold(),
-          ),
+          theme: await pdfTheme(),
           build: (pw.Context context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -232,10 +249,7 @@ class ExportService {
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
-          theme: pw.ThemeData.withFont(
-            base: await PdfGoogleFonts.interRegular(),
-            bold: await PdfGoogleFonts.interBold(),
-          ),
+          theme: await pdfTheme(),
           build: (pw.Context context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -375,10 +389,7 @@ class ExportService {
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
-          theme: pw.ThemeData.withFont(
-            base: await PdfGoogleFonts.interRegular(),
-            bold: await PdfGoogleFonts.interBold(),
-          ),
+          theme: await pdfTheme(),
           build: (pw.Context context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -470,10 +481,7 @@ class ExportService {
         pdf.addPage(
           pw.Page(
             pageFormat: PdfPageFormat.a4,
-            theme: pw.ThemeData.withFont(
-              base: await PdfGoogleFonts.interRegular(),
-              bold: await PdfGoogleFonts.interBold(),
-            ),
+            theme: await pdfTheme(),
             build: (pw.Context context) {
               return pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,

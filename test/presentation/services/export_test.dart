@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:analyzer/data/services/export_file_store.dart';
 import 'package:analyzer/presentation/services/export_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 void main() {
   group('ExportService.toCsv', () {
@@ -32,6 +33,31 @@ void main() {
       expect(cell('Read 20 pages'), 'Read 20 pages');
       expect(cell('✓'), '✓');
       expect(cell('2026-06-15'), '2026-06-15');
+    });
+  });
+
+  group('ExportService.pdfTheme', () {
+    TestWidgetsFlutterBinding.ensureInitialized();
+
+    test('renders regular and bold text from bundled fonts', () async {
+      final theme = await ExportService.pdfTheme();
+      final pdf = pw.Document(theme: theme)
+        ..addPage(
+          pw.Page(
+            build: (_) => pw.Column(
+              children: [
+                pw.Text('Regular'),
+                pw.Text(
+                  'Bold',
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+        );
+
+      expect(await pdf.save(), isNotEmpty);
+      expect(identical(await ExportService.pdfTheme(), theme), isTrue);
     });
   });
 
