@@ -36,7 +36,7 @@ class TopHabitsCard extends StatelessWidget {
                 children: [
                   const Icon(
                     Icons.workspace_premium_rounded,
-                    color: Color(0xFFFFD700),
+                    color: AppColors.gold,
                     size: 22,
                   ),
                   const SizedBox(width: 8),

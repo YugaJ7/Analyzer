@@ -229,7 +229,7 @@ class _HeatCell extends StatelessWidget {
                 dateStr,
                 '${data.percent.toStringAsFixed(0)}% completed',
                 snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: const Color(0xFF2D3561),
+                backgroundColor: AppColors.tooltipSurface,
                 colorText: Colors.white,
                 duration: const Duration(seconds: 2),
                 margin: const EdgeInsets.all(12),

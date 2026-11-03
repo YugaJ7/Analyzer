@@ -4,6 +4,7 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import '../analytics/analytics_screen.dart';
 import '../home/home_screen.dart';
 import '../profile/profile_screen.dart';
+import '../../../core/theme/app_colors.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -34,8 +35,8 @@ class _AppShellState extends State<AppShell> {
             icon: const Icon(Icons.home_rounded),
             inactiveIcon: const Icon(Icons.home_outlined),
             title: "Home",
-            activeForegroundColor: const Color(0xFF6366F1),
-            inactiveForegroundColor: const Color(0xFF8892A4),
+            activeForegroundColor: AppColors.navActive,
+            inactiveForegroundColor: AppColors.secondaryText,
           ),
         ),
 
@@ -45,8 +46,8 @@ class _AppShellState extends State<AppShell> {
             icon: const Icon(Icons.insights_rounded),
             inactiveIcon: const Icon(Icons.insights_outlined),
             title: "Analytics",
-            activeForegroundColor: const Color(0xFF6366F1),
-            inactiveForegroundColor: const Color(0xFF8892A4),
+            activeForegroundColor: AppColors.navActive,
+            inactiveForegroundColor: AppColors.secondaryText,
           ),
         ),
 
@@ -56,8 +57,8 @@ class _AppShellState extends State<AppShell> {
             icon: const Icon(Icons.person_rounded),
             inactiveIcon: const Icon(Icons.person_outline_rounded),
             title: "Profile",
-            activeForegroundColor: const Color(0xFF6366F1),
-            inactiveForegroundColor: const Color(0xFF8892A4),
+            activeForegroundColor: AppColors.navActive,
+            inactiveForegroundColor: AppColors.secondaryText,
           ),
         ),
       ],
@@ -65,7 +66,7 @@ class _AppShellState extends State<AppShell> {
         height: 68,
         navBarConfig: navBarConfig,
         navBarDecoration: NavBarDecoration(
-          color: const Color(0xFF161C27),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(0),
           boxShadow: [
             BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 8),

@@ -191,8 +191,8 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                     setState(() => selectedType = type);
                   }
                 },
-          selectedColor: const Color(0xFF6C63FF),
-          backgroundColor: const Color(0xFF0A0E27),
+          selectedColor: AppColors.primary,
+          backgroundColor: AppColors.chipBackground,
           labelStyle: TextStyle(
             color: isSelected
                 ? Colors.white

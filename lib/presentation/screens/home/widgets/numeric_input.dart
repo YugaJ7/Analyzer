@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../controllers/entry_controller.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class NumericInput extends StatefulWidget {
   final ParameterModel param;
@@ -71,12 +72,12 @@ class _NumericInputState extends State<NumericInput> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: 10),
-        Divider(color: Color(0xFF2A2F3A), height: 1),
+        Divider(color: AppColors.divider, height: 1),
         SizedBox(height: 10),
         Text(
           AppStrings.hint,
           style: TextStyle(
-            color: Color(0xFF8892A4),
+            color: AppColors.secondaryText,
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -87,7 +88,7 @@ class _NumericInputState extends State<NumericInput> {
             Text(
               widget.param.unit ?? '',
               style: TextStyle(
-                color: Color(0xFF8892A4),
+                color: AppColors.secondaryText,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
@@ -107,26 +108,26 @@ class _NumericInputState extends State<NumericInput> {
                 ),
                 decoration: const InputDecoration(
                   isDense: true,
-                  fillColor: Color(0xFF30302E),
+                  fillColor: AppColors.inputFill,
                   filled: true,
                   border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF4E4E4A)),
+                    borderSide: BorderSide(color: AppColors.inputBorder),
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF4E4E4A)),
+                    borderSide: BorderSide(color: AppColors.inputBorder),
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF4E4E4A)),
+                    borderSide: BorderSide(color: AppColors.inputBorder),
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
                   disabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF4E4E4A)),
+                    borderSide: BorderSide(color: AppColors.inputBorder),
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
                   hintText: AppStrings.enterValue,
-                  hintStyle: TextStyle(color: Color(0xFF757575), fontSize: 16),
+                  hintStyle: TextStyle(color: AppColors.inputHint, fontSize: 16),
                 ),
                 onChanged: _onChanged,
                 onSubmitted: (_) => _focusNode.unfocus(),

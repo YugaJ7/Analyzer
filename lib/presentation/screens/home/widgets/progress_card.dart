@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import '../../../controllers/entry_controller.dart';
 import '../../../controllers/parameter_controller.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class ProgressCard extends StatelessWidget {
   const ProgressCard({super.key});
@@ -52,7 +53,7 @@ class ProgressCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           gradient: LinearGradient(
-            colors: [Color(0xFF1A4A7A), Color(0xFF0F6E56)],
+            colors: AppColors.progressGradient,
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),

@@ -99,7 +99,7 @@ class _ParameterEntryCardState extends State<ParameterEntryCard> {
                     border: Border.all(
                       color: isCompleted
                           ? AppColors.completedborder
-                          : Color(0xFF3A4356),
+                          : AppColors.checkboxBorder,
                       width: 2,
                     ),
                     color: isCompleted ? AppColors.completedborder : null,
@@ -127,7 +127,7 @@ class _ParameterEntryCardState extends State<ParameterEntryCard> {
                         Text(
                           "${param.description}",
                           style: TextStyle(
-                            color: Color(0xFF8892A4),
+                            color: AppColors.secondaryText,
                             fontSize: 12,
                           ),
                         ),

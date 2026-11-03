@@ -16,12 +16,12 @@ String getTypeLabel(ParameterType type) {
 
 Color getColorForParam(int? colorValue) {
   if (colorValue == null) {
-    return const Color(0xFF6C63FF);
+    return AppColors.primary;
   }
   try {
     return Color(colorValue);
   } catch (_) {
-    return const Color(0xFF6C63FF);
+    return AppColors.primary;
   }
 }
 

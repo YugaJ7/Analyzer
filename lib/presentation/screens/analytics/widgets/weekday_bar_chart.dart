@@ -112,7 +112,7 @@ class _WeekdayBarChartState extends State<WeekdayBarChart> {
                     barTouchData: BarTouchData(
                       enabled: true,
                       touchTooltipData: BarTouchTooltipData(
-                        getTooltipColor: (_) => const Color(0xFF2D3561),
+                        getTooltipColor: (_) => AppColors.tooltipSurface,
                         getTooltipItem: (group, groupIndex, rod, rodIndex) {
                           return BarTooltipItem(
                             '${rod.toY.toStringAsFixed(0)}%',

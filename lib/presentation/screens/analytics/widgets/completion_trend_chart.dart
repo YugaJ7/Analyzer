@@ -137,7 +137,7 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
                           lineTouchData: LineTouchData(
                             enabled: true,
                             touchTooltipData: LineTouchTooltipData(
-                              getTooltipColor: (_) => const Color(0xFF2D3561),
+                              getTooltipColor: (_) => AppColors.tooltipSurface,
                               getTooltipItems: (touchedSpots) {
                                 return touchedSpots.map((spot) {
                                   return LineTooltipItem(

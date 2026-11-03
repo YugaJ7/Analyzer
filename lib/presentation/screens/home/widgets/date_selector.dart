@@ -82,14 +82,14 @@ class DateSelector extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Color(0xFF1E4D3A),
+                          color: AppColors.todayBadgeSurface,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(
                           AppStrings.todayBadge,
                           style: TextStyle(
                             fontSize: 10,
-                            color: Color(0xFF4ADE80),
+                            color: AppColors.completedText,
                           ),
                         ),
                       ),
@@ -107,8 +107,8 @@ class DateSelector extends StatelessWidget {
                     },
               icon: const Icon(Icons.chevron_right),
               color: isToday
-                  ? Color(0xFF8892A4)
-                  : Color(0xFF8892A4).withValues(alpha: 0.8),
+                  ? AppColors.secondaryText
+                  : AppColors.secondaryText.withValues(alpha: 0.8),
             ),
           ],
         ),
