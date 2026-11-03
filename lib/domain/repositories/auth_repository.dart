@@ -8,7 +8,5 @@ abstract class AuthRepository {
   /// Best-effort removal of the signed-in account; signs out if deletion
   /// fails. Used to roll back a partially completed sign-up.
   Future<void> deleteCurrentUser();
-  Stream<UserEntity?> get authStateChanges;
-  Future<void> changePassword(String currentPassword, String newPassword);
   Future<UserEntity> signInWithGoogle();
 }

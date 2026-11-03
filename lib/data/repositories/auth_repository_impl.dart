@@ -43,9 +43,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on FirebaseAuthException catch (e) {
       throw AppException(AuthFailure(mapAuthError(e.code)));
     } catch (e) {
-      throw AppException(
-        AuthFailure('Login failed. Please try again.'),
-      );
+      throw AppException(AuthFailure('Login failed. Please try again.'));
     }
   }
 
@@ -65,9 +63,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on FirebaseAuthException catch (e) {
       throw AppException(AuthFailure(mapAuthError(e.code)));
     } catch (e) {
-      throw AppException(
-        AuthFailure('Registration failed. Please try again.'),
-      );
+      throw AppException(AuthFailure('Registration failed. Please try again.'));
     }
   }
 
@@ -158,43 +154,6 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  @override
-  Stream<UserEntity?> get authStateChanges {
-    return _auth.authStateChanges().map((user) {
-      if (user == null) return null;
-      return UserEntity(
-        id: user.uid,
-        email: user.email!,
-        name: user.displayName ?? '',
-        createdAt: user.metadata.creationTime ?? DateTime.now(),
-      );
-    });
-  }
-
-  @override
-  Future<void> changePassword(
-    String currentPassword,
-    String newPassword,
-  ) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        throw AppException(const AuthFailure('No authenticated user found.'));
-      }
-      final credential = EmailAuthProvider.credential(
-        email: user.email!,
-        password: currentPassword,
-      );
-      await user.reauthenticateWithCredential(credential);
-      await user.updatePassword(newPassword);
-    } on FirebaseAuthException catch (e) {
-      throw AppException(AuthFailure(mapAuthError(e.code)));
-    } catch (e) {
-      if (e is AppException) rethrow;
-      throw AppException(AuthFailure('Password change failed.'));
-    }
-  }
-
   /// Debug-only diagnostic logging for auth failures.
   ///
   /// Callers must pass sanitised descriptions (error codes / types only).
@@ -206,8 +165,7 @@ class AuthRepositoryImpl implements AuthRepository {
   /// Maps v7 [GoogleSignInException] error codes to user-friendly messages.
   String _mapGoogleSignInError(GoogleSignInException e) {
     return switch (e.code) {
-      GoogleSignInExceptionCode.canceled =>
-        'Google sign-in was cancelled.',
+      GoogleSignInExceptionCode.canceled => 'Google sign-in was cancelled.',
       GoogleSignInExceptionCode.interrupted =>
         'Google sign-in was interrupted. Please try again.',
       GoogleSignInExceptionCode.clientConfigurationError =>

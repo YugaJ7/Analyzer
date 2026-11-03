@@ -39,51 +39,45 @@ class ExportService {
 
   // CSV Export
   Future<void> exportCsv() async {
-    try {
-      final history = analytics.history;
-      final habits = parameters.parameters;
-      final dateFormat = DateFormat('yyyy-MM-dd');
+    final history = analytics.history;
+    final habits = parameters.parameters;
+    final dateFormat = DateFormat('yyyy-MM-dd');
 
-      // Build rows
-      final List<List<dynamic>> rows = [];
-      // Header
+    // Build rows
+    final List<List<dynamic>> rows = [];
+    // Header
+    rows.add([
+      'Date',
+      ...habits.map((h) => '${h.name} (${h.isActive ? "Active" : "Inactive"})'),
+    ]);
+
+    // Sort dates
+    final dates = history.keys.toList()..sort((a, b) => b.compareTo(a));
+    for (final date in dates) {
+      final entries = history[date] ?? [];
       rows.add([
-        'Date',
-        ...habits.map(
-          (h) => '${h.name} (${h.isActive ? "Active" : "Inactive"})',
-        ),
+        dateFormat.format(date),
+        ...habits.map((h) {
+          final matched = entries.any((e) => e.parameterId == h.id);
+          return matched ? '✓' : '';
+        }),
       ]);
-
-      // Sort dates
-      final dates = history.keys.toList()..sort((a, b) => b.compareTo(a));
-      for (final date in dates) {
-        final entries = history[date] ?? [];
-        rows.add([
-          dateFormat.format(date),
-          ...habits.map((h) {
-            final matched = entries.any((e) => e.parameterId == h.id);
-            return matched ? '✓' : '';
-          }),
-        ]);
-      }
-
-      final file = await ExportFileStore.write(
-        'analyzer_export_${dateFormat.format(DateTime.now())}.csv',
-        text: toCsv(rows),
-      );
-
-      // No email: share text is visible to the receiving app/recipient.
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path)],
-          text:
-              'Analyzer — Habit Data Export\n'
-              'Exported: ${dateFormat.format(DateTime.now())}',
-        ),
-      );
-    } catch (e) {
-      rethrow;
     }
+
+    final file = await ExportFileStore.write(
+      'analyzer_export_${dateFormat.format(DateTime.now())}.csv',
+      text: toCsv(rows),
+    );
+
+    // No email: share text is visible to the receiving app/recipient.
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path)],
+        text:
+            'Analyzer — Habit Data Export\n'
+            'Exported: ${dateFormat.format(DateTime.now())}',
+      ),
+    );
   }
 
   // PDF Export — Full Report

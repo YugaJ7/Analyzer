@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/errors/app_exception.dart';
@@ -7,62 +5,35 @@ import '../../../core/errors/failures.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../data/services/preferences_service.dart';
 import '../../../data/services/user_session_storage.dart';
-import '../../../domain/entities/user_entity.dart';
 import '../../../domain/usecases/login_user.dart';
 import '../../../domain/usecases/register_user.dart';
-import '../../../domain/usecases/logout_user.dart';
-import '../../../domain/usecases/user_usecases.dart';
 import '../../../domain/usecases/sign_in_with_google.dart';
 
 class AuthController extends GetxController {
   final LoginUser loginUser;
   final RegisterUser registerUser;
   final SignInWithGoogle signInWithGoogle;
-  final LogoutUser logoutUser;
-  final GetUserProfile getUserProfile;
 
   AuthController({
     required this.loginUser,
     required this.registerUser,
     required this.signInWithGoogle,
-    required this.logoutUser,
-    required this.getUserProfile,
   });
 
-  final Rx<User?> firebaseUser = Rx<User?>(null);
-  final Rx<UserEntity?> currentUser = Rx<UserEntity?>(null);
   final RxBool isLoading = false.obs;
-
-  final RxString errorMessage = ''.obs;
-
-  Future<void> _loadUserData(String uid) async {
-    try {
-      final user = await getUserProfile(uid);
-      currentUser.value = user;
-    } on AppException catch (e) {
-      errorMessage.value = e.message;
-    } catch (_) {
-      errorMessage.value = 'Failed to load user data.';
-    }
-  }
 
   Future<void> login(String email, String password) async {
     try {
       isLoading.value = true;
-      errorMessage.value = '';
 
       await loginUser(email, password);
 
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-      await UserSessionStorage.bindToUser(uid);
-
-      unawaited(_loadUserData(uid));
-
-      await Future.delayed(const Duration(milliseconds: 700));
+      await UserSessionStorage.bindToUser(
+        FirebaseAuth.instance.currentUser!.uid,
+      );
 
       Get.offAllNamed(AppRoutes.home);
     } on AppException catch (e) {
-      errorMessage.value = e.message;
       Get.snackbar(
         'Login Failed',
         e.message,
@@ -76,22 +47,21 @@ class AuthController extends GetxController {
   Future<void> signInWithGoogleMethod() async {
     try {
       isLoading.value = true;
-      errorMessage.value = '';
 
       final user = await signInWithGoogle();
-      currentUser.value = user;
       await UserSessionStorage.bindToUser(user.id);
 
       await PreferencesService.instance.clearLegacyAppLock();
       await PreferencesService.instance.clearGuestAppLock();
 
       // Cache display name locally
-      await PreferencesService.instance.setUserName(user.name.isEmpty ? 'User' : user.name);
+      await PreferencesService.instance.setUserName(
+        user.name.isEmpty ? 'User' : user.name,
+      );
 
       Get.offAllNamed(AppRoutes.home);
     } on AppException catch (e) {
       if (e.failure is! AuthCancelledFailure) {
-        errorMessage.value = e.message;
         Get.snackbar(
           'Login Failed',
           e.message,
@@ -100,7 +70,6 @@ class AuthController extends GetxController {
       }
     } catch (_) {
       const msg = 'Google sign-in failed. Please try again.';
-      errorMessage.value = msg;
       Get.snackbar('Error', msg, snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
@@ -110,10 +79,8 @@ class AuthController extends GetxController {
   Future<void> register(String email, String password, String name) async {
     try {
       isLoading.value = true;
-      errorMessage.value = '';
 
       final user = await registerUser(email, password, name);
-      currentUser.value = user;
       await UserSessionStorage.bindToUser(user.id);
 
       await PreferencesService.instance.clearLegacyAppLock();
@@ -122,11 +89,8 @@ class AuthController extends GetxController {
       // Cache display name locally via PreferencesService
       await PreferencesService.instance.setUserName(name);
 
-      // Get.snackbar('Account created!', 'Welcome to Analyzer',
-      //     snackPosition: SnackPosition.BOTTOM);
       Get.offNamed(AppRoutes.parameterSetup);
     } on AppException catch (e) {
-      errorMessage.value = e.message;
       Get.snackbar(
         'Registration Failed',
         e.message,
@@ -134,7 +98,6 @@ class AuthController extends GetxController {
       );
     } catch (_) {
       const msg = 'Registration failed. Please try again.';
-      errorMessage.value = msg;
       Get.snackbar('Error', msg, snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
