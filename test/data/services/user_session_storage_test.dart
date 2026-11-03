@@ -28,6 +28,8 @@ void main() {
       AppConstants.kUserNameKey: 'Previous User',
       AppConstants.kAvatarKey: '🚀',
       '${AppConstants.kAppLockKeyPrefix}_uid-a': true,
+      '${AppConstants.kAppLockKeyPrefix}__guest': true,
+      AppConstants.kLegacyAppLockKey: true,
     });
     await PreferencesService.init();
 
@@ -91,6 +93,35 @@ void main() {
       expect(ownerUid(), 'uid-b');
     });
 
+    group('display name', () {
+      Future<void> ownedBy(String uid) =>
+          HiveService.sessionMetaBox.put(AppConstants.kSessionOwnerUidKey, uid);
+
+      test('keeps a cached name for the same user', () async {
+        await ownedBy('uid-a');
+
+        await UserSessionStorage.bindToUser('uid-a', displayName: 'Google');
+
+        expect(PreferencesService.instance.userName, 'Previous User');
+      });
+
+      test('replaces the previous user\'s name on a switch', () async {
+        await ownedBy('uid-a');
+
+        await UserSessionStorage.bindToUser('uid-b', displayName: 'New User');
+
+        expect(PreferencesService.instance.userName, 'New User');
+      });
+
+      test('caches nothing for an empty name', () async {
+        await ownedBy('uid-a');
+
+        await UserSessionStorage.bindToUser('uid-b', displayName: '');
+
+        expect(PreferencesService.instance.userName, isNull);
+      });
+    });
+
     test('treats data with no recorded owner as foreign', () async {
       await seedUserData();
 
@@ -129,6 +160,17 @@ void main() {
           '${AppConstants.kAppLockKeyPrefix}_uid-a',
         ),
         isTrue,
+      );
+    });
+
+    test('removes app-lock keys that belong to no account', () async {
+      await UserSessionStorage.clear();
+
+      final prefs = PreferencesService.instance;
+      expect(prefs.getBool(AppConstants.kLegacyAppLockKey), isFalse);
+      expect(
+        prefs.getBool('${AppConstants.kAppLockKeyPrefix}__guest'),
+        isFalse,
       );
     });
 

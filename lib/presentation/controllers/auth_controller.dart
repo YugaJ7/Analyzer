@@ -1,9 +1,7 @@
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/errors/failures.dart';
 import '../../../core/routes/app_routes.dart';
-import '../../../data/services/preferences_service.dart';
 import '../../../data/services/user_session_storage.dart';
 import '../../../domain/usecases/login_user.dart';
 import '../../../domain/usecases/register_user.dart';
@@ -26,11 +24,8 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
 
-      await loginUser(email, password);
-
-      await UserSessionStorage.bindToUser(
-        FirebaseAuth.instance.currentUser!.uid,
-      );
+      final user = await loginUser(email, password);
+      await UserSessionStorage.bindToUser(user.id, displayName: user.name);
 
       Get.offAllNamed(AppRoutes.home);
     } on AppException catch (e) {
@@ -49,15 +44,7 @@ class AuthController extends GetxController {
       isLoading.value = true;
 
       final user = await signInWithGoogle();
-      await UserSessionStorage.bindToUser(user.id);
-
-      await PreferencesService.instance.clearLegacyAppLock();
-      await PreferencesService.instance.clearGuestAppLock();
-
-      // Cache display name locally
-      await PreferencesService.instance.setUserName(
-        user.name.isEmpty ? 'User' : user.name,
-      );
+      await UserSessionStorage.bindToUser(user.id, displayName: user.name);
 
       Get.offAllNamed(AppRoutes.home);
     } on AppException catch (e) {
@@ -81,13 +68,7 @@ class AuthController extends GetxController {
       isLoading.value = true;
 
       final user = await registerUser(email, password, name);
-      await UserSessionStorage.bindToUser(user.id);
-
-      await PreferencesService.instance.clearLegacyAppLock();
-      await PreferencesService.instance.clearGuestAppLock();
-
-      // Cache display name locally via PreferencesService
-      await PreferencesService.instance.setUserName(name);
+      await UserSessionStorage.bindToUser(user.id, displayName: name);
 
       Get.offNamed(AppRoutes.parameterSetup);
     } on AppException catch (e) {
