@@ -6,13 +6,17 @@ import '../../../controllers/entry_controller.dart';
 
 class OptionSelector extends StatelessWidget {
   final ParameterModel param;
+  final Object? selectedValue;
 
-  const OptionSelector({super.key, required this.param});
+  const OptionSelector({
+    super.key,
+    required this.param,
+    required this.selectedValue,
+  });
 
   @override
   Widget build(BuildContext context) {
     final entryController = Get.find<EntryController>();
-    final selectedValue = entryController.selectedDateEntries[param.id]?.value;
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,

@@ -81,6 +81,7 @@ class ParameterList extends StatelessWidget {
                 bottom: index == visibleParams.length - 1 ? 0 : 12,
               ),
               child: ParameterEntryCard(
+                key: ValueKey(visibleParams[index].id),
                 param: visibleParams[index],
               ),
             );
