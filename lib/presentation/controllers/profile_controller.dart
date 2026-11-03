@@ -2,12 +2,10 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../core/errors/app_exception.dart';
-import '../../core/routes/app_routes.dart';
-import '../../core/bindings/home_binding.dart';
 import '../../data/services/auth_lock_service.dart';
 import '../services/export_service.dart';
+import '../services/sign_out_flow.dart';
 import '../../data/services/preferences_service.dart';
-import '../../data/services/user_session_storage.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../../domain/usecases/logout_user.dart';
 import 'analytics_controller.dart';
@@ -162,18 +160,5 @@ class ProfileController extends GetxController {
     }
   }
 
-  /// Signs out first so a failure leaves the app fully usable; cleanup after
-  /// is best-effort and never blocks navigation.
-  Future<void> logout() async {
-    try {
-      await logoutUser();
-    } on AppException catch (e) {
-      Get.snackbar('Error', e.message, snackPosition: SnackPosition.BOTTOM);
-      return;
-    }
-
-    await UserSessionStorage.clear();
-    HomeBinding.tearDown();
-    Get.offAllNamed(AppRoutes.login);
-  }
+  Future<void> logout() => SignOutFlow.run(logoutUser);
 }

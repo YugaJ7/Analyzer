@@ -25,6 +25,10 @@ class PreferencesService {
   Future<void> setAppLockEnabled(bool value) =>
       _prefs.setBool(_appLockKeyForCurrentUser, value);
 
+  /// Takes an explicit uid because it runs after sign-out has cleared it.
+  Future<void> disableAppLockFor(String uid) =>
+      _prefs.remove('${AppConstants.kAppLockKeyPrefix}_$uid');
+
   Future<void> clearLegacyAppLock() =>
       _prefs.remove(AppConstants.kLegacyAppLockKey);
 

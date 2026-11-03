@@ -7,6 +7,9 @@ abstract final class AppStrings {
   static const String unlockButton = 'Unlock';
   static const String accessDeniedTitle = 'Access Denied';
   static const String accessDeniedMessage = 'Authentication failed';
+  static const String deviceLockRemovedMessage =
+      'Your device screen lock was removed, so the app can\'t be unlocked. '
+      'Sign out and sign back in to continue.';
 
   // ── Auth — Login ──────────────────────────────────────────────────────────
   static const String loginTitle = 'Welcome\nBack';

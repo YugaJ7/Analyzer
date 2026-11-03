@@ -25,6 +25,12 @@ class AuthLockResult {
 
   final bool isAuthenticated;
   final AuthLockFailure? failure;
+
+  /// The device has no usable lock (e.g. removed after app lock was enabled),
+  /// so retrying can never succeed.
+  bool get isDeviceLockUnavailable =>
+      failure == AuthLockFailure.notSupported ||
+      failure == AuthLockFailure.noCredentialsSet;
 }
 
 class AuthLockService {

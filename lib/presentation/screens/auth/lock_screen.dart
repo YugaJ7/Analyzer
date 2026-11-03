@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../core/theme/app_background.dart';
 import '../../../data/services/auth_lock_service.dart';
+import '../../services/sign_out_flow.dart';
 import 'splash_content.dart';
 
 /// Shown over the current route when the app resumes locked. Pops on unlock
@@ -16,6 +17,7 @@ class LockScreen extends StatefulWidget {
 
 class _LockScreenState extends State<LockScreen> {
   bool _isAuthenticating = false;
+  bool _isDeviceLockUnavailable = false;
 
   @override
   void initState() {
@@ -29,7 +31,14 @@ class _LockScreenState extends State<LockScreen> {
     _isAuthenticating = true;
     try {
       final result = await AuthLockService.instance.authenticate();
-      if (result.isAuthenticated && mounted) Get.back<void>();
+      if (!mounted) return;
+      if (result.isAuthenticated) {
+        Get.back<void>();
+      } else {
+        setState(
+          () => _isDeviceLockUnavailable = result.isDeviceLockUnavailable,
+        );
+      }
     } finally {
       _isAuthenticating = false;
     }
@@ -42,7 +51,13 @@ class _LockScreenState extends State<LockScreen> {
       child: Scaffold(
         body: AppBackground(
           child: Center(
-            child: AnimatedSplashContent(isLocked: true, onUnlock: _unlock),
+            child: AnimatedSplashContent(
+              isLocked: true,
+              onUnlock: _unlock,
+              onSignOut: _isDeviceLockUnavailable
+                  ? SignOutFlow.fromUnusableLock
+                  : null,
+            ),
           ),
         ),
       ),

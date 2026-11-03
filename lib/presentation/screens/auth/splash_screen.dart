@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../data/services/auth_lock_service.dart';
 import '../../../data/services/preferences_service.dart';
 import '../../../data/services/user_session_storage.dart';
+import '../../services/sign_out_flow.dart';
 
 import '../../../core/routes/app_routes.dart';
 
@@ -22,6 +23,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   final RxBool showUnlock = false.obs;
   final RxBool isAuthenticating = false.obs;
+  final RxBool isDeviceLockUnavailable = false.obs;
 
   @override
   void initState() {
@@ -64,6 +66,7 @@ class _SplashScreenState extends State<SplashScreen> {
         );
 
         if (!authResult.isAuthenticated) {
+          isDeviceLockUnavailable.value = authResult.isDeviceLockUnavailable;
           showUnlock.value = true;
           return;
         }
@@ -118,6 +121,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _unlock() async {
     final result = await _authenticate();
+    isDeviceLockUnavailable.value = result.isDeviceLockUnavailable;
 
     if (result.isAuthenticated) {
       Get.offAllNamed(AppRoutes.home);
@@ -139,6 +143,9 @@ class _SplashScreenState extends State<SplashScreen> {
             return AnimatedSplashContent(
               isLocked: showUnlock.value,
               onUnlock: _unlock,
+              onSignOut: isDeviceLockUnavailable.value
+                  ? SignOutFlow.fromUnusableLock
+                  : null,
             );
           }),
         ),
