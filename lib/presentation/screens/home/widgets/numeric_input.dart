@@ -15,122 +15,126 @@ class NumericInput extends StatefulWidget {
 }
 
 class _NumericInputState extends State<NumericInput> {
-  late FocusNode _focusNode;
-  late TextEditingController _controller;
+  late final EntryController _entries = Get.find<EntryController>();
+  final FocusNode _focusNode = FocusNode();
+  final TextEditingController _controller = TextEditingController();
+  late final List<Worker> _workers;
 
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
-    _controller = TextEditingController();
+    _syncFromEntry();
+    _focusNode.addListener(_onFocusChange);
+    _workers = [
+      ever(_entries.selectedDateEntries, (_) => _syncFromEntry()),
+      // Typed text belongs to the previous day; release it so it saves there.
+      ever(_entries.selectedDate, (_) => _focusNode.unfocus()),
+    ];
   }
 
   @override
   void dispose() {
+    for (final worker in _workers) {
+      worker.dispose();
+    }
     _focusNode.dispose();
     _controller.dispose();
     super.dispose();
   }
 
+  void _onFocusChange() {
+    if (_focusNode.hasFocus) return;
+    _entries.flushPendingValues();
+    _syncFromEntry();
+  }
+
+  /// Mirrors the stored value, but never under the user's cursor.
+  void _syncFromEntry() {
+    if (_focusNode.hasFocus) return;
+    final text =
+        _entries.selectedDateEntries[widget.param.id]?.value?.toString() ?? '';
+    if (_controller.text != text) _controller.text = text;
+  }
+
+  void _onChanged(String value) {
+    if (value.isEmpty) {
+      _entries.setValueDeferred(widget.param.id, null);
+      return;
+    }
+    final parsed = num.tryParse(value);
+    if (parsed != null) _entries.setValueDeferred(widget.param.id, parsed);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final entryController = Get.find<EntryController>();
-
-    return Obx(() {
-      final entry = entryController.selectedDateEntries[widget.param.id];
-      final currentValue = entry?.value?.toString() ?? '';
-
-      _controller.text = currentValue;
-      _controller.selection = TextSelection.fromPosition(
-        TextPosition(offset: _controller.text.length),
-      );
-
-      return AnimatedBuilder(
-        animation: _focusNode,
-        builder: (context, child) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 10),
-              Divider(color: Color(0xFF2A2F3A), height: 1),
-              SizedBox(height: 10),
-              Text(
-                AppStrings.hint,
-                style: TextStyle(
-                  color: Color(0xFF8892A4),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: 10),
+        Divider(color: Color(0xFF2A2F3A), height: 1),
+        SizedBox(height: 10),
+        Text(
+          AppStrings.hint,
+          style: TextStyle(
+            color: Color(0xFF8892A4),
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: 8),
+        Row(
+          children: [
+            Text(
+              widget.param.unit ?? '',
+              style: TextStyle(
+                color: Color(0xFF8892A4),
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(width: 10),
+            Expanded(
+              child: TextField(
+                focusNode: _focusNode,
+                controller: _controller,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.left,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
+                  color: Colors.white,
                 ),
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Text(
-                    widget.param.unit ?? '',
-                    style: TextStyle(
-                      color: Color(0xFF8892A4),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
+                decoration: const InputDecoration(
+                  isDense: true,
+                  fillColor: Color(0xFF30302E),
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF4E4E4A)),
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      focusNode: _focusNode,
-                      controller: _controller,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.left,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                      decoration: const InputDecoration(
-                        isDense: true,
-                        fillColor: Color(0xFF30302E),
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF4E4E4A)),
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF4E4E4A)),
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF4E4E4A)),
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                        disabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF4E4E4A)),
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                        hintText: AppStrings.enterValue,
-                        hintStyle: TextStyle(
-                          color: Color(0xFF757575),
-                          fontSize: 16,
-                        ),
-                      ),
-                      onChanged: (value) {
-                        final entryController = Get.find<EntryController>();
-                        if (value.isEmpty) {
-                          entryController.toggleEntry(widget.param.id, null);
-                          return;
-                        }
-                        final parsed = num.tryParse(value);
-                        if (parsed != null) {
-                          entryController.toggleEntry(widget.param.id, parsed);
-                        }
-                      },
-                    ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF4E4E4A)),
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
-                ],
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF4E4E4A)),
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF4E4E4A)),
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                  hintText: AppStrings.enterValue,
+                  hintStyle: TextStyle(color: Color(0xFF757575), fontSize: 16),
+                ),
+                onChanged: _onChanged,
+                onSubmitted: (_) => _focusNode.unfocus(),
               ),
-            ],
-          );
-        },
-      );
-    });
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }

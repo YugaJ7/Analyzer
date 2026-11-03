@@ -42,8 +42,13 @@ class _FakeEntryRepository implements EntryRepository {
     int days,
   ) async => {};
 
+  final savedDates = <DateTime>[];
+
   @override
-  Future<void> saveEntry(EntryEntity e) => _record('save:${e.parameterId}');
+  Future<void> saveEntry(EntryEntity e) {
+    savedDates.add(e.date);
+    return _record('save:${e.parameterId}');
+  }
 
   @override
   Future<void> updateEntry(
@@ -217,6 +222,65 @@ void main() {
       expect(entries.selectedDateEntries['h']!.value, 5);
       expect(streaks.getCurrent('h'), 1);
       expect(_calls, ['save:h', 'update:h']);
+    });
+  });
+
+  group('EntryController.setValueDeferred', () {
+    test(
+      'coalesces a typing burst into one write of the final value',
+      () async {
+        for (final value in [1, 12, 120]) {
+          await entries.setValueDeferred('h', value);
+        }
+
+        expect(_calls, isEmpty);
+        expect(entries.selectedDateEntries['h']!.value, 120);
+        expect(streaks.getCurrent('h'), 1);
+
+        await entries.flushPendingValues();
+
+        expect(_calls, ['save:h']);
+      },
+    );
+
+    test('writes once the input goes quiet', () async {
+      await entries.setValueDeferred('h', 4);
+
+      await Future<void>.delayed(
+        entries.valueSaveDelay + const Duration(milliseconds: 100),
+      );
+
+      expect(_calls, ['save:h']);
+    });
+
+    test('writes nothing when the burst ends where it started', () async {
+      await entries.setValueDeferred('h', 4);
+      await entries.setValueDeferred('h', null);
+
+      await entries.flushPendingValues();
+
+      expect(_calls, isEmpty);
+      expect(streaks.getCurrent('h'), 0);
+    });
+
+    test('rolls back to the pre-burst value when the write fails', () async {
+      await entries.toggleEntry('h', 3, syncWidget: false);
+      entryRepo.failing.add('update:h');
+
+      await entries.setValueDeferred('h', 35);
+      await entries.flushPendingValues();
+
+      expect(entries.selectedDateEntries['h']!.value, 3);
+      expect(_calls, ['save:h', 'update:h']);
+    });
+
+    test('saves to the day the burst started on', () async {
+      await entries.setValueDeferred('h', 7);
+      entries.changeSelectedDate(today.subtract(const Duration(days: 1)));
+
+      await entries.flushPendingValues();
+
+      expect(entryRepo.savedDates, [today]);
     });
   });
 

@@ -35,6 +35,7 @@ class EntryController extends GetxController {
     Future<void> Function()? syncWidget,
     AnalyticsController Function()? analytics,
     StreakController Function()? streaks,
+    this.valueSaveDelay = const Duration(milliseconds: 600),
   }) : _today = today ?? AppDateUtils.today,
        _userId = userId ?? (() => FirebaseAuth.instance.currentUser!.uid),
        _syncWidget = syncWidget ?? WidgetSyncService.syncNow,
@@ -62,6 +63,14 @@ class EntryController extends GetxController {
   late DateTime _lastKnownToday;
   Timer? _midnightTimer;
 
+  /// Quiet period after the last keystroke before a typed value is written.
+  final Duration valueSaveDelay;
+
+  /// Deferred value writes keyed by `date|parameterId`. [original] is the
+  /// entry before the burst started, used both to diff and to roll back.
+  final Map<String, ({DateTime date, EntryEntity? original, Timer timer})>
+  _pendingValues = {};
+
   @override
   void onInit() {
     super.onInit();
@@ -72,6 +81,9 @@ class EntryController extends GetxController {
   @override
   void onClose() {
     _midnightTimer?.cancel();
+    for (final pending in _pendingValues.values) {
+      pending.timer.cancel();
+    }
     super.onClose();
   }
 
@@ -202,6 +214,61 @@ class EntryController extends GetxController {
     }
 
     if (syncWidget && date == _today()) await _syncWidgetNow();
+  }
+
+  /// For typing-rate edits: local state updates immediately, while the write
+  /// is coalesced until input pauses for [valueSaveDelay]. The date is fixed
+  /// now, so switching days mid-burst still saves to the right one.
+  Future<void> setValueDeferred(String parameterId, num? value) async {
+    final date = _normalizedSelectedDate();
+    final dateKey = _dateKey(date);
+    if (_displayedKey != dateKey) return;
+
+    final previous = selectedDateEntries[parameterId];
+    final next = _nextEntry(parameterId, date, previous, value);
+    if (previous?.value == next?.value) return;
+
+    final key = '$dateKey|$parameterId';
+    final pending = _pendingValues[key];
+    pending?.timer.cancel();
+    _pendingValues[key] = (
+      date: date,
+      original: pending == null ? previous : pending.original,
+      timer: Timer(valueSaveDelay, () => _flushValue(key)),
+    );
+
+    await _setLocalEntry(date, parameterId, next);
+  }
+
+  /// Writes any deferred values now, e.g. when the field loses focus.
+  Future<void> flushPendingValues() =>
+      Future.wait([..._pendingValues.keys].map(_flushValue));
+
+  Future<void> _flushValue(String key) async {
+    final pending = _pendingValues.remove(key);
+    if (pending == null) return;
+    pending.timer.cancel();
+
+    final date = pending.date;
+    final parameterId = key.substring(key.indexOf('|') + 1);
+    final original = pending.original;
+    final latest = _dailyCache[_dateKey(date)]?[parameterId];
+    if (original?.value == latest?.value) return;
+
+    try {
+      await _persist(date, parameterId, previous: original, next: latest);
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'Entry save failed',
+        name: 'EntryController',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      await _setLocalEntry(date, parameterId, original);
+      _onSaveFailed();
+    }
+
+    if (date == _today()) await _syncWidgetNow();
   }
 
   /// Applies queued home-screen widget taps. Each failed write is rolled back
