@@ -3,12 +3,13 @@ import 'package:get/get.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_strings.dart';
+import '../../../../data/models/parameter_model.dart';
 import '../../../controllers/parameter_controller.dart';
 import '../../../widgets/parameter_form_dialog.dart';
 import 'confirm_delete_dialog.dart';
 
 class HabitTile extends StatelessWidget {
-  final dynamic param;
+  final ParameterModel param;
   final ParameterController controller;
   final int animDelay;
 
@@ -22,13 +23,13 @@ class HabitTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = Color(param.color ?? 0xFF6C63FF);
-    final isActive = param.isActive as bool;
+    final isActive = param.isActive;
 
     return Dismissible(
       key: ValueKey('dismiss_${param.id}'),
       direction: DismissDirection.endToStart,
       confirmDismiss: (_) async {
-        return await showConfirmDeleteDialog(context, param.name);
+        return showConfirmDeleteDialog(context, param.name);
       },
       onDismissed: (_) {
         controller.deleteExistingParameter(param.id);
@@ -38,16 +39,18 @@ class HabitTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.error.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: AppColors.error.withValues(alpha: 0.3),
-          ),
+          border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 24),
+            Icon(
+              Icons.delete_outline_rounded,
+              color: AppColors.error,
+              size: 24,
+            ),
             SizedBox(height: 4),
             Text(
               AppStrings.deleteButton,
@@ -110,7 +113,7 @@ class HabitTile extends StatelessWidget {
                         if (param.description != null) ...[
                           const SizedBox(height: 2),
                           Text(
-                            param.description,
+                            param.description!,
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.white.withValues(alpha: 0.3),
@@ -125,10 +128,9 @@ class HabitTile extends StatelessWidget {
                   // Active toggle
                   GestureDetector(
                     onTap: () {
-                      controller.updateExistingParameter(
-                        param.id,
-                        {'isActive': !isActive},
-                      );
+                      controller.updateExistingParameter(param.id, {
+                        'isActive': !isActive,
+                      });
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 250),
@@ -182,12 +184,14 @@ class HabitTile extends StatelessWidget {
         child: ParameterFormDialog(
           parameter: param,
           onSave: (updated) async {
-            Navigator.pop(context); // close sheet first
-            await controller.updateExistingParameter(param.id, {
+            final saved = await controller.updateExistingParameter(param.id, {
               'name': updated.name,
               'description': updated.description,
               'color': updated.color,
+              'options': updated.options,
+              'unit': updated.unit,
             });
+            if (!saved) return;
             Get.snackbar(
               AppStrings.habitUpdatedTitle,
               '"${updated.name}" ${AppStrings.paramUpdatedMessage}',

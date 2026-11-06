@@ -50,9 +50,7 @@ class ReorderParameters {
   final ParameterRepository repository;
   ReorderParameters(this.repository);
 
-  Future<void> call(String userId, List<ParameterEntity> ordered) async {
-    for (int i = 0; i < ordered.length; i++) {
-      await repository.updateParameter(userId, ordered[i].id, {'order': i});
-    }
+  Future<void> call(String userId, List<String> orderedIds) {
+    return repository.reorderParameters(userId, orderedIds);
   }
 }

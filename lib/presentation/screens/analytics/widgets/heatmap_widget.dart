@@ -1,4 +1,5 @@
 import 'package:analyzer/core/utils/app_strings.dart';
+import 'package:analyzer/core/utils/date_utils.dart';
 import 'package:analyzer/core/utils/helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -20,11 +21,7 @@ class HeatmapWidget extends StatelessWidget {
 
       // Only show the last 90 days for a cleaner view
       final now = DateTime.now();
-      final cutoff = DateTime(
-        now.year,
-        now.month,
-        now.day,
-      ).subtract(const Duration(days: 90));
+      final cutoff = AppDateUtils.addDays(now, -90);
 
       final filteredEntries =
           controller.heatmapData.entries
@@ -44,7 +41,7 @@ class HeatmapWidget extends StatelessWidget {
 
       // Fill leading blanks for first week
       final firstDate = filteredEntries.first.key;
-      final startWeekday = firstDate.weekday; 
+      final startWeekday = firstDate.weekday;
       for (int i = 1; i < startWeekday; i++) {
         currentWeek.add(_DayData.empty());
       }
@@ -62,7 +59,7 @@ class HeatmapWidget extends StatelessWidget {
 
         final percent = dataMap[cursor] ?? 0.0;
         currentWeek.add(_DayData(date: cursor, percent: percent));
-        cursor = cursor.add(const Duration(days: 1));
+        cursor = AppDateUtils.addDays(cursor, 1);
       }
       // Add remaining week
       if (currentWeek.isNotEmpty) {
@@ -110,8 +107,8 @@ class HeatmapWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Weekday labels
-                    Column(
-                      children: const [
+                    const Column(
+                      children: [
                         _DayLabel('M'),
                         _DayLabel('T'),
                         _DayLabel('W'),
@@ -232,7 +229,7 @@ class _HeatCell extends StatelessWidget {
                 dateStr,
                 '${data.percent.toStringAsFixed(0)}% completed',
                 snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: const Color(0xFF2D3561),
+                backgroundColor: AppColors.tooltipSurface,
                 colorText: Colors.white,
                 duration: const Duration(seconds: 2),
                 margin: const EdgeInsets.all(12),

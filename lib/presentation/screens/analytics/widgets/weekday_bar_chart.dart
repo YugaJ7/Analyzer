@@ -98,7 +98,6 @@ class _WeekdayBarChartState extends State<WeekdayBarChart> {
                   BarChartData(
                     maxY: 100,
                     gridData: FlGridData(
-                      show: true,
                       drawVerticalLine: false,
                       horizontalInterval: 25,
                       getDrawingHorizontalLine: (value) {
@@ -112,7 +111,7 @@ class _WeekdayBarChartState extends State<WeekdayBarChart> {
                     barTouchData: BarTouchData(
                       enabled: true,
                       touchTooltipData: BarTouchTooltipData(
-                        getTooltipColor: (_) => const Color(0xFF2D3561),
+                        getTooltipColor: (_) => AppColors.tooltipSurface,
                         getTooltipItem: (group, groupIndex, rod, rodIndex) {
                           return BarTooltipItem(
                             '${rod.toY.toStringAsFixed(0)}%',
@@ -126,15 +125,9 @@ class _WeekdayBarChartState extends State<WeekdayBarChart> {
                       ),
                     ),
                     titlesData: FlTitlesData(
-                      leftTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                      topTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                      rightTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
+                      leftTitles: const AxisTitles(),
+                      topTitles: const AxisTitles(),
+                      rightTitles: const AxisTitles(),
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
@@ -180,7 +173,7 @@ class _WeekdayBarChartState extends State<WeekdayBarChart> {
                               topRight: Radius.circular(8),
                             ),
                             gradient: isBest
-                                ? LinearGradient(
+                                ? const LinearGradient(
                                     colors: [
                                       AppColors.secondary,
                                       AppColors.primary,

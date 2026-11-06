@@ -1,17 +1,20 @@
 import 'dart:convert';
 
+import 'package:analyzer/core/utils/app_logger.dart';
 import 'package:analyzer/data/services/widget_refresh_service.dart';
 import 'package:analyzer/domain/entities/parameter_entity.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:analyzer/presentation/controllers/parameter_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class WidgetSyncService {
   static Future<void>? _inFlightSync;
   static _WidgetSyncPayload? _queuedPayload;
-  static String? _lastSentSignature;
 
+  /// Best-effort: the widget is a mirror, so failures are logged and never
+  /// propagate into the save/logout flows that trigger a sync.
   static Future<void> syncNow() async {
     final payload = _buildPayload();
     if (payload == null) {
@@ -25,26 +28,39 @@ class WidgetSyncService {
       return;
     }
 
+    final drain = _drainQueue();
+    _inFlightSync = drain;
+    try {
+      await drain;
+    } finally {
+      // Reset even on failure, or every later sync would await this one.
+      _inFlightSync = null;
+    }
+  }
+
+  static Future<void> _drainQueue() async {
     while (_queuedPayload != null) {
       final nextPayload = _queuedPayload!;
       _queuedPayload = null;
 
-      if (nextPayload.signature == _lastSentSignature) {
-        continue;
+      try {
+        await WidgetRefreshService.refresh(
+          percent: nextPayload.percent,
+          completed: nextPayload.completed,
+          total: nextPayload.total,
+          loggedIn: nextPayload.loggedIn,
+          itemsJson: nextPayload.itemsJson,
+        );
+      } on MissingPluginException {
+        return; // Widget is Android-only.
+      } catch (error, stackTrace) {
+        AppLogger.error(
+          'Widget refresh failed',
+          name: 'WidgetSyncService',
+          error: error,
+          stackTrace: stackTrace,
+        );
       }
-
-      final future = WidgetRefreshService.refresh(
-        percent: nextPayload.percent,
-        completed: nextPayload.completed,
-        total: nextPayload.total,
-        loggedIn: nextPayload.loggedIn,
-        itemsJson: nextPayload.itemsJson,
-      );
-
-      _inFlightSync = future;
-      await future;
-      _lastSentSignature = nextPayload.signature;
-      _inFlightSync = null;
     }
   }
 
@@ -81,7 +97,7 @@ class WidgetSyncService {
       final entryController = Get.find<EntryController>();
       entries = entryController.selectedDateEntries;
       final activeParamIds = params.map((p) => p.id).toSet();
-      completed = entries.keys.where((id) => activeParamIds.contains(id)).length;
+      completed = entries.keys.where(activeParamIds.contains).length;
     }
 
     final totalHabits = params.length;
@@ -123,7 +139,6 @@ class _WidgetSyncPayload {
   final int total;
   final bool loggedIn;
   final String itemsJson;
-  final String signature;
 
   _WidgetSyncPayload({
     required this.percent,
@@ -131,5 +146,5 @@ class _WidgetSyncPayload {
     required this.total,
     required this.loggedIn,
     required this.itemsJson,
-  }) : signature = '$loggedIn|$percent|$completed|$total|$itemsJson';
+  });
 }

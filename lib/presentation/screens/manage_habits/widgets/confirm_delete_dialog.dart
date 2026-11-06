@@ -15,10 +15,7 @@ Future<bool> showConfirmDeleteDialog(BuildContext context, String name) async {
           ),
           title: const Text(
             AppStrings.deleteHabitDialogTitle,
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
           ),
           content: Text(
             '"$name" ${AppStrings.deleteHabitDialogBody}',

@@ -7,6 +7,6 @@ class LoginUser {
   LoginUser(this.repository);
 
   Future<UserEntity> call(String email, String password) async {
-    return await repository.login(email, password);
+    return repository.login(email, password);
   }
 }

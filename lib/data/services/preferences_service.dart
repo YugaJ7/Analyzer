@@ -1,5 +1,6 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../core/utils/app_constants.dart';
 
 class PreferencesService {
@@ -25,6 +26,10 @@ class PreferencesService {
   Future<void> setAppLockEnabled(bool value) =>
       _prefs.setBool(_appLockKeyForCurrentUser, value);
 
+  /// Takes an explicit uid because it runs after sign-out has cleared it.
+  Future<void> disableAppLockFor(String uid) =>
+      _prefs.remove('${AppConstants.kAppLockKeyPrefix}_$uid');
+
   Future<void> clearLegacyAppLock() =>
       _prefs.remove(AppConstants.kLegacyAppLockKey);
 
@@ -46,6 +51,8 @@ class PreferencesService {
 
   Future<void> setAvatarEmoji(String emoji) =>
       _prefs.setString(AppConstants.kAvatarKey, emoji);
+
+  Future<void> clearAvatarEmoji() => _prefs.remove(AppConstants.kAvatarKey);
 
   // User name
   String? get userName => _prefs.getString(AppConstants.kUserNameKey);

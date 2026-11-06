@@ -14,7 +14,7 @@ class HomeHeader extends StatelessWidget {
           children: [
             Text(
               getGreeting(),
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.secondaryText,
                 fontWeight: FontWeight.w400,

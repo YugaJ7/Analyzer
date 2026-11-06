@@ -3,6 +3,8 @@ import 'package:analyzer/core/utils/helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+
+import '../../../../core/theme/app_colors.dart';
 import '../../../controllers/entry_controller.dart';
 import '../../../controllers/parameter_controller.dart';
 
@@ -39,7 +41,7 @@ class ProgressCard extends StatelessWidget {
       final totalParams = visibleParams.length;
       final visibleParamIds = visibleParams.map((p) => p.id).toSet();
       final completedParams = entryController.selectedDateEntries.keys
-          .where((id) => visibleParamIds.contains(id))
+          .where(visibleParamIds.contains)
           .length;
 
       final double completion = totalParams == 0
@@ -47,12 +49,12 @@ class ProgressCard extends StatelessWidget {
           : (completedParams / totalParams) * 100.0;
 
       return Container(
-        margin: EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: [Color(0xFF1A4A7A), Color(0xFF0F6E56)],
+          gradient: const LinearGradient(
+            colors: AppColors.progressGradient,
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -73,7 +75,7 @@ class ProgressCard extends StatelessWidget {
                 ),
                 Text(
                   '$completedParams/$totalParams',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     color: Colors.white60,
                     fontWeight: FontWeight.w500,
@@ -113,7 +115,7 @@ class ProgressCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               '$completedParams of $totalParams habits completed',
-              style: TextStyle(fontSize: 12, color: Colors.white60),
+              style: const TextStyle(fontSize: 12, color: Colors.white60),
             ),
           ],
         ),

@@ -4,7 +4,6 @@ import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
-import android.util.Log
 import android.widget.RemoteViews
 
 data class WidgetSnapshot(
@@ -18,8 +17,6 @@ object WidgetRenderer {
 
     @Synchronized
     fun refreshAll(context: Context) {
-        Log.d("WIDGET_DEBUG", "refreshAll called")
-
     val snapshot = readSnapshot(context)
 
     val manager =
@@ -73,7 +70,6 @@ object WidgetRenderer {
             id,
             snapshot
         )
-        Log.d("WIDGET_DEBUG", "Large widget render id=$id")
     }
 
     // REQUIRED FOR LISTVIEW DATA

@@ -10,7 +10,12 @@ class RegisterUser {
 
   Future<UserEntity> call(String email, String password, String name) async {
     final userAuth = await authRepository.register(email, password);
-    final user = await userRepository.createUser(userAuth.id, email, name);
-    return user;
+    try {
+      return await userRepository.createUser(userAuth.id, email, name);
+    } catch (_) {
+      // Roll back so a retry isn't blocked by "email already registered".
+      await authRepository.deleteCurrentUser();
+      rethrow;
+    }
   }
 }

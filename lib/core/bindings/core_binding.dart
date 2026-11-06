@@ -6,6 +6,7 @@ import '../../data/repositories/user_repository_impl.dart';
 import '../../data/services/preferences_service.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/user_repository.dart';
+import '../../presentation/services/app_lock_guard.dart';
 
 /// Registers global singleton services available across the entire app.
 class CoreBinding extends Bindings {
@@ -13,11 +14,12 @@ class CoreBinding extends Bindings {
   void dependencies() {
     // Services — permanent singletons
     Get.put<PreferencesService>(PreferencesService.instance, permanent: true);
+    Get.put<AppLockGuard>(AppLockGuard(), permanent: true);
 
     // Core repositories — registered here so AuthBinding and HomeBinding.
-    Get.lazyPut<AuthRepository>(() => AuthRepositoryImpl(), fenix: true);
+    Get.lazyPut<AuthRepository>(AuthRepositoryImpl.new, fenix: true);
 
-    Get.lazyPut<UserRepository>(() => UserRepositoryImpl(), fenix: true);
+    Get.lazyPut<UserRepository>(UserRepositoryImpl.new, fenix: true);
 
     // Firestore instance — shared singleton
     Get.put<FirebaseFirestore>(FirebaseFirestore.instance, permanent: true);

@@ -4,7 +4,13 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_strings.dart';
 
 class HabitEmptyState extends StatelessWidget {
-  const HabitEmptyState({super.key});
+  const HabitEmptyState({
+    super.key,
+    this.subtitle = AppStrings.manageNoHabitsSubtitle,
+  });
+
+  /// Points at whichever add control the hosting screen shows.
+  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +42,7 @@ class HabitEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            AppStrings.manageNoHabitsSubtitle,
+            subtitle,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.5),
               fontSize: 14,

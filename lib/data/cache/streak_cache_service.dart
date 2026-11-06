@@ -8,8 +8,17 @@ class StreakCacheService {
 
   StreakCacheService(this.box);
 
-  void save(String parameterId, int current, int best) {
-    box.put(parameterId, {'current': current, 'best': best});
+  void save(
+    String parameterId,
+    int current,
+    int best,
+    DateTime? lastCompletedDate,
+  ) {
+    box.put(parameterId, {
+      'current': current,
+      'best': best,
+      'last': lastCompletedDate?.toIso8601String(),
+    });
   }
 
   Map<String, dynamic>? load(String parameterId) {
@@ -21,6 +30,8 @@ class StreakCacheService {
   Map<dynamic, dynamic> loadAll() {
     return box.toMap();
   }
+
+  Future<void> remove(String parameterId) => box.delete(parameterId);
 
   /// Wipes all streak data — call this on logout so the next user starts clean.
   Future<void> clear() => box.clear();

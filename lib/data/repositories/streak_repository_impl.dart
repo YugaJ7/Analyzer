@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/firestore_error_messages.dart';
 import '../../core/utils/app_constants.dart';
 import '../../domain/repositories/streak_repository.dart';
 
@@ -20,18 +21,39 @@ class StreakRepositoryImpl implements StreakRepository {
     String parameterId,
     int current,
     int best,
+    DateTime? lastCompletedDate,
   ) async {
     try {
       await _streaks(userId).doc(parameterId).set({
         'currentStreak': current,
         'bestStreak': best,
+        'lastCompletedDate': lastCompletedDate == null
+            ? null
+            : Timestamp.fromDate(lastCompletedDate),
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to save streak.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to save streak.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to save streak.'));
+      throw const AppException(ServerFailure('Failed to save streak.'));
+    }
+  }
+
+  @override
+  Future<void> deleteStreak(String userId, String parameterId) async {
+    try {
+      await _streaks(userId).doc(parameterId).delete();
+    } on FirebaseException catch (e) {
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to delete streak.'),
+        ),
+      );
     }
   }
 
@@ -41,14 +63,24 @@ class StreakRepositoryImpl implements StreakRepository {
       final snapshot = await _streaks(userId).get();
       final Map<String, Map<String, dynamic>> result = {};
       for (final doc in snapshot.docs) {
-        result[doc.id] = doc.data();
+        final data = doc.data();
+        // Keep Firestore types out of the domain layer.
+        final last = data['lastCompletedDate'];
+        result[doc.id] = {
+          ...data,
+          'lastCompletedDate': last is Timestamp ? last.toDate() : null,
+        };
       }
       return result;
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to load streaks.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to load streaks.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to load streaks.'));
+      throw const AppException(ServerFailure('Failed to load streaks.'));
     }
   }
 }

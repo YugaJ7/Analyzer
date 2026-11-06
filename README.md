@@ -23,9 +23,10 @@ The app currently includes:
 - Checklist, numeric, and option-based habits
 - Analytics dashboard with weekly and long-term insights
 - CSV and PDF export
-- Biometric/device-lock app protection
+- Biometric/device-lock app protection that re-locks after time in the background
 - Android home-screen widgets with action sync
 - Firestore offline persistence
+- Per-user Firestore security rules
 
 ---
 
@@ -65,9 +66,18 @@ The app currently includes:
 
 - Update display name
 - Choose avatar emoji
-- Enable biometric/device app lock
+- Enable biometric/device app lock (re-locks after 30 seconds in the background)
 - Export habit history as CSV
-- Export a branded multi-page PDF report
+- Export a branded multi-page PDF report (works offline; fonts are bundled)
+
+### Security and privacy
+
+- Firestore rules restrict every document to its owner and validate field types and sizes
+- Local data (caches, widget data, exports) is tied to the signed-in account and wiped on sign-out or account switch
+- App Lock is per account; if the device screen lock is removed, the lock screen offers sign-out instead of trapping the user
+- Android backups are disabled so cached habit data never leaves the device
+- CSV exports neutralise spreadsheet formulas in habit names (CSV injection)
+- Debug logs carry error types only, never tokens, emails or habit content
 
 ### Android widget support
 
@@ -94,7 +104,7 @@ graph TD
         direction TB
         Controllers[GetX Controllers / ViewModels]
         Widgets[Widgets / Composables]
-        
+
         Controllers -- "Expose State" --> Widgets
         Widgets -- "Trigger Events" --> Controllers
     end
@@ -124,7 +134,7 @@ graph TD
   - **Remote**: Firebase Auth and Cloud Firestore for cloud-based persistence.
   - **Database**: Hive for fast, offline-first local storage.
   - **Cache**: In-memory caching for performance-critical data (like analytics aggregations).
-- **Domain Layer**: Defines entities and repository interfaces (contracts) that describe *what* the app does without knowing *how* data is fetched.
+- **Domain Layer**: Defines entities and repository interfaces (contracts) that describe _what_ the app does without knowing _how_ data is fetched.
 - **Core Layer**: Application-wide utilities, theme definitions, and dependency injection bindings.
 
 ## Project Structure
@@ -149,6 +159,7 @@ lib/
 ├── presentation/
 │   ├── controllers/
 │   ├── screens/
+│   ├── services/
 │   └── widgets/
 ├── firebase_options.dart
 └── main.dart
@@ -156,55 +167,80 @@ lib/
 
 ## Data Model
 
-Firestore uses a user-scoped structure:
+Firestore uses a user-scoped structure. Only the owner can read or write their
+documents, and [`firestore.rules`](firestore.rules) rejects any field not listed
+below. Dates are Firestore timestamps.
 
 ### `users/{userId}`
 
 Stores the profile:
+
 ```json
 {
-    "email": "[EMAIL_ADDRESS]",
-    "name": "John Doe",
-    "createdAt": "2022-01-01T00:00:00.000Z"
+  "email": "user@example.com",
+  "name": "John Doe",
+  "createdAt": "<timestamp>"
 }
 ```
 
 ### `users/{userId}/parameters/{parameterId}`
 
 Stores habit definitions:
+
 ```json
 {
-    "name": "Habit Name",
-    "description": "Habit Description",
-    "type": "Habit Type",
-    "order": 1,
-    "isActive": true,
-    "options": ["Option 1", "Option 2", "Option 3"],
-    "unit": "Habit Unit",
-    "icon": "Habit Icon",
-    "color": "Habit Color",
-    "createdAt": "2022-01-01T00:00:00.000Z"
+  "name": "Read",
+  "description": "20 pages a day",
+  "type": "checklist | value | optionSelector",
+  "order": 1,
+  "isActive": true,
+  "options": ["Good", "Okay", "Bad"],
+  "unit": "pages",
+  "icon": "book",
+  "color": 4285290495,
+  "createdAt": "<timestamp>"
 }
 ```
 
 ### `users/{userId}/entries/{entryId}`
 
-Stores daily habit logs:
+Stores daily habit logs. `value` is `true` for checklists, a number for value
+habits, or the chosen option:
+
 ```json
 {
-    "parameterId": "Habit ID",
-    "date": "Date",
-    "value": "Value",
-    "notes": "Notes",
-    "createdAt": "2022-01-01T00:00:00.000Z"
+  "parameterId": "<parameterId>",
+  "date": "<timestamp>",
+  "value": true,
+  "notes": "Optional note",
+  "createdAt": "<timestamp>"
 }
 ```
 
+### `users/{userId}/streaks/{parameterId}`
+
+Stores streak state per habit:
+
+```json
+{
+  "currentStreak": 4,
+  "bestStreak": 12,
+  "lastCompletedDate": "<timestamp>",
+  "updatedAt": "<timestamp>"
+}
+```
+
+> Adding a Firestore field? Add it to the matching `hasOnly([...])` list in
+> `firestore.rules` too, or writes will be denied.
+
 ### Local storage
 
-- `Hive`: analytics cache and streak cache
-- `SharedPreferences`: app lock flag, avatar emoji, cached display name
+All of it is scoped to the signed-in account by `UserSessionStorage` and cleared
+on sign-out or when a different account signs in.
 
+- `Hive`: analytics cache, streak cache, and session metadata (owning account)
+- `SharedPreferences`: avatar emoji, cached display name, and the per-account App Lock setting
+- Temporary files: the most recent CSV/PDF export, replaced on each export
 
 ## Current Roadmap v0.1.0
 
@@ -216,6 +252,7 @@ Stores daily habit logs:
 - [x] Create data export tools for CSV history and branded PDF reports.
 - [x] Develop native Android home-screen widgets with action sync and midnight reset scheduling.
 - [x] Optimize state management and caching for smooth UI transitions and offline-first performance.
+- [x] Security and stability hardening: Firestore rules, account-scoped local data, release signing, strict lints.
 - [ ] Create store publishing assets, banners, and privacy policy documentation.
 - [ ] Enhance offline handling and network resilience for edge-case sync scenarios.
 - [ ] Implement multi-language support.
@@ -223,24 +260,41 @@ Stores daily habit logs:
 - [ ] Add widget for iOS
 - [ ] Add notification management to send reminders for each habit
 
-
 ## App Previews
 
-| Login | Home (Loading) | Home | Analytics 1 |
-| :---: | :------------: | :--: | :---------: |
+|                             Login                             |                               Home (Loading)                                |                            Home                             |                                Analytics 1                                |
+| :-----------------------------------------------------------: | :-------------------------------------------------------------------------: | :---------------------------------------------------------: | :-----------------------------------------------------------------------: |
 | <img src="assets/login.png" alt="Login Screen" width="200" /> | <img src="assets/home_loading.png" alt="Home Loading Screen" width="200" /> | <img src="assets/home.png" alt="Home Screen" width="200" /> | <img src="assets/analytics_1.png" alt="Analytics Screen 1" width="200" /> |
 
-| Analytics 2 | Profile | Manage Habits | Widget |
-| :---------: | :-----: | :-----------: | :----: |
+|                                Analytics 2                                |                              Profile                              |                                 Manage Habits                                 |                             Widget                              |
+| :-----------------------------------------------------------------------: | :---------------------------------------------------------------: | :---------------------------------------------------------------------------: | :-------------------------------------------------------------: |
 | <img src="assets/analytics_2.png" alt="Analytics Screen 2" width="200" /> | <img src="assets/profile.png" alt="Profile Screen" width="200" /> | <img src="assets/manage_habits.png" alt="Manage Habits Screen" width="200" /> | <img src="assets/widget.png" alt="Widget Screen" width="200" /> |
 
 ## Installation
 
 ```bash
 git clone https://github.com/YugaJ7/Analyzer.git
-cd analyzer
+cd Analyzer
 flutter pub get
 flutter run
+```
+
+### Firebase setup
+
+1. Add your own `android/app/google-services.json` (and, for iOS,
+   `ios/Runner/GoogleService-Info.plist`), or run `flutterfire configure`.
+2. Register your debug and release SHA-1/SHA-256 fingerprints in Firebase
+   (`cd android && ./gradlew signingReport`) so Google Sign-In works.
+3. Deploy the security rules:
+   ```bash
+   firebase deploy --only firestore:rules
+   ```
+
+### Tests and analysis
+
+```bash
+flutter analyze   # strict lints; must be clean
+flutter test
 ```
 
 ---
@@ -249,18 +303,35 @@ flutter run
 
 ### Android
 
+Debug builds need no setup:
+
+```bash
+flutter build apk --debug
 ```
-flutter build apk --release
-# or
-flutter build appbundle --release
-```
+
+Release builds are signed with an upload keystore and fail fast without one:
+
+1. Create a keystore (keep it and its passwords safe; you can't publish updates without them):
+   ```bash
+   keytool -genkey -v -keystore android/upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
+2. Copy `android/key.properties.example` to `android/key.properties` and fill in the passwords.
+   Both files are git-ignored.
+3. Build:
+   ```bash
+   flutter build apk --release --split-per-abi
+   # or, for Play Store
+   flutter build appbundle --release
+   ```
 
 ### iOS
 
-```
+Google Sign-In on iOS needs an iOS OAuth client in Firebase and its reversed
+client ID added as a URL scheme in `ios/Runner/Info.plist`.
+
+```bash
 flutter build ios --release
 ```
-
 
 ## Contributions & Credits
 

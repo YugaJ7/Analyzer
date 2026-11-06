@@ -7,9 +7,14 @@ class AnimatedSplashContent extends StatelessWidget {
   final bool isLocked;
   final VoidCallback onUnlock;
 
-  const AnimatedSplashContent({super.key, 
+  /// Offered when the device lock is gone and unlocking can never succeed.
+  final VoidCallback? onSignOut;
+
+  const AnimatedSplashContent({
+    super.key,
     required this.isLocked,
     required this.onUnlock,
+    this.onSignOut,
   });
 
   @override
@@ -17,9 +22,7 @@ class AnimatedSplashContent extends StatelessWidget {
     return AnimatedPadding(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
-      padding: EdgeInsets.only(
-        top: isLocked ? 0 : 100,
-      ),
+      padding: EdgeInsets.only(top: isLocked ? 0 : 100),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -84,12 +87,25 @@ class AnimatedSplashContent extends StatelessWidget {
                       ),
                     ),
                     child: const Text(AppStrings.unlockButton),
-                  )
-                    .animate()
-                    .fadeIn()
-                    .slideY(begin: 1)
+                  ).animate().fadeIn().slideY(begin: 1)
                 : const SizedBox.shrink(),
           ),
+
+          if (isLocked && onSignOut != null) ...[
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                AppStrings.deviceLockRemovedMessage,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+            ),
+            TextButton(
+              onPressed: onSignOut,
+              child: const Text(AppStrings.signOutButton),
+            ),
+          ],
         ],
       ),
     );

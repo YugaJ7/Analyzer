@@ -1,15 +1,18 @@
+import 'dart:async';
 import 'dart:developer';
+
 import 'package:analyzer/core/theme/app_background.dart';
-import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/presentation/screens/auth/splash_content.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
-import '../../../data/services/auth_lock_service.dart';
-import '../../../data/services/preferences_service.dart';
 
 import '../../../core/routes/app_routes.dart';
+import '../../../data/services/auth_lock_service.dart';
+import '../../../data/services/preferences_service.dart';
+import '../../../data/services/user_session_storage.dart';
+import '../../services/auth_lock_feedback.dart';
+import '../../services/sign_out_flow.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,8 +22,12 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  // The biometric sheet can be briefly unavailable right after launch.
+  static const _biometricRetryDelay = Duration(milliseconds: 400);
+
   final RxBool showUnlock = false.obs;
   final RxBool isAuthenticating = false.obs;
+  final RxBool isDeviceLockUnavailable = false.obs;
 
   @override
   void initState() {
@@ -43,11 +50,13 @@ class _SplashScreenState extends State<SplashScreen> {
         'startup: splash -> login in ${totalStopwatch.elapsedMilliseconds}ms',
         name: 'PERF',
       );
-      Get.offAllNamed(AppRoutes.login);
+      unawaited(Get.offAllNamed(AppRoutes.login));
       return;
     }
 
     try {
+      await UserSessionStorage.bindToUser(user.uid);
+
       final isLockEnabled = PreferencesService.instance.appLockEnabled;
 
       log('App Lock Enabled: $isLockEnabled');
@@ -61,6 +70,7 @@ class _SplashScreenState extends State<SplashScreen> {
         );
 
         if (!authResult.isAuthenticated) {
+          isDeviceLockUnavailable.value = authResult.isDeviceLockUnavailable;
           showUnlock.value = true;
           return;
         }
@@ -71,14 +81,14 @@ class _SplashScreenState extends State<SplashScreen> {
         'startup: splash -> home in ${totalStopwatch.elapsedMilliseconds}ms',
         name: 'PERF',
       );
-      Get.offAllNamed(AppRoutes.home);
+      unawaited(Get.offAllNamed(AppRoutes.home));
     } catch (e) {
       await _ensureMinimumSplashTime(startedAt);
       log(
         'startup: splash failed -> login in ${totalStopwatch.elapsedMilliseconds}ms',
         name: 'PERF',
       );
-      Get.offAllNamed(AppRoutes.login);
+      unawaited(Get.offAllNamed(AppRoutes.login));
     }
   }
 
@@ -97,30 +107,28 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     isAuthenticating.value = true;
+    try {
+      var result = await AuthLockService.instance.authenticate();
 
-    var result = await AuthLockService.instance.authenticate(showErrors: false);
+      if (result.failure == AuthLockFailure.uiUnavailable) {
+        await Future<void>.delayed(_biometricRetryDelay);
+        result = await AuthLockService.instance.authenticate();
+      }
 
-    if (result.failure == AuthLockFailure.uiUnavailable) {
-      await Future.delayed(const Duration(milliseconds: 400));
-      result = await AuthLockService.instance.authenticate(showErrors: false);
+      return result;
+    } finally {
+      isAuthenticating.value = false;
     }
-
-    isAuthenticating.value = false;
-
-    return result;
   }
 
   Future<void> _unlock() async {
     final result = await _authenticate();
+    isDeviceLockUnavailable.value = result.isDeviceLockUnavailable;
 
     if (result.isAuthenticated) {
-      Get.offAllNamed(AppRoutes.home);
+      unawaited(Get.offAllNamed(AppRoutes.home));
     } else {
-      Get.snackbar(
-        AppStrings.accessDeniedTitle,
-        AppStrings.accessDeniedMessage,
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      AuthLockFeedback.show(result, AuthLockPurpose.unlock);
     }
   }
 
@@ -133,6 +141,9 @@ class _SplashScreenState extends State<SplashScreen> {
             return AnimatedSplashContent(
               isLocked: showUnlock.value,
               onUnlock: _unlock,
+              onSignOut: isDeviceLockUnavailable.value
+                  ? SignOutFlow.fromUnusableLock
+                  : null,
             );
           }),
         ),

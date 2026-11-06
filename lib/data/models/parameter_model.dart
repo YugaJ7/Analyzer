@@ -17,7 +17,7 @@ class ParameterModel extends ParameterEntity {
     super.color,
   });
 
-  // Factory constructors 
+  // Factory constructors
 
   factory ParameterModel.fromEntity(ParameterEntity entity) {
     return ParameterModel(
@@ -84,7 +84,7 @@ class ParameterModel extends ParameterEntity {
     );
   }
 
-  // Serialisation 
+  // Serialisation
   Map<String, dynamic> toJson() {
     return {
       'id': id,

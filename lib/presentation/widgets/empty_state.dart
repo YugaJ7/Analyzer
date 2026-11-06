@@ -29,16 +29,12 @@ class EmptyStateWidget extends StatelessWidget {
                 color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 60,
-                color: AppColors.primary,
-              ),
+              child: Icon(icon, size: 60, color: AppColors.primary),
             ).animate().scale(delay: 200.ms),
             const SizedBox(height: 24),
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,

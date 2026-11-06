@@ -29,15 +29,14 @@ class UserModel extends UserEntity {
     );
   }
 
-  factory UserModel.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> doc,
-  ) {
+  factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
     return UserModel(
       id: doc.id,
       email: data['email'] as String? ?? '',
       name: data['name'] as String? ?? '',
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      // Absent on docs first created by a merge-update.
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 

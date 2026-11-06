@@ -15,6 +15,22 @@ class AppColors {
   static const Color blue = Color(0xFF42A5F5);
   static const Color completedborder = Color(0xFF1D9E75);
   static const Color completedsurface = Color(0xFF0D2A1E);
+  static const Color gold = Color(0xFFFFD700);
+
+  static const Color navActive = Color(0xFF6366F1);
+  static const Color tooltipSurface = Color(0xFF2D3561);
+  static const Color chipBackground = Color(0xFF0A0E27);
+  static const Color checkboxBorder = Color(0xFF3A4356);
+  static const Color divider = Color(0xFF2A2F3A);
+  static const Color todayBadgeSurface = Color(0xFF1E4D3A);
+  static const List<Color> progressGradient = [
+    Color(0xFF1A4A7A),
+    Color(0xFF0F6E56),
+  ];
+
+  static const Color inputFill = Color(0xFF30302E);
+  static const Color inputBorder = Color(0xFF4E4E4A);
+  static const Color inputHint = Color(0xFF757575);
 
   static const Color textPrimary = Colors.white;
   static final Color textSecondary = Colors.white.withValues(alpha: 0.5);
@@ -22,8 +38,15 @@ class AppColors {
 
   static final Color cardOverlay = surface.withValues(alpha: 0.5);
   static final Color borderSubtle = Colors.white.withValues(alpha: 0.05);
-  static final Color borderColorPrimary = const Color.fromARGB(255, 187, 130, 130).withValues(alpha: 0.1);
-  static final Color borderColorSecondary = Colors.white.withValues(alpha: 0.06);
+  static final Color borderColorPrimary = const Color.fromARGB(
+    255,
+    187,
+    130,
+    130,
+  ).withValues(alpha: 0.1);
+  static final Color borderColorSecondary = Colors.white.withValues(
+    alpha: 0.06,
+  );
 
   static final List<Map<String, dynamic>> availableColors = [
     {'color': 0xFF6C63FF, 'name': 'Purple'},
@@ -44,7 +67,7 @@ class AppColors {
   static const Color emptyColor = Color(0xFF151B36);
 
   static const List<Color> medalColors = [
-    Color(0xFFFFD700),
+    gold,
     Color(0xFFC0C0C0),
     Color(0xFFCD7F32),
   ];

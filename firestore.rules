@@ -1,0 +1,111 @@
+rules_version = '2';
+
+// All data lives under users/{uid} and is owner-only. Writes are
+// schema-checked so a modified client can't store arbitrary fields or
+// oversized payloads. On update, request.resource.data is the merged
+// document, so the full schema is validated every time.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // Absent, null, or a string of at most `max` chars.
+    function optionalString(field, max) {
+      return !(field in incoming())
+        || incoming()[field] == null
+        || (incoming()[field] is string && incoming()[field].size() <= max);
+    }
+
+    function requiredString(field, min, max) {
+      return field in incoming()
+        && incoming()[field] is string
+        && incoming()[field].size() >= min
+        && incoming()[field].size() <= max;
+    }
+
+    // Profile. createdAt is optional: merge-created docs may lack it.
+    function isValidUser() {
+      return incoming().keys().hasOnly(['email', 'name', 'createdAt'])
+        && optionalString('email', 320)
+        && optionalString('name', 60)
+        && (!('createdAt' in incoming()) || incoming().createdAt is timestamp);
+    }
+
+    match /users/{uid} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid) && isValidUser();
+
+      function isValidParameter() {
+        return incoming().keys().hasOnly([
+            'createdAt', 'name', 'description', 'type', 'order',
+            'isActive', 'options', 'unit', 'icon', 'color'
+          ])
+          && requiredString('name', 1, 80)
+          && optionalString('description', 500)
+          && incoming().type in ['checklist', 'value', 'optionSelector']
+          && incoming().order is int
+          && (!('isActive' in incoming()) || incoming().isActive is bool)
+          && (!('options' in incoming())
+              || incoming().options == null
+              || (incoming().options is list && incoming().options.size() <= 20))
+          && optionalString('unit', 20)
+          && optionalString('icon', 64)
+          && (!('color' in incoming())
+              || incoming().color == null
+              || incoming().color is int)
+          && incoming().createdAt is timestamp;
+      }
+
+      match /parameters/{paramId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidParameter();
+      }
+
+      function isValidEntry() {
+        return incoming().keys().hasOnly([
+            'parameterId', 'date', 'value', 'notes', 'createdAt'
+          ])
+          && requiredString('parameterId', 1, 128)
+          && incoming().date is timestamp
+          && (incoming().value is bool
+              || incoming().value is number
+              || (incoming().value is string && incoming().value.size() <= 200))
+          && optionalString('notes', 1000)
+          && incoming().createdAt is timestamp;
+      }
+
+      match /entries/{entryId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidEntry();
+      }
+
+      // lastCompletedDate is optional so pre-existing docs still validate.
+      function isValidStreak() {
+        return incoming().keys().hasOnly([
+            'currentStreak', 'bestStreak', 'lastCompletedDate', 'updatedAt'
+          ])
+          && incoming().currentStreak is int && incoming().currentStreak >= 0
+          && incoming().bestStreak is int && incoming().bestStreak >= 0
+          && (!('lastCompletedDate' in incoming())
+              || incoming().lastCompletedDate == null
+              || incoming().lastCompletedDate is timestamp)
+          && incoming().updatedAt is timestamp;
+      }
+
+      match /streaks/{paramId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidStreak();
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,30 +1,23 @@
-import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get/get.dart';
 
 import '../../core/errors/app_exception.dart';
-import '../../core/routes/app_routes.dart';
-import '../../data/cache/analytics_cache_service.dart';
-import '../../data/cache/streak_cache_service.dart';
+import '../../core/utils/app_strings.dart';
 import '../../data/services/auth_lock_service.dart';
-import '../../data/services/export_service.dart';
 import '../../data/services/preferences_service.dart';
-import '../../data/services/widget_sync_service.dart';
-import '../../domain/repositories/entry_repository.dart';
-import '../../domain/repositories/parameter_repository.dart';
-import '../../domain/repositories/streak_repository.dart';
 import '../../domain/repositories/user_repository.dart';
-import '../../domain/usecases/entry_usecases.dart';
-import '../../domain/usecases/parameter_usecases.dart';
-import '../../domain/usecases/user_usecases.dart';
+import '../../domain/usecases/logout_user.dart';
+import '../services/auth_lock_feedback.dart';
+import '../services/export_service.dart';
+import '../services/sign_out_flow.dart';
 import 'analytics_controller.dart';
-import 'entry_controller.dart';
 import 'parameter_controller.dart';
-import 'streak_controller.dart';
 
 class ProfileController extends GetxController {
   final UserRepository userRepository;
+  final LogoutUser logoutUser;
 
-  ProfileController({required this.userRepository});
+  ProfileController({required this.userRepository, required this.logoutUser});
 
   late final ExportService exportService;
 
@@ -36,8 +29,22 @@ class ProfileController extends GetxController {
   User? get user => FirebaseAuth.instance.currentUser;
 
   static const avatarEmojis = [
-    '🧠', '🚀', '🌟', '💪', '🎯', '🦁', '🔥', '⚡',
-    '🌿', '🏆', '🎭', '🌈', '💎', '🦅', '🐉', '🌙',
+    '🧠',
+    '🚀',
+    '🌟',
+    '💪',
+    '🎯',
+    '🦁',
+    '🔥',
+    '⚡',
+    '🌿',
+    '🏆',
+    '🎭',
+    '🌈',
+    '💎',
+    '🦅',
+    '🐉',
+    '🌙',
   ];
 
   @override
@@ -100,22 +107,26 @@ class ProfileController extends GetxController {
     selectedAvatar.value = emoji;
   }
 
-  // 🔐 APP LOCK (UPDATED)
+  // Both directions need auth, or anyone holding the unlocked phone could
+  // switch the lock off.
   Future<void> toggleAppLock(bool value) async {
-    if (value) {
-      final authenticated = await AuthLockService.instance.authenticate();
-
-      if (!authenticated.isAuthenticated) return;
+    final result = await AuthLockService.instance.authenticate();
+    if (!result.isAuthenticated) {
+      AuthLockFeedback.show(
+        result,
+        value ? AuthLockPurpose.enable : AuthLockPurpose.disable,
+      );
+      return;
     }
 
     await PreferencesService.instance.setAppLockEnabled(value);
     appLockEnabled.value = value;
 
     Get.snackbar(
-      value ? 'App Lock Enabled' : 'App Lock Disabled',
+      value ? AppStrings.appLockEnabledTitle : AppStrings.appLockDisabledTitle,
       value
-          ? 'App will require authentication on launch.'
-          : 'App lock has been turned off.',
+          ? AppStrings.appLockEnabledMessage
+          : AppStrings.appLockDisabledMessage,
       snackPosition: SnackPosition.BOTTOM,
     );
   }
@@ -128,10 +139,7 @@ class ProfileController extends GetxController {
     } on AppException catch (e) {
       Get.snackbar('Export Failed', e.message);
     } catch (_) {
-      Get.snackbar(
-        'Export Failed',
-        'Could not export CSV. Please try again.',
-      );
+      Get.snackbar('Export Failed', 'Could not export CSV. Please try again.');
     } finally {
       isExporting.value = false;
     }
@@ -145,10 +153,7 @@ class ProfileController extends GetxController {
     } on AppException catch (e) {
       Get.snackbar('Export Failed', e.message);
     } catch (_) {
-      Get.snackbar(
-        'Export Failed',
-        'Could not export PDF. Please try again.',
-      );
+      Get.snackbar('Export Failed', 'Could not export PDF. Please try again.');
     } finally {
       isExporting.value = false;
     }
@@ -171,61 +176,5 @@ class ProfileController extends GetxController {
     }
   }
 
-  // 🔥 LOGOUT — clears all caches and resets GetX state for the next user
-  Future<void> logout() async {
-    try {
-      // 1. Clear Hive disk caches
-      if (Get.isRegistered<AnalyticsCacheService>()) {
-        Get.find<AnalyticsCacheService>().clear();
-      }
-      if (Get.isRegistered<StreakCacheService>()) {
-        await Get.find<StreakCacheService>().clear();
-      }
-
-      // 2. Clear SharedPreferences user-scoped data
-      final prefs = PreferencesService.instance;
-      await prefs.clearUserName();
-      await prefs.remove('avatar_emoji');
-
-      // 3. Force-delete all home-scoped permanent GetX registrations
-      //    so HomeBinding re-initialises fresh on next login.
-      Get.delete<ParameterController>(force: true);
-      Get.delete<EntryController>(force: true);
-      Get.delete<StreakController>(force: true);
-      Get.delete<AnalyticsController>(force: true);
-      Get.delete<AnalyticsCacheService>(force: true);
-      Get.delete<StreakCacheService>(force: true);
-
-      // Use cases
-      Get.delete<GetParameters>(force: true);
-      Get.delete<WatchParameters>(force: true);
-      Get.delete<AddParameter>(force: true);
-      Get.delete<UpdateParameter>(force: true);
-      Get.delete<DeleteParameter>(force: true);
-      Get.delete<ReorderParameters>(force: true);
-      Get.delete<GetEntriesForDate>(force: true);
-      Get.delete<GetEntriesForLastNDays>(force: true);
-      Get.delete<SaveEntry>(force: true);
-      Get.delete<UpdateEntry>(force: true);
-      Get.delete<DeleteEntry>(force: true);
-      Get.delete<DeleteAllEntriesForParameter>(force: true);
-      Get.delete<GetUserProfile>(force: true);
-      Get.delete<UpdateUserProfile>(force: true);
-
-      // Repositories
-      Get.delete<EntryRepository>(force: true);
-      Get.delete<ParameterRepository>(force: true);
-      Get.delete<StreakRepository>(force: true);
-
-      // 4. Sign out from Firebase
-      await FirebaseAuth.instance.signOut();
-      await WidgetSyncService.syncNow();
-
-      // 5. Navigate to login
-      Get.offAllNamed(AppRoutes.login);
-    } catch (e) {
-      Get.snackbar('Error', 'Logout failed. Please try again.',
-          snackPosition: SnackPosition.BOTTOM);
-    }
-  }
+  Future<void> logout() => SignOutFlow.run(logoutUser);
 }

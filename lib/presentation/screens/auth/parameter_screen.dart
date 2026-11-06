@@ -31,75 +31,60 @@ class ParameterSetupScreen extends GetView<ParameterController> {
           ),
         ),
         actions: [
+          // Finishing setup is the primary action, so it takes the prominent
+          // slot; adding moves to the FAB to keep the app bar uncluttered.
           Obx(
-            () => controller.parameters.isNotEmpty
-                ? Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: TextButton(
+            () => controller.parameters.isEmpty
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: FilledButton.icon(
                       onPressed: () => Get.offAllNamed(AppRoutes.home),
-                      child: const Text(
-                        AppStrings.paramSetupDoneButton,
-                        style: TextStyle(
-                          color: AppColors.secondary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
-          // "Add" button
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: GestureDetector(
-              onTap: () => _showAddDialog(context),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.add_rounded, color: Colors.white, size: 18),
-                    SizedBox(width: 4),
-                    Text(
-                      AppStrings.manageAddButton,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                      icon: const Icon(Icons.check_rounded, size: 18),
+                      label: const Text(
+                        AppStrings.paramSetupDoneButton,
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddDialog(context),
+        tooltip: AppStrings.addParameterButton,
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add_rounded),
       ),
       body: Obx(() {
         final habits = controller.parameters;
 
         if (habits.isEmpty) {
-          return const HabitEmptyState();
+          return const HabitEmptyState(
+            subtitle: AppStrings.paramSetupEmptyHint,
+          );
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+          // Bottom inset keeps the last habit clear of the FAB.
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
           itemCount: habits.length,
           itemBuilder: (context, index) {
             final param = habits[index];
             return HabitTile(
-              key: ValueKey(param.id),
-              param: param,
-              controller: controller,
-              animDelay: index * 50,
-            )
+                  key: ValueKey(param.id),
+                  param: param,
+                  controller: controller,
+                  animDelay: index * 50,
+                )
                 .animate()
                 .fadeIn(delay: Duration(milliseconds: index * 50))
                 .slideX(begin: 0.1);
@@ -137,8 +122,7 @@ class ParameterSetupScreen extends GetView<ParameterController> {
               icon: param.icon,
               color: param.color,
             );
-            Navigator.pop(context);
-            await controller.addNewParameter(paramWithOrder);
+            if (!await controller.addNewParameter(paramWithOrder)) return;
             Get.snackbar(
               AppStrings.habitAddedTitle,
               '"${param.name}" ${AppStrings.paramAddedMessage}',

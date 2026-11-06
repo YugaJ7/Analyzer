@@ -1,4 +1,5 @@
 import 'package:analyzer/core/utils/app_strings.dart';
+import 'package:analyzer/core/utils/date_utils.dart';
 import 'package:analyzer/core/utils/helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -19,7 +20,7 @@ class DateSelector extends StatelessWidget {
       final isToday = isSameDay(selectedDate, DateTime.now());
 
       return Container(
-        margin: EdgeInsets.only(top: 12, bottom: 12),
+        margin: const EdgeInsets.only(top: 12, bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: AppColors.surface,
@@ -30,7 +31,7 @@ class DateSelector extends StatelessWidget {
             IconButton(
               onPressed: () {
                 entryController.changeSelectedDate(
-                  selectedDate.subtract(const Duration(days: 1)),
+                  AppDateUtils.addDays(selectedDate, -1),
                 );
               },
               icon: const Icon(Icons.chevron_left),
@@ -40,15 +41,12 @@ class DateSelector extends StatelessWidget {
               child: GestureDetector(
                 onTap: () async {
                   final picked = await showDatePicker(
-                    context: Get.context!,
+                    context: context,
                     initialDate: selectedDate,
                     firstDate: DateTime(2020),
                     lastDate: DateTime.now(),
                     builder: (context, child) {
-                      return Theme(
-                        data: ThemeData.dark(),
-                        child: child!,
-                      );
+                      return Theme(data: ThemeData.dark(), child: child!);
                     },
                   );
                   if (picked != null) {
@@ -60,7 +58,7 @@ class DateSelector extends StatelessWidget {
                   children: [
                     Text(
                       DateFormat('EEEE').format(selectedDate),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.secondaryText,
                       ),
@@ -81,14 +79,14 @@ class DateSelector extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Color(0xFF1E4D3A),
+                          color: AppColors.todayBadgeSurface,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(
                           AppStrings.todayBadge,
                           style: TextStyle(
                             fontSize: 10,
-                            color: Color(0xFF4ADE80),
+                            color: AppColors.completedText,
                           ),
                         ),
                       ),
@@ -101,13 +99,13 @@ class DateSelector extends StatelessWidget {
                   ? null
                   : () {
                       entryController.changeSelectedDate(
-                        selectedDate.add(const Duration(days: 1)),
+                        AppDateUtils.addDays(selectedDate, 1),
                       );
                     },
               icon: const Icon(Icons.chevron_right),
               color: isToday
-                  ? Color(0xFF8892A4)
-                  : Color(0xFF8892A4).withValues(alpha: 0.8),
+                  ? AppColors.secondaryText
+                  : AppColors.secondaryText.withValues(alpha: 0.8),
             ),
           ],
         ),

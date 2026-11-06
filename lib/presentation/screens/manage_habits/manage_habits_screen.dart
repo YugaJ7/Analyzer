@@ -24,7 +24,7 @@ class ManageHabitsScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: Get.back,
         ),
         title: const Text(
           AppStrings.manageHabitsTitle,
@@ -89,12 +89,16 @@ class ManageHabitsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               ...active.asMap().entries.map(
-                (e) => HabitTile(
-                  key: ValueKey(e.value.id),
-                  param: e.value,
-                  controller: controller,
-                  animDelay: e.key * 50,
-                ).animate().fadeIn(delay: Duration(milliseconds: e.key * 50)).slideX(begin: 0.1),
+                (e) =>
+                    HabitTile(
+                          key: ValueKey(e.value.id),
+                          param: e.value,
+                          controller: controller,
+                          animDelay: e.key * 50,
+                        )
+                        .animate()
+                        .fadeIn(delay: Duration(milliseconds: e.key * 50))
+                        .slideX(begin: 0.1),
               ),
               const SizedBox(height: 20),
             ],
@@ -106,12 +110,16 @@ class ManageHabitsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               ...inactive.asMap().entries.map(
-                (e) => HabitTile(
-                  key: ValueKey(e.value.id),
-                  param: e.value,
-                  controller: controller,
-                  animDelay: (active.length + e.key) * 50,
-                ).animate().fadeIn(delay: Duration(milliseconds: e.key * 50)).slideX(begin: 0.1),
+                (e) =>
+                    HabitTile(
+                          key: ValueKey(e.value.id),
+                          param: e.value,
+                          controller: controller,
+                          animDelay: (active.length + e.key) * 50,
+                        )
+                        .animate()
+                        .fadeIn(delay: Duration(milliseconds: e.key * 50))
+                        .slideX(begin: 0.1),
               ),
             ],
           ],
@@ -134,8 +142,7 @@ class ManageHabitsScreen extends StatelessWidget {
         ),
         child: ParameterFormDialog(
           onSave: (param) async {
-            Navigator.pop(context); // close sheet after save
-            await controller.addNewParameter(param);
+            if (!await controller.addNewParameter(param)) return;
             Get.snackbar(
               AppStrings.habitAddedTitle,
               '"${param.name}" ${AppStrings.paramAddedMessage}',

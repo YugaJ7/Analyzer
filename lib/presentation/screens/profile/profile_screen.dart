@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 
-import '../../controllers/profile_controller.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/routes/app_routes.dart';
-
+import '../../../core/theme/app_colors.dart';
+import '../../controllers/profile_controller.dart';
 import 'widgets/avatar_picker_sheet.dart';
 import 'widgets/profile_edit_dialog.dart';
 import 'widgets/profile_header.dart';
@@ -126,7 +125,6 @@ class ProfileScreen extends StatelessWidget {
                               value: controller.appLockEnabled.value,
                               onChanged: controller.toggleAppLock,
                             ),
-                            onTap: null,
                           ),
                         ],
                       ).animate().fadeIn(delay: 350.ms),

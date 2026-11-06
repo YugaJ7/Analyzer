@@ -16,12 +16,12 @@ String getTypeLabel(ParameterType type) {
 
 Color getColorForParam(int? colorValue) {
   if (colorValue == null) {
-    return const Color(0xFF6C63FF);
+    return AppColors.primary;
   }
   try {
     return Color(colorValue);
   } catch (_) {
-    return const Color(0xFF6C63FF);
+    return AppColors.primary;
   }
 }
 
@@ -43,9 +43,9 @@ bool isSameDay(DateTime a, DateTime b) {
 String getGreeting() {
   final hour = DateTime.now().hour;
 
-  if (hour < 12) return "Good Morning 👋";
-  if (hour < 17) return "Good Afternoon 👋";
-  return "Good Evening 👋";
+  if (hour < 12) return 'Good Morning 👋';
+  if (hour < 17) return 'Good Afternoon 👋';
+  return 'Good Evening 👋';
 }
 
 String mapAuthError(String code) {
@@ -57,7 +57,7 @@ String mapAuthError(String code) {
     case 'email-already-in-use':
       return 'This email is already registered.';
     case 'weak-password':
-      return 'Password must be at least 6 characters with letters and numbers.';
+      return 'Password must be at least 8 characters with letters and numbers.';
     case 'network-request-failed':
       return 'No internet connection. Please check your network.';
     case 'too-many-requests':
@@ -92,11 +92,10 @@ ParameterModel fakeParam(
   return ParameterModel(
     id: '-1',
     name: name,
-    description: null,
     type: type,
     color: 1,
     createdAt: DateTime.now(),
-    isActive: true, userId: '', 
+    userId: '',
     order: 1,
   );
 }

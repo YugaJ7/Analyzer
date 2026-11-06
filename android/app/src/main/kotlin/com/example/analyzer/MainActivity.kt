@@ -1,7 +1,6 @@
 package com.example.analyzer
 
 import android.content.Context
-import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -58,16 +57,6 @@ class MainActivity : FlutterActivity() {
                     call.argument<String>(
                         "itemsJson"
                     ) ?: "[]"
-
-                Log.d(
-                    "CHANNEL",
-                    "percent=$percent completed=$completed total=$total loggedIn=$loggedIn"
-                )
-
-                Log.d(
-                    "WIDGET_DEBUG",
-                    itemsJson
-                )
 
                 val prefs =
                     getSharedPreferences(
@@ -220,6 +209,29 @@ class MainActivity : FlutterActivity() {
                 prefs.edit()
                     .remove("pending_actions_json")
                     .commit()
+
+                result.success(true)
+
+            } else if (
+                call.method ==
+                "clearWidgetData"
+            ) {
+
+                // Sign-out / account switch: no data may outlive the user.
+                getSharedPreferences(
+                    "widget_native",
+                    Context.MODE_PRIVATE
+                ).edit()
+                    .remove("pending_actions_json")
+                    .remove("items_json")
+                    .putInt("percent", 0)
+                    .putInt("completed", 0)
+                    .putInt("total", 0)
+                    .putBoolean("logged_in", false)
+                    .commit()
+
+                WidgetRenderer
+                    .refreshAll(this)
 
                 result.success(true)
 

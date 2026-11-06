@@ -26,7 +26,7 @@ class CustomTextField extends StatelessWidget {
     this.focusBorderColor,
     required this.hint,
     this.maxLines,
-    this.fillColor
+    this.fillColor,
   });
 
   @override
@@ -51,24 +51,27 @@ class CustomTextField extends StatelessWidget {
         fillColor: fillColor ?? AppColors.surface.withValues(alpha: 0.5),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.borderColorPrimary, width: 1),
+          borderSide: BorderSide(color: AppColors.borderColorPrimary),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: focusBorderColor ?? AppColors.primary, width: 1.5),
+          borderSide: BorderSide(
+            color: focusBorderColor ?? AppColors.primary,
+            width: 1.5,
+          ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
         errorStyle: const TextStyle(
           color: Colors.redAccent,
           fontSize: 12,
-          height: 1, 
+          height: 1,
         ),
         contentPadding: const EdgeInsets.all(18),
       ),

@@ -1,14 +1,15 @@
 import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+
+import '../../../core/theme/app_background.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/validator.dart';
 import '../../controllers/auth_controller.dart';
-import '../../../core/theme/app_background.dart';
-import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
 
 class RegisterScreen extends GetView<AuthController> {
   RegisterScreen({super.key});
@@ -18,7 +19,8 @@ class RegisterScreen extends GetView<AuthController> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   final RxBool obscurePassword = true.obs;
   final RxBool obscureConfirmPassword = true.obs;
 
@@ -26,11 +28,15 @@ class RegisterScreen extends GetView<AuthController> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AppBackground(
-        colors: [AppColors.background, AppColors.surface, AppColors.secondary.withValues(alpha: 0.2)],
+        colors: [
+          AppColors.background,
+          AppColors.surface,
+          AppColors.secondary.withValues(alpha: 0.2),
+        ],
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-            child: Form(   
+            child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,7 +54,10 @@ class RegisterScreen extends GetView<AuthController> {
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.registerSubtitle,
-                    style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textSecondary,
+                    ),
                   ).animate().fadeIn(delay: 200.ms),
                   const SizedBox(height: 40),
 
@@ -56,7 +65,7 @@ class RegisterScreen extends GetView<AuthController> {
                     validator: nameValidator,
                     controller: nameController,
                     label: AppStrings.fullName,
-                    hint: "",
+                    hint: '',
                     icon: Icons.person_outline,
                     focusBorderColor: AppColors.secondary,
                   ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2, end: 0),
@@ -66,76 +75,100 @@ class RegisterScreen extends GetView<AuthController> {
                     validator: emailValidator,
                     controller: emailController,
                     label: AppStrings.email,
-                    hint: "",
+                    hint: '',
                     icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                     focusBorderColor: AppColors.secondary,
                   ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2, end: 0),
 
                   const SizedBox(height: 20),
-                  Obx(() => CustomTextField(
-                        validator: passwordValidator,
-                        controller: passwordController,
-                        label: AppStrings.password,
-                        hint: "",
-                        icon: Icons.lock_outline,
-                        obscureText: obscurePassword.value,
-                        focusBorderColor: AppColors.secondary,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            obscurePassword.value ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                            color: AppColors.textSecondary,
-                          ),
-                          onPressed: () => obscurePassword.toggle(),
+                  Obx(
+                    () => CustomTextField(
+                      validator: passwordValidator,
+                      controller: passwordController,
+                      label: AppStrings.password,
+                      hint: '',
+                      icon: Icons.lock_outline,
+                      obscureText: obscurePassword.value,
+                      focusBorderColor: AppColors.secondary,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscurePassword.value
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          color: AppColors.textSecondary,
                         ),
-                      )).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2, end: 0),
+                        onPressed: obscurePassword.toggle,
+                      ),
+                    ),
+                  ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2, end: 0),
 
                   const SizedBox(height: 20),
-                  Obx(() => CustomTextField(
-                        validator: passwordValidator,
-                        controller: confirmPasswordController,
-                        label: AppStrings.confirmPassword,
-                        hint: "",
-                        icon: Icons.lock_outline,
-                        obscureText: obscureConfirmPassword.value,
-                        focusBorderColor: AppColors.secondary,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            obscureConfirmPassword.value ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                            color: AppColors.textSecondary,
-                          ),
-                          onPressed: () => obscureConfirmPassword.toggle(),
+                  Obx(
+                    () => CustomTextField(
+                      validator: (value) => confirmPasswordValidator(
+                        value,
+                        passwordController.text,
+                      ),
+                      controller: confirmPasswordController,
+                      label: AppStrings.confirmPassword,
+                      hint: '',
+                      icon: Icons.lock_outline,
+                      obscureText: obscureConfirmPassword.value,
+                      focusBorderColor: AppColors.secondary,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscureConfirmPassword.value
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          color: AppColors.textSecondary,
                         ),
-                      )).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2, end: 0),
+                        onPressed: obscureConfirmPassword.toggle,
+                      ),
+                    ),
+                  ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2, end: 0),
 
                   const SizedBox(height: 32),
-                  Obx(() => CustomButton(
-                        text: AppStrings.registerButton,
-                        loading: controller.isLoading.value,
-                        background: AppColors.secondary,
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            controller.register(
-                              emailController.text,
-                              passwordController.text,
-                              nameController.text,
-                            );
-                          }
-                        },
-                      )).animate().fadeIn(delay: 700.ms).slideY(begin: 0.2, end: 0),
+                  Obx(
+                    () => CustomButton(
+                      text: AppStrings.registerButton,
+                      loading: controller.isLoading.value,
+                      background: AppColors.secondary,
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          controller.register(
+                            emailController.text,
+                            passwordController.text,
+                            nameController.text,
+                          );
+                        }
+                      },
+                    ),
+                  ).animate().fadeIn(delay: 700.ms).slideY(begin: 0.2, end: 0),
 
                   const SizedBox(height: 24),
                   Row(
                     children: [
-                      Expanded(child: Divider(color: AppColors.textSecondary.withValues(alpha: 0.2))),
+                      Expanded(
+                        child: Divider(
+                          color: AppColors.textSecondary.withValues(alpha: 0.2),
+                        ),
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           AppStrings.orContinueWith,
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                      Expanded(child: Divider(color: AppColors.textSecondary.withValues(alpha: 0.2))),
+                      Expanded(
+                        child: Divider(
+                          color: AppColors.textSecondary.withValues(alpha: 0.2),
+                        ),
+                      ),
                     ],
                   ).animate().fadeIn(delay: 750.ms),
                   const SizedBox(height: 24),
@@ -144,7 +177,11 @@ class RegisterScreen extends GetView<AuthController> {
                     height: 56,
                     child: OutlinedButton.icon(
                       onPressed: () => controller.signInWithGoogleMethod(),
-                      icon: const FaIcon(FontAwesomeIcons.google, size: 20, color: AppColors.textPrimary),
+                      icon: const FaIcon(
+                        FontAwesomeIcons.google,
+                        size: 20,
+                        color: AppColors.textPrimary,
+                      ),
                       label: const Text(
                         AppStrings.continueWithGoogle,
                         style: TextStyle(
@@ -154,7 +191,9 @@ class RegisterScreen extends GetView<AuthController> {
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: AppColors.textSecondary.withValues(alpha: 0.2)),
+                        side: BorderSide(
+                          color: AppColors.textSecondary.withValues(alpha: 0.2),
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -166,10 +205,23 @@ class RegisterScreen extends GetView<AuthController> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(AppStrings.noAccountPrompt, style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                      Text(
+                        AppStrings.noAccountPrompt,
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 15,
+                        ),
+                      ),
                       GestureDetector(
-                        onTap: () => Get.back(),
-                        child: Text(AppStrings.signInLink, style: TextStyle(color: AppColors.secondary, fontSize: 15, fontWeight: FontWeight.w600)),
+                        onTap: Get.back,
+                        child: const Text(
+                          AppStrings.signInLink,
+                          style: TextStyle(
+                            color: AppColors.secondary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ).animate().fadeIn(delay: 800.ms),

@@ -1,7 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../core/errors/app_exception.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/firestore_error_messages.dart';
 import '../../core/utils/app_constants.dart';
+import '../../core/utils/app_logger.dart';
+import '../../core/utils/date_utils.dart';
 import '../../domain/entities/entry_entity.dart';
 import '../../domain/repositories/entry_repository.dart';
 import '../cache/analytics_cache_service.dart';
@@ -26,7 +30,7 @@ class EntryRepositoryImpl implements EntryRepository {
   ) async {
     try {
       final start = DateTime(date.year, date.month, date.day);
-      final end = start.add(const Duration(days: 1));
+      final end = AppDateUtils.addDays(start, 1);
 
       final snapshot = await _entriesRef(userId)
           .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
@@ -47,10 +51,14 @@ class EntryRepositoryImpl implements EntryRepository {
         );
       }).toList();
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to load entries.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to load entries.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to load entries.'));
+      throw const AppException(ServerFailure('Failed to load entries.'));
     }
   }
 
@@ -79,7 +87,7 @@ class EntryRepositoryImpl implements EntryRepository {
     try {
       final Map<DateTime, List<EntryEntity>> result = {};
       final now = DateTime.now();
-      final startDate = now.subtract(Duration(days: days));
+      final startDate = AppDateUtils.addDays(now, -days);
 
       final snapshot = await _firestore
           .collection(AppConstants.kUsersCollection)
@@ -111,12 +119,17 @@ class EntryRepositoryImpl implements EntryRepository {
       return result;
     } on FirebaseException catch (e) {
       throw AppException(
-        ServerFailure(e.message ?? 'Failed to fetch analytics data.'),
+        ServerFailure(
+          mapFirestoreError(
+            e.code,
+            fallback: 'Failed to fetch analytics data.',
+          ),
+        ),
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(
-        const ServerFailure('Failed to fetch analytics data.'),
+      throw const AppException(
+        ServerFailure('Failed to fetch analytics data.'),
       );
     }
   }
@@ -125,14 +138,23 @@ class EntryRepositoryImpl implements EntryRepository {
     final fetchStarted = DateTime.now();
     _fetchFromFirestore(userId, days)
         .then((fresh) => _cache.saveIfFresh(fresh, fetchStarted))
-        .catchError((_) {});
+        .catchError((Object error, StackTrace stackTrace) {
+          // Cached data stays valid; the next call retries the refresh.
+          AppLogger.error(
+            'Background analytics refresh failed',
+            name: 'EntryRepository',
+            error: error,
+            stackTrace: stackTrace,
+          );
+        });
   }
+
   String _parameterIdFromEntryId(String entryId) {
     const suffixLen = 24;
     if (entryId.length > suffixLen) {
       return entryId.substring(0, entryId.length - suffixLen);
     }
-    return entryId; 
+    return entryId;
   }
 
   @override
@@ -146,10 +168,14 @@ class EntryRepositoryImpl implements EntryRepository {
         'createdAt': Timestamp.fromDate(entry.createdAt),
       });
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to save entry.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to save entry.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to save entry.'));
+      throw const AppException(ServerFailure('Failed to save entry.'));
     }
   }
 
@@ -165,10 +191,14 @@ class EntryRepositoryImpl implements EntryRepository {
           '$parameterId-${DateTime(date.year, date.month, date.day).toIso8601String()}';
       await _entriesRef(userId).doc(entryId).update(updates);
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to update entry.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to update entry.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to update entry.'));
+      throw const AppException(ServerFailure('Failed to update entry.'));
     }
   }
 
@@ -183,10 +213,14 @@ class EntryRepositoryImpl implements EntryRepository {
           '$parameterId-${DateTime(date.year, date.month, date.day).toIso8601String()}';
       await _entriesRef(userId).doc(entryId).delete();
     } on FirebaseException catch (e) {
-      throw AppException(ServerFailure(e.message ?? 'Failed to delete entry.'));
+      throw AppException(
+        ServerFailure(
+          mapFirestoreError(e.code, fallback: 'Failed to delete entry.'),
+        ),
+      );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to delete entry.'));
+      throw const AppException(ServerFailure('Failed to delete entry.'));
     }
   }
 
@@ -236,12 +270,17 @@ class EntryRepositoryImpl implements EntryRepository {
       _cache.evictParameter(parameterId);
     } on FirebaseException catch (e) {
       throw AppException(
-        ServerFailure(e.message ?? 'Failed to delete habit entries.'),
+        ServerFailure(
+          mapFirestoreError(
+            e.code,
+            fallback: 'Failed to delete habit entries.',
+          ),
+        ),
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(
-        const ServerFailure('Failed to delete habit entries.'),
+      throw const AppException(
+        ServerFailure('Failed to delete habit entries.'),
       );
     }
   }

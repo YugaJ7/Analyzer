@@ -1,15 +1,16 @@
 import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+
 import '../../../core/routes/app_routes.dart';
+import '../../../core/theme/app_background.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/validator.dart';
 import '../../controllers/auth_controller.dart';
-import '../../../core/theme/app_background.dart';
-import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
 
 class LoginScreen extends GetView<AuthController> {
   LoginScreen({super.key});
@@ -63,18 +64,18 @@ class LoginScreen extends GetView<AuthController> {
                     icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                     focusBorderColor: AppColors.primary,
-                    hint: "",
+                    hint: '',
                   ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2, end: 0),
                   const SizedBox(height: 20),
                   Obx(
                     () => CustomTextField(
-                      validator: passwordValidator,
+                      validator: loginPasswordValidator,
                       controller: passwordController,
                       label: AppStrings.password,
                       icon: Icons.lock_outline,
                       obscureText: obscurePassword.value,
                       focusBorderColor: AppColors.primary,
-                      hint: "",
+                      hint: '',
                       suffixIcon: IconButton(
                         icon: Icon(
                           obscurePassword.value
@@ -82,7 +83,7 @@ class LoginScreen extends GetView<AuthController> {
                               : Icons.visibility_off_outlined,
                           color: AppColors.textSecondary,
                         ),
-                        onPressed: () => obscurePassword.toggle(),
+                        onPressed: obscurePassword.toggle,
                       ),
                     ),
                   ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2, end: 0),
@@ -93,7 +94,7 @@ class LoginScreen extends GetView<AuthController> {
                       loading: controller.isLoading.value,
                       background: AppColors.primary,
                       onPressed: () {
-                        if (_formKey.currentState!.validate()){
+                        if (_formKey.currentState!.validate()) {
                           controller.login(
                             emailController.text,
                             passwordController.text,
@@ -105,15 +106,26 @@ class LoginScreen extends GetView<AuthController> {
                   const SizedBox(height: 24),
                   Row(
                     children: [
-                      Expanded(child: Divider(color: AppColors.textSecondary.withValues(alpha: 0.2))),
+                      Expanded(
+                        child: Divider(
+                          color: AppColors.textSecondary.withValues(alpha: 0.2),
+                        ),
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           AppStrings.orContinueWith,
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                      Expanded(child: Divider(color: AppColors.textSecondary.withValues(alpha: 0.2))),
+                      Expanded(
+                        child: Divider(
+                          color: AppColors.textSecondary.withValues(alpha: 0.2),
+                        ),
+                      ),
                     ],
                   ).animate().fadeIn(delay: 550.ms),
                   const SizedBox(height: 24),
@@ -122,7 +134,11 @@ class LoginScreen extends GetView<AuthController> {
                     height: 56,
                     child: OutlinedButton.icon(
                       onPressed: () => controller.signInWithGoogleMethod(),
-                      icon: const FaIcon(FontAwesomeIcons.google, size: 20, color: AppColors.textPrimary),
+                      icon: const FaIcon(
+                        FontAwesomeIcons.google,
+                        size: 20,
+                        color: AppColors.textPrimary,
+                      ),
                       label: const Text(
                         AppStrings.continueWithGoogle,
                         style: TextStyle(
@@ -132,7 +148,9 @@ class LoginScreen extends GetView<AuthController> {
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: AppColors.textSecondary.withValues(alpha: 0.2)),
+                        side: BorderSide(
+                          color: AppColors.textSecondary.withValues(alpha: 0.2),
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -153,7 +171,7 @@ class LoginScreen extends GetView<AuthController> {
                       ),
                       GestureDetector(
                         onTap: () => Get.toNamed(AppRoutes.register),
-                        child: Text(
+                        child: const Text(
                           AppStrings.signUpLink,
                           style: TextStyle(
                             color: AppColors.primary,
