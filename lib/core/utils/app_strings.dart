@@ -5,8 +5,26 @@ abstract final class AppStrings {
 
   // ── Splash ───────────────────────────────────────────────────────────────
   static const String unlockButton = 'Unlock';
-  static const String accessDeniedTitle = 'Access Denied';
-  static const String accessDeniedMessage = 'Authentication failed';
+
+  // ── App lock feedback ─────────────────────────────────────────────────────
+  static const String noScreenLockTitle = 'Set up a screen lock first';
+  static const String noScreenLockMessage =
+      'App Lock uses your phone\'s PIN, pattern, password or fingerprint. '
+      'Add one in your phone\'s Settings, then try again.';
+  static const String noScreenLockToDisableMessage =
+      'Your phone has no screen lock, so App Lock can\'t confirm it\'s you. '
+      'Add one in your phone\'s Settings to turn App Lock off.';
+  static const String noBiometricsTitle = 'No fingerprint or face set up';
+  static const String noBiometricsMessage =
+      'Add one in your phone\'s Settings, or use your PIN, pattern or password.';
+  static const String authLockedOutTitle = 'Too many attempts';
+  static const String authLockedOutMessage =
+      'Wait a moment, then use your PIN, pattern or password.';
+  static const String authTimeoutTitle = 'Timed out';
+  static const String authTimeoutMessage =
+      'Verification took too long. Try again.';
+  static const String authFailedTitle = 'Couldn\'t verify it\'s you';
+  static const String authFailedMessage = 'Something went wrong. Try again.';
   static const String deviceLockRemovedMessage =
       'Your device screen lock was removed, so the app can\'t be unlocked. '
       'Sign out and sign back in to continue.';
@@ -42,6 +60,7 @@ abstract final class AppStrings {
   // ── Auth — Habit Setup ────────────────────────────────────────────────
   static const String paramSetupTitle = 'Setup Habits';
   static const String paramSetupDoneButton = 'Done';
+  static const String paramSetupEmptyHint = 'Tap + to create your first habit';
   static const String paramSetupEmptyTitle = 'No habits added yet.';
   static const String paramSetupEmptyMessage =
       'Create your first habit to start tracking your progress';
