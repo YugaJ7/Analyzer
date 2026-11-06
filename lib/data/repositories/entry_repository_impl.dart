@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../core/errors/app_exception.dart';
 import '../../core/errors/failures.dart';
 import '../../core/errors/firestore_error_messages.dart';
 import '../../core/utils/app_constants.dart';
-import '../../domain/entities/entry_entity.dart';
-import '../../domain/repositories/entry_repository.dart';
 import '../../core/utils/app_logger.dart';
 import '../../core/utils/date_utils.dart';
+import '../../domain/entities/entry_entity.dart';
+import '../../domain/repositories/entry_repository.dart';
 import '../cache/analytics_cache_service.dart';
 
 class EntryRepositoryImpl implements EntryRepository {
@@ -57,7 +58,7 @@ class EntryRepositoryImpl implements EntryRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to load entries.'));
+      throw const AppException(ServerFailure('Failed to load entries.'));
     }
   }
 
@@ -127,8 +128,8 @@ class EntryRepositoryImpl implements EntryRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(
-        const ServerFailure('Failed to fetch analytics data.'),
+      throw const AppException(
+        ServerFailure('Failed to fetch analytics data.'),
       );
     }
   }
@@ -174,7 +175,7 @@ class EntryRepositoryImpl implements EntryRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to save entry.'));
+      throw const AppException(ServerFailure('Failed to save entry.'));
     }
   }
 
@@ -197,7 +198,7 @@ class EntryRepositoryImpl implements EntryRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to update entry.'));
+      throw const AppException(ServerFailure('Failed to update entry.'));
     }
   }
 
@@ -219,7 +220,7 @@ class EntryRepositoryImpl implements EntryRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to delete entry.'));
+      throw const AppException(ServerFailure('Failed to delete entry.'));
     }
   }
 
@@ -278,8 +279,8 @@ class EntryRepositoryImpl implements EntryRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(
-        const ServerFailure('Failed to delete habit entries.'),
+      throw const AppException(
+        ServerFailure('Failed to delete habit entries.'),
       );
     }
   }

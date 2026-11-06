@@ -1,6 +1,6 @@
-import 'package:local_auth/local_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:local_auth/local_auth.dart';
 
 enum AuthLockFailure {
   notSupported,
@@ -56,7 +56,6 @@ class AuthLockService {
 
       final result = await _auth.authenticate(
         localizedReason: 'Unlock Personal Analyzer',
-        biometricOnly: false,
         persistAcrossBackgrounding: true,
       );
 

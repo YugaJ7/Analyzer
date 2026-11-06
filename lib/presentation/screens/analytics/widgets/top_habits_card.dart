@@ -32,15 +32,15 @@ class TopHabitsCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              const Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.workspace_premium_rounded,
                     color: AppColors.gold,
                     size: 22,
                   ),
-                  const SizedBox(width: 8),
-                  const Text(
+                  SizedBox(width: 8),
+                  Text(
                     AppStrings.topPerformers,
                     style: TextStyle(
                       fontSize: 18,
@@ -54,10 +54,10 @@ class TopHabitsCard extends StatelessWidget {
               ...List.generate(habits.length, (index) {
                 final habit = habits[index];
                 final medal = index < _medals.length ? _medals[index] : '•';
-                final accentColor = index < AppColors.medalColors.length 
-                    ? AppColors.medalColors[index] 
+                final accentColor = index < AppColors.medalColors.length
+                    ? AppColors.medalColors[index]
                     : Colors.white38;
-        
+
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 14),
                   child: Row(

@@ -82,7 +82,7 @@ class WeeklySummaryCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.check_circle_outline_rounded,
                           size: 16,
                           color: AppColors.secondary,

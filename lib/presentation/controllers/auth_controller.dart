@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/errors/failures.dart';
@@ -27,7 +29,7 @@ class AuthController extends GetxController {
       final user = await loginUser(email, password);
       await UserSessionStorage.bindToUser(user.id, displayName: user.name);
 
-      Get.offAllNamed(AppRoutes.home);
+      unawaited(Get.offAllNamed(AppRoutes.home));
     } on AppException catch (e) {
       Get.snackbar(
         'Login Failed',
@@ -46,7 +48,7 @@ class AuthController extends GetxController {
       final user = await signInWithGoogle();
       await UserSessionStorage.bindToUser(user.id, displayName: user.name);
 
-      Get.offAllNamed(AppRoutes.home);
+      unawaited(Get.offAllNamed(AppRoutes.home));
     } on AppException catch (e) {
       if (e.failure is! AuthCancelledFailure) {
         Get.snackbar(
@@ -70,7 +72,7 @@ class AuthController extends GetxController {
       final user = await registerUser(email, password, name);
       await UserSessionStorage.bindToUser(user.id, displayName: name);
 
-      Get.offNamed(AppRoutes.parameterSetup);
+      unawaited(Get.offNamed(AppRoutes.parameterSetup));
     } on AppException catch (e) {
       Get.snackbar(
         'Registration Failed',

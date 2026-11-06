@@ -46,10 +46,9 @@ class MonthComparisonCard extends StatelessWidget {
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: (isPositive
-                              ? AppColors.secondary
-                              : AppColors.error)
-                          .withValues(alpha: 0.15),
+                      color:
+                          (isPositive ? AppColors.secondary : AppColors.error)
+                              .withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -81,7 +80,7 @@ class MonthComparisonCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 20),
-        
+
               // This Month bar
               _ComparisonBar(
                 label: AppStrings.thisMonth,
@@ -89,7 +88,7 @@ class MonthComparisonCard extends StatelessWidget {
                 color: AppColors.primary,
               ),
               const SizedBox(height: 14),
-        
+
               // Overall Average bar
               _ComparisonBar(
                 label: AppStrings.overallAvg,
@@ -159,10 +158,7 @@ class _ComparisonBar extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        color.withValues(alpha: 0.6),
-                        color,
-                      ],
+                      colors: [color.withValues(alpha: 0.6), color],
                     ),
                     borderRadius: BorderRadius.circular(6),
                   ),

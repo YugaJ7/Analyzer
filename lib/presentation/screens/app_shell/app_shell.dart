@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../analytics/analytics_screen.dart';
 import '../home/home_screen.dart';
 import '../profile/profile_screen.dart';
-import '../../../core/theme/app_colors.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -34,7 +34,7 @@ class _AppShellState extends State<AppShell> {
           item: ItemConfig(
             icon: const Icon(Icons.home_rounded),
             inactiveIcon: const Icon(Icons.home_outlined),
-            title: "Home",
+            title: 'Home',
             activeForegroundColor: AppColors.navActive,
             inactiveForegroundColor: AppColors.secondaryText,
           ),
@@ -45,7 +45,7 @@ class _AppShellState extends State<AppShell> {
           item: ItemConfig(
             icon: const Icon(Icons.insights_rounded),
             inactiveIcon: const Icon(Icons.insights_outlined),
-            title: "Analytics",
+            title: 'Analytics',
             activeForegroundColor: AppColors.navActive,
             inactiveForegroundColor: AppColors.secondaryText,
           ),
@@ -56,7 +56,7 @@ class _AppShellState extends State<AppShell> {
           item: ItemConfig(
             icon: const Icon(Icons.person_rounded),
             inactiveIcon: const Icon(Icons.person_outline_rounded),
-            title: "Profile",
+            title: 'Profile',
             activeForegroundColor: AppColors.navActive,
             inactiveForegroundColor: AppColors.secondaryText,
           ),
@@ -69,15 +69,13 @@ class _AppShellState extends State<AppShell> {
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(0),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 8),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 8,
+            ),
           ],
         ),
       ),
-      resizeToAvoidBottomInset: true,
-      stateManagement: true,
-      handleAndroidBackButtonPress: true,
-      keepNavigatorHistory: true,
-      hideNavigationBar: false,
 
       screenTransitionAnimation: const ScreenTransitionAnimation(
         curve: Curves.easeInOut,

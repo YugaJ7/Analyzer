@@ -3,9 +3,10 @@ import 'package:analyzer/domain/entities/parameter_entity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../core/theme/app_colors.dart';
-import 'custom_text_field.dart';
 import 'custom_button.dart';
+import 'custom_text_field.dart';
 
 class ParameterFormDialog extends StatefulWidget {
   final ParameterEntity? parameter;
@@ -30,7 +31,9 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
   void initState() {
     super.initState();
     nameController = TextEditingController(text: widget.parameter?.name ?? '');
-    descriptionController = TextEditingController(text: widget.parameter?.description ?? '');
+    descriptionController = TextEditingController(
+      text: widget.parameter?.description ?? '',
+    );
     selectedType = widget.parameter?.type ?? ParameterType.checklist;
     // Copy: the form edits this list in place, which must not leak into the
     // habit (or throw if the source list is unmodifiable).
@@ -60,8 +63,8 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
 
               CustomTextField(
                 controller: nameController,
-                label: "Name",
-                hint: "e.g. Did you exercise today?",
+                label: 'Name',
+                hint: 'e.g. Did you exercise today?',
                 fillColor: AppColors.background,
                 focusBorderColor: AppColors.background,
                 validator: (value) {
@@ -74,12 +77,12 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
               const SizedBox(height: 16),
               CustomTextField(
                 controller: descriptionController,
-                label: "Description (Optional)",
-                hint: "Brief description",
+                label: 'Description (Optional)',
+                hint: 'Brief description',
                 fillColor: AppColors.background,
                 focusBorderColor: AppColors.background,
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               const Text(
                 'Habit Type',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -101,7 +104,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Get.back(),
+                      onPressed: Get.back,
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(
                           color: Colors.white.withValues(alpha: 0.3),
@@ -117,7 +120,7 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: CustomButton(
-                      text: "Save",
+                      text: 'Save',
                       background: AppColors.primary,
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
@@ -150,7 +153,9 @@ class _ParameterFormDialogState extends State<ParameterFormDialog> {
                             order: widget.parameter?.order ?? 0,
                             options:
                                 selectedType == ParameterType.optionSelector
-                                ? (cleanedOptions.isEmpty ? null : cleanedOptions)
+                                ? (cleanedOptions.isEmpty
+                                      ? null
+                                      : cleanedOptions)
                                 : null,
                             unit: selectedType == ParameterType.value
                                 ? (trimmedUnit.isEmpty ? null : trimmedUnit)

@@ -1,8 +1,7 @@
 import 'package:flutter/services.dart';
 
 class WidgetRefreshService {
-  static const MethodChannel _channel =
-      MethodChannel('habit_widget_channel');
+  static const MethodChannel _channel = MethodChannel('habit_widget_channel');
 
   /// Last payload the native side accepted; identical refreshes are skipped.
   static String? _lastSentSignature;
@@ -17,16 +16,13 @@ class WidgetRefreshService {
     final signature = '$loggedIn|$percent|$completed|$total|$itemsJson';
     if (signature == _lastSentSignature) return;
 
-    await _channel.invokeMethod(
-      'refreshWidget',
-      {
-        'percent': percent,
-        'completed': completed,
-        'total': total,
-        'loggedIn': loggedIn,
-        'itemsJson': itemsJson,
-      },
-    );
+    await _channel.invokeMethod('refreshWidget', {
+      'percent': percent,
+      'completed': completed,
+      'total': total,
+      'loggedIn': loggedIn,
+      'itemsJson': itemsJson,
+    });
     _lastSentSignature = signature;
   }
 
@@ -40,8 +36,8 @@ class WidgetRefreshService {
     }
 
     return raw
-        .whereType<Map>()
-        .map((item) => Map<String, dynamic>.from(item))
+        .whereType<Map<Object?, Object?>>()
+        .map(Map<String, dynamic>.from)
         .toList();
   }
 

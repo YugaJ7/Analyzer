@@ -89,7 +89,7 @@ void main() {
 
   tearDown(() async {
     // Deleting runs onClose, which cancels the controller's midnight timer.
-    Get.delete<EntryController>(force: true);
+    await Get.delete<EntryController>(force: true);
     Get.reset();
     await Hive.deleteFromDisk();
     await hiveDir.delete(recursive: true);

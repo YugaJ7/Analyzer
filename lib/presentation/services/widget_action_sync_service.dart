@@ -120,9 +120,8 @@ class WidgetActionSyncService {
       final totalStopwatch = Stopwatch()..start();
 
       final applyStopwatch = Stopwatch()..start();
-      final persistFuture = entryController.applyTodayWidgetActionsOptimistically(
-        applicableActions,
-      );
+      final persistFuture = entryController
+          .applyTodayWidgetActionsOptimistically(applicableActions);
 
       log(
         'widget-sync: final actions applied locally in ${applyStopwatch.elapsedMilliseconds}ms',

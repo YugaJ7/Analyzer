@@ -74,7 +74,7 @@ class _ParameterEntryCardState extends State<ParameterEntryCard> {
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
-        padding: EdgeInsets.all(14),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: isCompleted ? AppColors.completedsurface : AppColors.surface,
           borderRadius: BorderRadius.circular(14),
@@ -86,7 +86,6 @@ class _ParameterEntryCardState extends State<ParameterEntryCard> {
           ),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Row(
@@ -125,8 +124,8 @@ class _ParameterEntryCardState extends State<ParameterEntryCard> {
                       ),
                       if (param.description != null)
                         Text(
-                          "${param.description}",
-                          style: TextStyle(
+                          '${param.description}',
+                          style: const TextStyle(
                             color: AppColors.secondaryText,
                             fontSize: 12,
                           ),

@@ -40,5 +40,13 @@ class EntryEntity extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, userId, parameterId, date, value, notes, createdAt];
+  List<Object?> get props => [
+    id,
+    userId,
+    parameterId,
+    date,
+    value,
+    notes,
+    createdAt,
+  ];
 }

@@ -32,7 +32,7 @@ class UserRepositoryImpl implements UserRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to create user profile.'));
+      throw const AppException(ServerFailure('Failed to create user profile.'));
     }
   }
 
@@ -50,7 +50,7 @@ class UserRepositoryImpl implements UserRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to fetch user profile.'));
+      throw const AppException(ServerFailure('Failed to fetch user profile.'));
     }
   }
 
@@ -60,7 +60,7 @@ class UserRepositoryImpl implements UserRepository {
     try {
       doc = await _usersRef.doc(id).get();
     } on FirebaseException {
-      throw AppException(const ServerFailure('Failed to load user profile.'));
+      throw const AppException(ServerFailure('Failed to load user profile.'));
     }
 
     if (doc.exists) return UserModel.fromFirestore(doc).toEntity();
@@ -80,7 +80,7 @@ class UserRepositoryImpl implements UserRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to update user profile.'));
+      throw const AppException(ServerFailure('Failed to update user profile.'));
     }
   }
 
@@ -96,7 +96,7 @@ class UserRepositoryImpl implements UserRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to delete user.'));
+      throw const AppException(ServerFailure('Failed to delete user.'));
     }
   }
 }

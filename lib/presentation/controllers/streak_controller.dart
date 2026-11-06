@@ -4,12 +4,13 @@ import 'dart:math' show max;
 import 'package:analyzer/domain/entities/entry_entity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
+
 import '../../core/utils/app_logger.dart';
 import '../../core/utils/date_utils.dart';
+import '../../data/cache/streak_cache_service.dart';
 import '../../domain/repositories/streak_repository.dart';
 import '../../domain/services/streak_calculator.dart';
 import '../../domain/usecases/entry_usecases.dart';
-import '../../data/cache/streak_cache_service.dart';
 
 class StreakController extends GetxController {
   final StreakRepository streakRepository;

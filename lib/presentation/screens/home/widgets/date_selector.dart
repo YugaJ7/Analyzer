@@ -20,7 +20,7 @@ class DateSelector extends StatelessWidget {
       final isToday = isSameDay(selectedDate, DateTime.now());
 
       return Container(
-        margin: EdgeInsets.only(top: 12, bottom: 12),
+        margin: const EdgeInsets.only(top: 12, bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: AppColors.surface,
@@ -41,15 +41,12 @@ class DateSelector extends StatelessWidget {
               child: GestureDetector(
                 onTap: () async {
                   final picked = await showDatePicker(
-                    context: Get.context!,
+                    context: context,
                     initialDate: selectedDate,
                     firstDate: DateTime(2020),
                     lastDate: DateTime.now(),
                     builder: (context, child) {
-                      return Theme(
-                        data: ThemeData.dark(),
-                        child: child!,
-                      );
+                      return Theme(data: ThemeData.dark(), child: child!);
                     },
                   );
                   if (picked != null) {
@@ -61,7 +58,7 @@ class DateSelector extends StatelessWidget {
                   children: [
                     Text(
                       DateFormat('EEEE').format(selectedDate),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.secondaryText,
                       ),

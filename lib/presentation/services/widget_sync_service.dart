@@ -1,10 +1,10 @@
 import 'dart:convert';
 
+import 'package:analyzer/core/utils/app_logger.dart';
 import 'package:analyzer/data/services/widget_refresh_service.dart';
 import 'package:analyzer/domain/entities/parameter_entity.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:analyzer/presentation/controllers/parameter_controller.dart';
-import 'package:analyzer/core/utils/app_logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -97,7 +97,7 @@ class WidgetSyncService {
       final entryController = Get.find<EntryController>();
       entries = entryController.selectedDateEntries;
       final activeParamIds = params.map((p) => p.id).toSet();
-      completed = entries.keys.where((id) => activeParamIds.contains(id)).length;
+      completed = entries.keys.where(activeParamIds.contains).length;
     }
 
     final totalHabits = params.length;

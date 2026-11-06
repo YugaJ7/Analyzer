@@ -6,11 +6,12 @@ import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/presentation/services/widget_sync_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
-import '../../domain/entities/parameter_entity.dart';
-import '../../domain/usecases/parameter_usecases.dart';
-import '../../domain/usecases/entry_usecases.dart';
+
 import '../../core/errors/app_exception.dart';
 import '../../data/models/parameter_model.dart';
+import '../../domain/entities/parameter_entity.dart';
+import '../../domain/usecases/entry_usecases.dart';
+import '../../domain/usecases/parameter_usecases.dart';
 import 'analytics_controller.dart';
 import 'streak_controller.dart';
 

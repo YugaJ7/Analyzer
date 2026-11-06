@@ -3,8 +3,9 @@ import 'package:analyzer/data/models/parameter_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../../controllers/entry_controller.dart';
+
 import '../../../../core/theme/app_colors.dart';
+import '../../../controllers/entry_controller.dart';
 
 class NumericInput extends StatefulWidget {
   final ParameterModel param;
@@ -71,10 +72,10 @@ class _NumericInputState extends State<NumericInput> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: 10),
-        Divider(color: AppColors.divider, height: 1),
-        SizedBox(height: 10),
-        Text(
+        const SizedBox(height: 10),
+        const Divider(color: AppColors.divider, height: 1),
+        const SizedBox(height: 10),
+        const Text(
           AppStrings.hint,
           style: TextStyle(
             color: AppColors.secondaryText,
@@ -82,18 +83,18 @@ class _NumericInputState extends State<NumericInput> {
             fontWeight: FontWeight.w500,
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Row(
           children: [
             Text(
               widget.param.unit ?? '',
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.secondaryText,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(
               child: TextField(
                 focusNode: _focusNode,
@@ -127,7 +128,10 @@ class _NumericInputState extends State<NumericInput> {
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
                   hintText: AppStrings.enterValue,
-                  hintStyle: TextStyle(color: AppColors.inputHint, fontSize: 16),
+                  hintStyle: TextStyle(
+                    color: AppColors.inputHint,
+                    fontSize: 16,
+                  ),
                 ),
                 onChanged: _onChanged,
                 onSubmitted: (_) => _focusNode.unfocus(),

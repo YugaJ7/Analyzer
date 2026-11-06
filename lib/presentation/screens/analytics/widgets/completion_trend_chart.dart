@@ -19,13 +19,13 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final data =
-          selectedRange == 7
-              ? controller.last7DaysTrend
-              : controller.last30DaysTrend;
+      final data = selectedRange == 7
+          ? controller.last7DaysTrend
+          : controller.last30DaysTrend;
 
-      final avg =
-          data.isEmpty ? 0.0 : data.reduce((a, b) => a + b) / data.length;
+      final avg = data.isEmpty
+          ? 0.0
+          : data.reduce((a, b) => a + b) / data.length;
 
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -85,7 +85,7 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
               SizedBox(
                 height: 220,
                 child: data.isEmpty
-                    ? Center(
+                    ? const Center(
                         child: Text(
                           AppStrings.noDataYet,
                           style: TextStyle(color: Colors.white38),
@@ -96,7 +96,6 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
                           minY: 0,
                           maxY: 100,
                           gridData: FlGridData(
-                            show: true,
                             drawVerticalLine: false,
                             horizontalInterval: 25,
                             getDrawingHorizontalLine: (value) {
@@ -117,25 +116,20 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
                                   return Text(
                                     '${value.toInt()}',
                                     style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.3),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.3,
+                                      ),
                                       fontSize: 10,
                                     ),
                                   );
                                 },
                               ),
                             ),
-                            rightTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            topTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            bottomTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
+                            rightTitles: const AxisTitles(),
+                            topTitles: const AxisTitles(),
+                            bottomTitles: const AxisTitles(),
                           ),
                           lineTouchData: LineTouchData(
-                            enabled: true,
                             touchTooltipData: LineTouchTooltipData(
                               getTooltipColor: (_) => AppColors.tooltipSurface,
                               getTooltipItems: (touchedSpots) {
@@ -151,14 +145,15 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
                                 }).toList();
                               },
                             ),
-                            handleBuiltInTouches: true,
                           ),
                           // Average line
                           extraLinesData: ExtraLinesData(
                             horizontalLines: [
                               HorizontalLine(
                                 y: avg,
-                                color: AppColors.secondary.withValues(alpha: 0.4),
+                                color: AppColors.secondary.withValues(
+                                  alpha: 0.4,
+                                ),
                                 strokeWidth: 1,
                                 dashArray: [6, 4],
                               ),
@@ -170,15 +165,12 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
                               curveSmoothness: 0.3,
                               spots: List.generate(
                                 data.length,
-                                (index) => FlSpot(
-                                  index.toDouble(),
-                                  data[index],
-                                ),
+                                (index) =>
+                                    FlSpot(index.toDouble(), data[index]),
                               ),
                               barWidth: 3,
                               isStrokeCapRound: true,
                               dotData: FlDotData(
-                                show: true,
                                 getDotPainter: (spot, xPercentage, bar, index) {
                                   return FlDotCirclePainter(
                                     radius: 3,
@@ -200,8 +192,11 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
                                   end: Alignment.bottomCenter,
                                 ),
                               ),
-                              gradient: LinearGradient(
-                                colors: [AppColors.primary, AppColors.secondary],
+                              gradient: const LinearGradient(
+                                colors: [
+                                  AppColors.primary,
+                                  AppColors.secondary,
+                                ],
                               ),
                             ),
                           ],
@@ -228,9 +223,7 @@ class _CompletionTrendChartState extends State<CompletionTrendChart> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary
-              : Colors.transparent,
+          color: isSelected ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(

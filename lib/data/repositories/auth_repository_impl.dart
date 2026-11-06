@@ -43,7 +43,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on FirebaseAuthException catch (e) {
       throw AppException(AuthFailure(mapAuthError(e.code)));
     } catch (e) {
-      throw AppException(AuthFailure('Login failed. Please try again.'));
+      throw const AppException(AuthFailure('Login failed. Please try again.'));
     }
   }
 
@@ -63,7 +63,9 @@ class AuthRepositoryImpl implements AuthRepository {
     } on FirebaseAuthException catch (e) {
       throw AppException(AuthFailure(mapAuthError(e.code)));
     } catch (e) {
-      throw AppException(AuthFailure('Registration failed. Please try again.'));
+      throw const AppException(
+        AuthFailure('Registration failed. Please try again.'),
+      );
     }
   }
 
@@ -76,8 +78,8 @@ class AuthRepositoryImpl implements AuthRepository {
         'Firebase sign-out failed: ${e.runtimeType}',
         stackTrace: stackTrace,
       );
-      throw AppException(
-        const AuthFailure('Sign-out failed. Please try again.'),
+      throw const AppException(
+        AuthFailure('Sign-out failed. Please try again.'),
       );
     }
 
@@ -123,7 +125,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final user = userCredential.user;
       if (user == null) {
-        throw AppException(const AuthFailure('Google sign-in failed.'));
+        throw const AppException(AuthFailure('Google sign-in failed.'));
       }
 
       return UserEntity(
@@ -137,7 +139,7 @@ class AuthRepositoryImpl implements AuthRepository {
       // are sensitive and must never reach the log.
       _logAuthError('GoogleSignInException(${e.code.name})');
       if (e.code == GoogleSignInExceptionCode.canceled) {
-        throw AppException(const AuthCancelledFailure());
+        throw const AppException(AuthCancelledFailure());
       }
       throw AppException(AuthFailure(_mapGoogleSignInError(e)));
     } on FirebaseAuthException catch (e) {
@@ -148,7 +150,7 @@ class AuthRepositoryImpl implements AuthRepository {
         'Unexpected Google sign-in failure: ${e.runtimeType}',
         stackTrace: stackTrace,
       );
-      throw AppException(
+      throw const AppException(
         AuthFailure('Google sign-in failed. Please try again.'),
       );
     }

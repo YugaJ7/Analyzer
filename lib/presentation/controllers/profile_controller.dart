@@ -1,13 +1,13 @@
-import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get/get.dart';
 
 import '../../core/errors/app_exception.dart';
 import '../../data/services/auth_lock_service.dart';
-import '../services/export_service.dart';
-import '../services/sign_out_flow.dart';
 import '../../data/services/preferences_service.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../../domain/usecases/logout_user.dart';
+import '../services/export_service.dart';
+import '../services/sign_out_flow.dart';
 import 'analytics_controller.dart';
 import 'parameter_controller.dart';
 
@@ -27,8 +27,22 @@ class ProfileController extends GetxController {
   User? get user => FirebaseAuth.instance.currentUser;
 
   static const avatarEmojis = [
-    '🧠', '🚀', '🌟', '💪', '🎯', '🦁', '🔥', '⚡',
-    '🌿', '🏆', '🎭', '🌈', '💎', '🦅', '🐉', '🌙',
+    '🧠',
+    '🚀',
+    '🌟',
+    '💪',
+    '🎯',
+    '🦁',
+    '🔥',
+    '⚡',
+    '🌿',
+    '🏆',
+    '🎭',
+    '🌈',
+    '💎',
+    '🦅',
+    '🐉',
+    '🌙',
   ];
 
   @override
@@ -117,10 +131,7 @@ class ProfileController extends GetxController {
     } on AppException catch (e) {
       Get.snackbar('Export Failed', e.message);
     } catch (_) {
-      Get.snackbar(
-        'Export Failed',
-        'Could not export CSV. Please try again.',
-      );
+      Get.snackbar('Export Failed', 'Could not export CSV. Please try again.');
     } finally {
       isExporting.value = false;
     }
@@ -134,10 +145,7 @@ class ProfileController extends GetxController {
     } on AppException catch (e) {
       Get.snackbar('Export Failed', e.message);
     } catch (_) {
-      Get.snackbar(
-        'Export Failed',
-        'Could not export PDF. Please try again.',
-      );
+      Get.snackbar('Export Failed', 'Could not export PDF. Please try again.');
     } finally {
       isExporting.value = false;
     }

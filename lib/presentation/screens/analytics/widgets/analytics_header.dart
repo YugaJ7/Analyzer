@@ -11,16 +11,16 @@ class AnalyticsHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           AppStrings.analyticsTitle,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w500,
             color: Colors.white,
           ),
         ).animate().fadeIn().slideX(begin: -0.15),
         const SizedBox(height: 2),
-        Text(
+        const Text(
           AppStrings.analyticsSubtitle,
           style: TextStyle(
             fontSize: 14,

@@ -20,14 +20,8 @@ void main() {
     });
 
     test('addDays rolls over month and year boundaries', () {
-      expect(
-        AppDateUtils.addDays(DateTime(2026, 1, 1), -1),
-        DateTime(2025, 12, 31),
-      );
-      expect(
-        AppDateUtils.addDays(DateTime(2026, 2, 28), 1),
-        DateTime(2026, 3, 1),
-      );
+      expect(AppDateUtils.addDays(DateTime(2026), -1), DateTime(2025, 12, 31));
+      expect(AppDateUtils.addDays(DateTime(2026, 2, 28), 1), DateTime(2026, 3));
     });
 
     test('daysBetween counts calendar days regardless of time and DST', () {
@@ -39,7 +33,7 @@ void main() {
         1,
       );
       expect(
-        AppDateUtils.daysBetween(DateTime(2026, 11, 1), DateTime(2026, 11, 2)),
+        AppDateUtils.daysBetween(DateTime(2026, 11), DateTime(2026, 11, 2)),
         1,
       );
     });

@@ -20,4 +20,3 @@ class AuthFailure extends Failure {
 class AuthCancelledFailure extends AuthFailure {
   const AuthCancelledFailure() : super('Sign-in was cancelled.');
 }
-

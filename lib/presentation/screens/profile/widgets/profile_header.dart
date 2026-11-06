@@ -22,7 +22,7 @@ class ProfileHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           AppStrings.profileTitle,
           style: TextStyle(
             fontSize: 24,
@@ -30,7 +30,7 @@ class ProfileHeader extends StatelessWidget {
             color: Colors.white,
           ),
         ).animate().fadeIn().slideX(begin: -0.1),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         Center(
           child: Column(
             children: [

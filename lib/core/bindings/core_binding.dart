@@ -17,9 +17,9 @@ class CoreBinding extends Bindings {
     Get.put<AppLockGuard>(AppLockGuard(), permanent: true);
 
     // Core repositories — registered here so AuthBinding and HomeBinding.
-    Get.lazyPut<AuthRepository>(() => AuthRepositoryImpl(), fenix: true);
+    Get.lazyPut<AuthRepository>(AuthRepositoryImpl.new, fenix: true);
 
-    Get.lazyPut<UserRepository>(() => UserRepositoryImpl(), fenix: true);
+    Get.lazyPut<UserRepository>(UserRepositoryImpl.new, fenix: true);
 
     // Firestore instance — shared singleton
     Get.put<FirebaseFirestore>(FirebaseFirestore.instance, permanent: true);

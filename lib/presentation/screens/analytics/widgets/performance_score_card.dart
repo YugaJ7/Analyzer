@@ -60,7 +60,7 @@ class PerformanceScoreCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
+                      const Text(
                         AppStrings.score,
                         style: TextStyle(
                           fontSize: 12,

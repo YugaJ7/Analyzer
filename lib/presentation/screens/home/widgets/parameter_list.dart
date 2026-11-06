@@ -19,23 +19,18 @@ class ParameterList extends StatelessWidget {
       /// LOADING STATE
       if (paramController.isLoading.value) {
         final fakeParams = [
-          fakeParam("water"),
-          fakeParam("money", type: ParameterType.value),
-          fakeParam("reading"),
+          fakeParam('water'),
+          fakeParam('money', type: ParameterType.value),
+          fakeParam('reading'),
         ];
 
         return SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: ParameterEntryCard(
-                  param: fakeParams[index],
-                ),
-              );
-            },
-            childCount: fakeParams.length,
-          ),
+          delegate: SliverChildBuilderDelegate((context, index) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: ParameterEntryCard(param: fakeParams[index]),
+            );
+          }, childCount: fakeParams.length),
         );
       }
 
@@ -60,34 +55,29 @@ class ParameterList extends StatelessWidget {
       }).toList();
 
       if (visibleParams.isEmpty) {
-        return SliverFillRemaining(
+        return const SliverFillRemaining(
           hasScrollBody: false,
           child: Center(
             child: Text(
               AppStrings.noParametersForDay,
-              style: TextStyle(
-                color: Colors.white54,
-              ),
+              style: TextStyle(color: Colors.white54),
             ),
           ),
         );
       }
 
       return SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: index == visibleParams.length - 1 ? 0 : 12,
-              ),
-              child: ParameterEntryCard(
-                key: ValueKey(visibleParams[index].id),
-                param: visibleParams[index],
-              ),
-            );
-          },
-          childCount: visibleParams.length,
-        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: index == visibleParams.length - 1 ? 0 : 12,
+            ),
+            child: ParameterEntryCard(
+              key: ValueKey(visibleParams[index].id),
+              param: visibleParams[index],
+            ),
+          );
+        }, childCount: visibleParams.length),
       );
     });
   }

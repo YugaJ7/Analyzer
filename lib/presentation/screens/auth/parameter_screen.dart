@@ -95,11 +95,11 @@ class ParameterSetupScreen extends GetView<ParameterController> {
           itemBuilder: (context, index) {
             final param = habits[index];
             return HabitTile(
-              key: ValueKey(param.id),
-              param: param,
-              controller: controller,
-              animDelay: index * 50,
-            )
+                  key: ValueKey(param.id),
+                  param: param,
+                  controller: controller,
+                  animDelay: index * 50,
+                )
                 .animate()
                 .fadeIn(delay: Duration(milliseconds: index * 50))
                 .slideX(begin: 0.1);

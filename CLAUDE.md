@@ -18,7 +18,9 @@ Layers: `lib/core`, `lib/data`, `lib/domain`, `lib/presentation`.
 - Production quality: match the surrounding style; no drive-by refactors.
 - Verify before handing over: `flutter analyze` clean, `flutter test` green.
 - Add or extend tests for any new behaviour.
-- `dart format` new code only; don't reformat untouched lines.
+- The codebase is fully `dart format`ted; run it on every file you touch.
+- Lints are strict (`analysis_options.yaml`): no `dynamic` leaks, no un-awaited
+  futures (wrap fire-and-forget navigation in `unawaited`).
 
 ## Comments
 - Short and crisp, senior-dev level. Explain *why*, never restate *what*.

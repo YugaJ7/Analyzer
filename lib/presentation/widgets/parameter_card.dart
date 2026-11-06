@@ -6,15 +6,21 @@ import '../../domain/entities/parameter_entity.dart';
 class ParameterCard extends StatelessWidget {
   final ParameterEntity param;
   final int index;
-  final void Function (DismissDirection) onDismissed;
+  final void Function(DismissDirection) onDismissed;
   final void Function() onTap;
 
-  const ParameterCard({super.key, required this.param, required this.index, required this.onDismissed, required this.onTap});
+  const ParameterCard({
+    super.key,
+    required this.param,
+    required this.index,
+    required this.onDismissed,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    IconData icon = getIconForType(param.type);
-    Color color = getColorForParam(param.color);
+    final IconData icon = getIconForType(param.type);
+    final Color color = getColorForParam(param.color);
     return Dismissible(
       key: ValueKey(param.id),
       direction: DismissDirection.endToStart,
@@ -31,7 +37,7 @@ class ParameterCard extends StatelessWidget {
       ),
       onDismissed: onDismissed,
       child: GestureDetector(
-        onTap:onTap,
+        onTap: onTap,
         child: Card(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),

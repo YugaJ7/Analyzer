@@ -40,7 +40,7 @@ class StreakRepositoryImpl implements StreakRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to save streak.'));
+      throw const AppException(ServerFailure('Failed to save streak.'));
     }
   }
 
@@ -80,7 +80,7 @@ class StreakRepositoryImpl implements StreakRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to load streaks.'));
+      throw const AppException(ServerFailure('Failed to load streaks.'));
     }
   }
 }

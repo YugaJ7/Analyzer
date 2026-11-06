@@ -32,7 +32,7 @@ class ParameterRepositoryImpl implements ParameterRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to load habits.'));
+      throw const AppException(ServerFailure('Failed to load habits.'));
     }
   }
 
@@ -52,7 +52,7 @@ class ParameterRepositoryImpl implements ParameterRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to add habit.'));
+      throw const AppException(ServerFailure('Failed to add habit.'));
     }
   }
 
@@ -72,7 +72,7 @@ class ParameterRepositoryImpl implements ParameterRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to update habit.'));
+      throw const AppException(ServerFailure('Failed to update habit.'));
     }
   }
 
@@ -105,7 +105,7 @@ class ParameterRepositoryImpl implements ParameterRepository {
       );
     } catch (e) {
       if (e is AppException) rethrow;
-      throw AppException(const ServerFailure('Failed to delete habit.'));
+      throw const AppException(ServerFailure('Failed to delete habit.'));
     }
   }
 

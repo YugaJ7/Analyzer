@@ -41,7 +41,7 @@ class HeatmapWidget extends StatelessWidget {
 
       // Fill leading blanks for first week
       final firstDate = filteredEntries.first.key;
-      final startWeekday = firstDate.weekday; 
+      final startWeekday = firstDate.weekday;
       for (int i = 1; i < startWeekday; i++) {
         currentWeek.add(_DayData.empty());
       }
@@ -107,8 +107,8 @@ class HeatmapWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Weekday labels
-                    Column(
-                      children: const [
+                    const Column(
+                      children: [
                         _DayLabel('M'),
                         _DayLabel('T'),
                         _DayLabel('W'),

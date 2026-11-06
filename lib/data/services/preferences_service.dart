@@ -1,5 +1,6 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../core/utils/app_constants.dart';
 
 class PreferencesService {

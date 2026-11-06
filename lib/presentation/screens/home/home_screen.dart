@@ -3,12 +3,12 @@ import 'dart:developer';
 import 'package:analyzer/core/theme/app_colors.dart';
 import 'package:analyzer/core/utils/app_logger.dart';
 import 'package:analyzer/core/utils/app_strings.dart';
-import 'package:analyzer/presentation/services/widget_action_sync_service.dart';
 import 'package:analyzer/presentation/controllers/entry_controller.dart';
 import 'package:analyzer/presentation/screens/home/widgets/date_selector.dart';
 import 'package:analyzer/presentation/screens/home/widgets/home_header.dart';
 import 'package:analyzer/presentation/screens/home/widgets/parameter_list.dart';
 import 'package:analyzer/presentation/screens/home/widgets/progress_card.dart';
+import 'package:analyzer/presentation/services/widget_action_sync_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -178,7 +178,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
         child: _showSkeleton
             ? Skeletonizer(
-                enabled: true,
                 effect: ShimmerEffect(
                   baseColor: Colors.white.withValues(alpha: 0.05),
                   highlightColor: Colors.white.withValues(alpha: 0.1),

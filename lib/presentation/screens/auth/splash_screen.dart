@@ -1,17 +1,18 @@
+import 'dart:async';
 import 'dart:developer';
+
 import 'package:analyzer/core/theme/app_background.dart';
 import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/presentation/screens/auth/splash_content.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../../core/routes/app_routes.dart';
 import '../../../data/services/auth_lock_service.dart';
 import '../../../data/services/preferences_service.dart';
 import '../../../data/services/user_session_storage.dart';
 import '../../services/sign_out_flow.dart';
-
-import '../../../core/routes/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,6 +22,9 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  // The biometric sheet can be briefly unavailable right after launch.
+  static const _biometricRetryDelay = Duration(milliseconds: 400);
+
   final RxBool showUnlock = false.obs;
   final RxBool isAuthenticating = false.obs;
   final RxBool isDeviceLockUnavailable = false.obs;
@@ -46,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen> {
         'startup: splash -> login in ${totalStopwatch.elapsedMilliseconds}ms',
         name: 'PERF',
       );
-      Get.offAllNamed(AppRoutes.login);
+      unawaited(Get.offAllNamed(AppRoutes.login));
       return;
     }
 
@@ -77,14 +81,14 @@ class _SplashScreenState extends State<SplashScreen> {
         'startup: splash -> home in ${totalStopwatch.elapsedMilliseconds}ms',
         name: 'PERF',
       );
-      Get.offAllNamed(AppRoutes.home);
+      unawaited(Get.offAllNamed(AppRoutes.home));
     } catch (e) {
       await _ensureMinimumSplashTime(startedAt);
       log(
         'startup: splash failed -> login in ${totalStopwatch.elapsedMilliseconds}ms',
         name: 'PERF',
       );
-      Get.offAllNamed(AppRoutes.login);
+      unawaited(Get.offAllNamed(AppRoutes.login));
     }
   }
 
@@ -109,7 +113,7 @@ class _SplashScreenState extends State<SplashScreen> {
       );
 
       if (result.failure == AuthLockFailure.uiUnavailable) {
-        await Future.delayed(const Duration(milliseconds: 400));
+        await Future<void>.delayed(_biometricRetryDelay);
         result = await AuthLockService.instance.authenticate(showErrors: false);
       }
 
@@ -124,7 +128,7 @@ class _SplashScreenState extends State<SplashScreen> {
     isDeviceLockUnavailable.value = result.isDeviceLockUnavailable;
 
     if (result.isAuthenticated) {
-      Get.offAllNamed(AppRoutes.home);
+      unawaited(Get.offAllNamed(AppRoutes.home));
     } else {
       Get.snackbar(
         AppStrings.accessDeniedTitle,

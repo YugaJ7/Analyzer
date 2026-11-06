@@ -22,15 +22,13 @@ class ProfileLogoutButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.error.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.error.withValues(alpha: 0.2),
-              ),
+              border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
             ),
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.logout_rounded, color: AppColors.error, size: 18),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
                   AppStrings.signOutButton,
                   style: TextStyle(

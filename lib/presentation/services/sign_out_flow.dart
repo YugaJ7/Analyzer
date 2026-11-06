@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
@@ -22,7 +24,7 @@ abstract final class SignOutFlow {
 
     await UserSessionStorage.clear();
     HomeBinding.tearDown();
-    Get.offAllNamed(AppRoutes.login);
+    unawaited(Get.offAllNamed(AppRoutes.login));
     return true;
   }
 

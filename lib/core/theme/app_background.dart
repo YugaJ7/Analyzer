@@ -5,11 +5,7 @@ class AppBackground extends StatelessWidget {
   final List<Color>? colors;
   final Widget child;
 
-  const AppBackground({
-    super.key,
-    required this.child,
-    this.colors,
-  });
+  const AppBackground({super.key, required this.child, this.colors});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +16,8 @@ class AppBackground extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: colors ??
+          colors:
+              colors ??
               [
                 AppColors.background,
                 AppColors.surface,

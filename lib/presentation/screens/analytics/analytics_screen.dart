@@ -46,7 +46,7 @@ class AnalyticsScreen extends StatelessWidget {
             key: ValueKey(loading),
             enabled: loading,
             effect: ShimmerEffect(
-              duration: Duration(milliseconds: 1200),
+              duration: const Duration(milliseconds: 1200),
               baseColor: Colors.white.withValues(alpha: 0.07),
               highlightColor: Colors.white.withValues(alpha: 0.16),
             ),
@@ -66,10 +66,10 @@ class _AnalyticsTab extends StatelessWidget {
     return SafeArea(
       child: CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(
+          const SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-              child: const AnalyticsHeader(),
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: AnalyticsHeader(),
             ),
           ),
           SliverPadding(

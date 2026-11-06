@@ -38,8 +38,15 @@ class AppColors {
 
   static final Color cardOverlay = surface.withValues(alpha: 0.5);
   static final Color borderSubtle = Colors.white.withValues(alpha: 0.05);
-  static final Color borderColorPrimary = const Color.fromARGB(255, 187, 130, 130).withValues(alpha: 0.1);
-  static final Color borderColorSecondary = Colors.white.withValues(alpha: 0.06);
+  static final Color borderColorPrimary = const Color.fromARGB(
+    255,
+    187,
+    130,
+    130,
+  ).withValues(alpha: 0.1);
+  static final Color borderColorSecondary = Colors.white.withValues(
+    alpha: 0.06,
+  );
 
   static final List<Map<String, dynamic>> availableColors = [
     {'color': 0xFF6C63FF, 'name': 'Purple'},

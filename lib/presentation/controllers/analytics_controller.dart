@@ -97,8 +97,8 @@ class AnalyticsController extends GetxController {
     if (isAdded) {
       _history[normalized]!.add(
         EntryEntity(
-          id: "",
-          userId: "",
+          id: '',
+          userId: '',
           parameterId: parameterId,
           date: normalized,
           value: true,

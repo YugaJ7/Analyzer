@@ -6,9 +6,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('PreferencesService initializes mock preferences', () async {
-    SharedPreferences.setMockInitialValues({
-      'user_name': 'Tester',
-    });
+    SharedPreferences.setMockInitialValues({'user_name': 'Tester'});
 
     final service = await PreferencesService.init();
 

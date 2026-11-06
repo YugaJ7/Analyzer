@@ -29,9 +29,7 @@ class UserModel extends UserEntity {
     );
   }
 
-  factory UserModel.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> doc,
-  ) {
+  factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
     return UserModel(
       id: doc.id,
