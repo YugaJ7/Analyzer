@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:analyzer/core/theme/app_background.dart';
-import 'package:analyzer/core/utils/app_strings.dart';
 import 'package:analyzer/presentation/screens/auth/splash_content.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +11,7 @@ import '../../../core/routes/app_routes.dart';
 import '../../../data/services/auth_lock_service.dart';
 import '../../../data/services/preferences_service.dart';
 import '../../../data/services/user_session_storage.dart';
+import '../../services/auth_lock_feedback.dart';
 import '../../services/sign_out_flow.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -108,13 +108,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
     isAuthenticating.value = true;
     try {
-      var result = await AuthLockService.instance.authenticate(
-        showErrors: false,
-      );
+      var result = await AuthLockService.instance.authenticate();
 
       if (result.failure == AuthLockFailure.uiUnavailable) {
         await Future<void>.delayed(_biometricRetryDelay);
-        result = await AuthLockService.instance.authenticate(showErrors: false);
+        result = await AuthLockService.instance.authenticate();
       }
 
       return result;
@@ -130,11 +128,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (result.isAuthenticated) {
       unawaited(Get.offAllNamed(AppRoutes.home));
     } else {
-      Get.snackbar(
-        AppStrings.accessDeniedTitle,
-        AppStrings.accessDeniedMessage,
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      AuthLockFeedback.show(result, AuthLockPurpose.unlock);
     }
   }
 

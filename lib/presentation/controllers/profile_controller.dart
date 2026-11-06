@@ -2,10 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
 import '../../core/errors/app_exception.dart';
+import '../../core/utils/app_strings.dart';
 import '../../data/services/auth_lock_service.dart';
 import '../../data/services/preferences_service.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../../domain/usecases/logout_user.dart';
+import '../services/auth_lock_feedback.dart';
 import '../services/export_service.dart';
 import '../services/sign_out_flow.dart';
 import 'analytics_controller.dart';
@@ -109,16 +111,22 @@ class ProfileController extends GetxController {
   // switch the lock off.
   Future<void> toggleAppLock(bool value) async {
     final result = await AuthLockService.instance.authenticate();
-    if (!result.isAuthenticated) return;
+    if (!result.isAuthenticated) {
+      AuthLockFeedback.show(
+        result,
+        value ? AuthLockPurpose.enable : AuthLockPurpose.disable,
+      );
+      return;
+    }
 
     await PreferencesService.instance.setAppLockEnabled(value);
     appLockEnabled.value = value;
 
     Get.snackbar(
-      value ? 'App Lock Enabled' : 'App Lock Disabled',
+      value ? AppStrings.appLockEnabledTitle : AppStrings.appLockDisabledTitle,
       value
-          ? 'App will require authentication on launch.'
-          : 'App lock has been turned off.',
+          ? AppStrings.appLockEnabledMessage
+          : AppStrings.appLockDisabledMessage,
       snackPosition: SnackPosition.BOTTOM,
     );
   }

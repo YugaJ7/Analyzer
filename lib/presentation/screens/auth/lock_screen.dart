@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../core/theme/app_background.dart';
 import '../../../data/services/auth_lock_service.dart';
+import '../../services/auth_lock_feedback.dart';
 import '../../services/sign_out_flow.dart';
 import 'splash_content.dart';
 
@@ -35,6 +36,7 @@ class _LockScreenState extends State<LockScreen> {
       if (result.isAuthenticated) {
         Get.back<void>();
       } else {
+        AuthLockFeedback.show(result, AuthLockPurpose.unlock);
         setState(
           () => _isDeviceLockUnavailable = result.isDeviceLockUnavailable,
         );
